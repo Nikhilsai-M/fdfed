@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [session, setSession] = useState(null);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -42,7 +41,7 @@ const Header = () => {
     <header className="fixed top-0 left-0 w-full bg-white shadow-md z-50 animate-fadeInUp">
       <div className="flex justify-between items-center px-4 py-2 md:px-5">
         <a href="/" className="block">
-          <img src="/images/header/logo1.png" alt="Logo" className="w-32 md:w-44 transition-transform duration-300 hover:scale-105 animate-bounceIn" />
+          <img src="/images/header/logo1.png" alt="Logo" className="w-32 md:w-44 transition-transform duration-300   animate-bounceIn" />
         </a>
 
         <div className="hidden md:flex items-center bg-gray-100 rounded-md px-3 py-2 w-1/3 animate-slideInRight">
@@ -52,23 +51,19 @@ const Header = () => {
 
         <div className="flex items-center gap-4 md:gap-6">
           <a href={session?.loggedIn ? '/cart' : '/login'} className="flex items-center text-black hover:text-blue-500 transition-colors duration-200 animate-fadeInUp delay-200">
-            <img src="/images/header/cart-icon.png" alt="Cart" className="w-6 h-6 mr-1 transition-transform duration-300 hover:rotate-12 animate-pulseSlow" />
+            <img src="/images/header/cart-icon.png" alt="Cart" className="w-6 h-6 mr-1 transition-transform duration-300 hover:rotate-12 hover:shadow-md animate-pulseSlow" />
             <span className="text-sm md:text-base">Cart</span>
           </a>
 
-          <div
-            className="relative"
-            onMouseEnter={() => session?.loggedIn && setIsDropdownOpen(true)}
-            onMouseLeave={() => session?.loggedIn && setIsDropdownOpen(false)}
-          >
+          <div className="relative">
             <a href={session?.loggedIn ? '/profile' : '/login'} className="flex items-center text-black hover:text-blue-500 transition-colors duration-200 animate-fadeInUp delay-300">
-              <img src="/images/header/profile-icon.png" alt="Profile" className="w-6 h-6 mr-1 hidden md:block transition-transform duration-300 hover:scale-110" />
-              <span className={session?.loggedIn ? 'text-sm md:text-base' : 'bg-black text-white px-3 py-1 rounded text-sm transition-transform duration-200 hover:scale-105'}>
+              <img src="/images/header/profile-icon.png" alt="Profile" className="w-6 h-6 mr-1 hidden md:block transition-transform duration-300 hover:scale-110 hover:shadow-md" />
+              <span className={session?.loggedIn ? 'text-sm md:text-base' : 'bg-black text-white px-3 py-1 rounded text-sm transition-transform duration-200 hover:scale-105 hover:shadow-md'}>
                 {session?.loggedIn ? session.name.split(' ')[0] : 'Sign in'}
               </span>
             </a>
-            {isDropdownOpen && session?.loggedIn && (
-              <div className="absolute top-full right-0 bg-white shadow-lg rounded-md w-40 z-50 animate-slideInRight">
+            {session?.loggedIn && (
+              <div className="absolute top-full right-0 bg-white shadow-lg rounded-md w-40 z-50 animate-slideInRight hidden group-hover:block">
                 <a href="/profile" className="block px-4 py-2 hover:bg-gray-100 transition-colors duration-200">User Profile</a>
                 <a href="/myorders" className="block px-4 py-2 hover:bg-gray-100 transition-colors duration-200">My Orders</a>
                 <a href="/listings" className="block px-4 py-2 hover:bg-gray-100 transition-colors duration-200">My Listings</a>
@@ -88,45 +83,58 @@ const Header = () => {
           <span className={`w-6 h-0.5 bg-white transition-all duration-300 ${isMenuOpen ? '-rotate-45 -translate-y-1.5' : ''}`}></span>
         </div>
 
-        <div className={`md:flex md:gap-8 ${isMenuOpen ? 'flex flex-col absolute top-full right-0 bg-white text-black w-48 shadow-md rounded-md z-50 animate-slideDown' : 'hidden'}`}>
-          <div className="relative px-4 py-2 hover:bg-blue-600 transition-colors duration-200 md:hover:bg-transparent animate-fadeInUp delay-100">
-            All
-            <div className="absolute top-full left-0 bg-white text-black shadow-md rounded-md hidden md:group-hover:block w-40 animate-slideInRight">
-              <a href="/sell-phone" className="block px-4 py-2 hover:bg-gray-100 transition-colors duration-200">Sell phone</a>
-              <a href="/sell-laptop" className="block px-4 py-2 hover:bg-gray-100 transition-colors duration-200">Sell laptop</a>
-              <a href="/buy-phone" className="block px-4 py-2 hover:bg-gray-100 transition-colors duration-200">Buy phone</a>
-              <a href="/buy-laptop" className="block px-4 py-2 hover:bg-gray-100 transition-colors duration-200">Buy laptop</a>
+        <div className={`md:flex md:gap-x-6 ${isMenuOpen ? 'flex flex-col absolute top-full right-0 bg-white text-black w-48 shadow-md rounded-md z-50 animate-slideInRight' : 'hidden md:flex'}`}>
+          <div className="relative group">
+            <a href="#" className="px-4 py-2 hover:bg-blue-600 transition-colors duration-200 animate-fadeInUp delay-100">All</a>
+            <div className="absolute top-full left-0 bg-white text-black shadow-md rounded-md hidden group-hover:block w-40 animate-slideInRight">
+              <a href="/sell-phone" className="block px-4 py-2 hover:bg-gray-100 transition-colors duration-200">Sell Phone</a>
+              <a href="/sell-laptop" className="block px-4 py-2 hover:bg-gray-100 transition-colors duration-200">Sell Laptop</a>
+              <a href="/buy-phone" className="block px-4 py-2 hover:bg-gray-100 transition-colors duration-200">Buy Phone</a>
+              <a href="/buy-laptop" className="block px-4 py-2 hover:bg-gray-100 transition-colors duration-200">Buy Laptop</a>
               <a href="/Accessories" className="block px-4 py-2 hover:bg-gray-100 transition-colors duration-200">Accessories</a>
             </div>
           </div>
-          <a href="/sell-phone" className="px-4 py-2 hover:bg-blue-600 transition-colors duration-200 animate-fadeInUp delay-200">Sell Phone</a>
-          <a href="/sell-laptop" className="px-4 py-2 hover:bg-blue-600 transition-colors duration-200 animate-fadeInUp delay-300">Sell Laptops</a>
-          <div className="relative px-4 py-2 hover:bg-blue-600 transition-colors duration-200 md:hover:bg-transparent animate-fadeInUp delay-400">
-            <a href="/buy-phone">Buy Phones</a>
-            <div className="absolute top-full left-0 bg-white text-black shadow-md rounded-md hidden md:group-hover:block w-40 animate-slideInRight">
+          <div className="relative group">
+            <a href="/sell-phone" className="px-4 py-2 hover:bg-blue-600 transition-colors duration-200 animate-fadeInUp delay-200">Sell Phone</a>
+            <div className="absolute top-full left-0 bg-white text-black shadow-md rounded-md hidden group-hover:block w-40 animate-slideInRight">
+              
+            
+            
+            </div>
+          </div>
+          <div className="relative group">
+            <a href="/sell-laptop" className="px-4 py-2 hover:bg-blue-600 transition-colors duration-200 animate-fadeInUp delay-300">Sell Laptop</a>
+            <div className="absolute top-full left-0 bg-white text-black shadow-md rounded-md hidden group-hover:block w-40 animate-slideInRight">
+             
+              
+             
+            </div>
+          </div>
+          <div className="relative group">
+            <a href="/buy-phone" className="px-4 py-2 hover:bg-blue-600 transition-colors duration-200 animate-fadeInUp delay-400">Buy Phones</a>
+            <div className="absolute top-full left-0 bg-white text-black shadow-md rounded-md hidden group-hover:block w-40 animate-slideInRight">
               <span className="block px-4 py-2 font-bold">Top brands</span>
               {['Apple', 'Samsung', 'Xiaomi', 'One plus', 'Realme', 'Motorola', 'Google', 'Vivo'].map(brand => (
                 <a key={brand} onClick={() => goToFilterPage('phone', brand)} className="block px-4 py-2 hover:bg-gray-100 cursor-pointer">{brand}</a>
               ))}
             </div>
           </div>
-          <div className="relative px-4 py-2 hover:bg-blue-600 transition-colors duration-200 md:hover:bg-transparent animate-fadeInUp delay-500">
-            <a href="/buy-laptop">Buy Laptop</a>
-            <div className="absolute top-full left-0 bg-white text-black shadow-md rounded-md hidden md:group-hover:block w-40 animate-slideInRight">
+          <div className="relative group">
+            <a href="/buy-laptop" className="px-4 py-2 hover:bg-blue-600 transition-colors duration-200 animate-fadeInUp delay-500">Buy Laptop</a>
+            <div className="absolute top-full left-0 bg-white text-black shadow-md rounded-md hidden group-hover:block w-40 animate-slideInRight">
               <span className="block px-4 py-2 font-bold">Top brands</span>
               {['Apple', 'Dell', 'Hp', 'Asus', 'Acer', 'Microsoft', 'Msi', 'Lenovo'].map(brand => (
                 <a key={brand} onClick={() => goToFilterPage('laptop', brand)} className="block px-4 py-2 hover:bg-gray-100 cursor-pointer">{brand}</a>
               ))}
             </div>
           </div>
-          <div className="relative px-4 py-2 hover:bg-blue-600 transition-colors duration-200 md:hover:bg-transparent animate-fadeInUp delay-600">
-            <a href="/Accessories">Accessories</a>
-            <div className="absolute top-full left-0 bg-white text-black shadow-md rounded-md hidden md:group-hover:block w-40 animate-slideInRight">
-              <span className="block px-4 py-2 font-bold">Categories</span>
-              <a href="/smartwatches" className="block px-4 py-2 hover:bg-gray-100">Smart Watches</a>
-              <a href="/earbuds" className="block px-4 py-2 hover:bg-gray-100">Ear Phones</a>
-              <a href="/chargers" className="block px-4 py-2 hover:bg-gray-100">Chargers</a>
-              <a href="/mouses" className="block px-4 py-2 hover:bg-gray-100">Mouses</a>
+          <div className="relative group">
+            <a href="/Accessories" className="px-4 py-2 hover:bg-blue-600 transition-colors duration-200 animate-fadeInUp delay-600">Accessories</a>
+            <div className="absolute top-full left-0 bg-white text-black shadow-md rounded-md hidden group-hover:block w-40 animate-slideInRight">
+              <a href="/Accessories?category=smartwatches" className="block px-4 py-2 hover:bg-gray-100 transition-colors duration-200">Smart Watches</a>
+              <a href="/Accessories?category=earbuds" className="block px-4 py-2 hover:bg-gray-100 transition-colors duration-200">Ear Phones</a>
+              <a href="/Accessories?category=chargers" className="block px-4 py-2 hover:bg-gray-100 transition-colors duration-200">Chargers</a>
+              <a href="/Accessories?category=mouses" className="block px-4 py-2 hover:bg-gray-100 transition-colors duration-200">Mouses</a>
             </div>
           </div>
         </div>

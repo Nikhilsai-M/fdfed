@@ -45,30 +45,35 @@ const HomePage = () => {
   const slideLinks = ['', '', '/Accessories', '/buy-phone'];
 
   return (
-    <div className="pt-32 bg-gray-100 min-h-screen animate-fadeInUp">
-      <div className="relative w-[95vw] mx-auto rounded-2xl overflow-hidden shadow-lg">
-        <div className="relative w-full h-96">
+    <div className="pt-35 bg-gray-100 min-h-screen animate-fadeInUp">
+      <div className="relative w-[95vw] mx-auto rounded-2xl overflow-hidden shadow-lg h-[450px]">
+        <div className="relative w-full h-full">
           {slides.map((slide, index) => (
             <div
               key={index}
-              className={`absolute top-0 left-0 w-full h-full transition-opacity duration-500 ${currentSlide === index ? 'opacity-100' : 'opacity-0'}`}
-              style={{ backgroundImage: `url(${slide})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+              className={`absolute top-0 left-0 w-full h-full transition-opacity duration-700 ${currentSlide === index ? 'opacity-100' : 'opacity-0'}`}
             >
+              <img
+                src={slide}
+                alt={`Slide ${index + 1}`}
+                className="w-full h-full object-cover"
+                style={{ objectPosition: 'center' }}
+              />
               {slideLinks[index] && (
-                <a href={slideLinks[index]} className="block w-full h-full"></a>
+                <a href={slideLinks[index]} className="block w-full h-full absolute top-0 left-0"></a>
               )}
             </div>
           ))}
         </div>
         <button
           onClick={() => setCurrentSlide((prev) => (prev - 1 + 4) % 4)}
-          className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-gray-500 bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition-all duration-300 animate-pulseSlow"
+          className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-gray-700 bg-opacity-60 text-white p-3 rounded-full hover:bg-opacity-80 transition-all duration-300 hover:scale-110 hover:shadow-md"
         >
           <i className="fa-solid fa-chevron-left"></i>
         </button>
         <button
           onClick={() => setCurrentSlide((prev) => (prev + 1) % 4)}
-          className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-500 bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition-all duration-300 animate-pulseSlow"
+          className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-700 bg-opacity-60 text-white p-3 rounded-full hover:bg-opacity-80 transition-all duration-300 hover:scale-110 hover:shadow-md"
         >
           <i className="fa-solid fa-chevron-right"></i>
         </button>
@@ -83,9 +88,9 @@ const HomePage = () => {
             products.map((product, index) => {
               const finalPrice = calculateFinalPrice(product);
               return (
-                <div key={product.id} className="bg-white p-4 rounded-lg shadow-md min-w-[250px] transition-transform duration-300 hover:scale-105 hover:shadow-xl animate-fadeInUp delay-[${index * 100}ms]">
+                <div key={product.id} className="bg-white p-4 rounded-lg shadow-md min-w-[250px] transition-all duration-300 hover:scale-105 hover:shadow-md animate-fadeInUp delay-100">
                   <a href={`/product/${product.id}`} className="block text-black no-underline">
-                    <img src={product.image} alt={`${product.brand} ${product.model}`} className="w-4/5 h-48 mx-auto mb-4 rounded-md transition-transform duration-300 hover:scale-110" />
+                    <img src={product.image} alt={`${product.brand} ${product.model}`} className="w-4/5 h-48 mx-auto mb-4 rounded-md transition-transform duration-300 hover:scale-105 hover:shadow-md" />
                     <p className="font-bold">{product.brand} {product.model}</p>
                     <p className="text-lg font-bold">₹{finalPrice.toLocaleString('en-IN')} <span className="line-through text-gray-500 text-sm">₹{product.base_price.toLocaleString('en-IN')}</span></p>
                     <p className="text-green-600 font-bold">{product.discount}% off</p>
@@ -112,8 +117,8 @@ const HomePage = () => {
             { brand: 'Google', img: '/images/topbrands/google pixel.webp' },
             { brand: 'Vivo', img: '/images/topbrands/vivo.png' },
           ].map(({ brand, img }, index) => (
-            <div key={brand} onClick={() => redirectToFilterPage(brand)} className="bg-white rounded-lg overflow-hidden w-32 shadow-md cursor-pointer transition-transform duration-300 hover:scale-110 hover:shadow-lg animate-fadeInUp delay-[${index * 100}ms]">
-              <img src={img} alt={brand} className="w-full h-auto transition-transform duration-300 hover:scale-105" />
+            <div key={brand} onClick={() => redirectToFilterPage(brand)} className="bg-white rounded-lg overflow-hidden w-32 shadow-md cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-md animate-fadeInUp delay-100">
+              <img src={img} alt={brand} className="w-full h-auto transition-transform duration-300 hover:scale-105 hover:shadow-md" />
               <div className="p-2 text-center font-bold">{brand}</div>
             </div>
           ))}
@@ -139,11 +144,11 @@ const HomePage = () => {
               features: ['Perfect working', '6 months assured warranty', 'Few scratches/Dots/marks on display and back panel', 'Few discolouration on Display', 'Few scratches on camera** does not restrict lens view', 'Might have Slight gap between back Panel and body.', 'Might have usage marks on back Panel'],
             },
           ].map(({ badge, color, features }, index) => (
-            <div key={index} className="bg-white rounded-2xl p-6 shadow-lg w-80 relative transition-transform duration-300 hover:scale-105 hover:shadow-2xl animate-fadeInUp delay-[${index * 200}ms]">
+            <div key={index} className="bg-white rounded-2xl p-6 shadow-lg w-80 relative transition-all duration-300 hover:scale-105 hover:shadow-md animate-fadeInUp delay-200">
               <div className={`absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-br ${color} text-white font-semibold px-6 py-3 rounded-full shadow-md animate-bounceIn`}>{badge}</div>
               <ul className="mt-8 list-none">
                 {features.map((feature, i) => (
-                  <li key={i} className="flex items-start mb-3 text-gray-700 animate-fadeInUp delay-[${i * 100 + 300}ms]"><span className="text-green-500 mr-2 text-xl">•</span>{feature}</li>
+                  <li key={i} className="flex items-start mb-3 text-gray-700 animate-fadeInUp delay-300"><span className="text-green-500 mr-2 text-xl">•</span>{feature}</li>
                 ))}
               </ul>
             </div>
