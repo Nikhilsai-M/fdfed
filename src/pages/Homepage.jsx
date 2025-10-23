@@ -37,10 +37,10 @@ const HomePage = () => {
   };
 
   const slides = [
-    '/images/carousal/home/pic-1.jpeg',
-    '/images/carousal/home/pic-2.jpeg',
-    '/images/carousal/home/pic-3.jpeg',
-    '/images/carousal/home/pic-4.jpeg',
+    'src/assets/images/carousal/home/pic-1.jpeg',
+    'src/assets/images/carousal/home/pic-2.jpeg',
+    'src/assets/images/carousal/home/pic-3.jpeg',
+    'src/assets/images/carousal/home/pic-4.jpeg',
   ];
   const slideLinks = ['', '', '/Accessories', '/buy-phone'];
 
@@ -108,14 +108,14 @@ const HomePage = () => {
       <div className="bg-gray-100 p-8 animate-slideInRight">
         <div className="flex flex-wrap justify-center gap-4">
           {[
-            { brand: 'Apple', img: '/images/topbrands/iphone.webp' },
-            { brand: 'Samsung', img: '/images/topbrands/samsung.webp' },
-            { brand: 'Xiaomi', img: '/images/topbrands/xiaomi.webp' },
-            { brand: 'OnePlus', img: '/images/topbrands/oneplus.webp' },
-            { brand: 'Realme', img: '/images/topbrands/realme.webp' },
-            { brand: 'Motorola', img: '/images/topbrands/motorola.webp' },
-            { brand: 'Google', img: '/images/topbrands/google pixel.webp' },
-            { brand: 'Vivo', img: '/images/topbrands/vivo.png' },
+            { brand: 'Apple', img: 'src/assets/images/topbrands/iphone.webp' },
+            { brand: 'Samsung', img: 'src/assets/images/topbrands/samsung.webp' },
+            { brand: 'Xiaomi', img: 'src/assets/images/topbrands/xiaomi.webp' },
+            { brand: 'OnePlus', img: 'src/assets/images/topbrands/oneplus.webp' },
+            { brand: 'Realme', img: 'src/assets/images/topbrands/realme.webp' },
+            { brand: 'Motorola', img: 'src/assets/images/topbrands/motorola.webp' },
+            { brand: 'Google', img: 'src/assets/images/topbrands/google pixel.webp' },
+            { brand: 'Vivo', img: 'src/assets/images/topbrands/vivo.png' },
           ].map(({ brand, img }, index) => (
             <div key={brand} onClick={() => redirectToFilterPage(brand)} className="bg-white rounded-lg overflow-hidden w-32 shadow-md cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-md animate-fadeInUp delay-100">
               <img src={img} alt={brand} className="w-full h-auto transition-transform duration-300 hover:scale-105 hover:shadow-md" />
