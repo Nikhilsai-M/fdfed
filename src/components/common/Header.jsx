@@ -41,7 +41,7 @@ const Header = () => {
     <header className="fixed top-0 left-0 w-full bg-white shadow-md z-50 animate-fadeInUp">
       <div className="flex justify-between items-center px-4 py-2 md:px-5">
         <a href="/" className="block">
-          <img src="/images/header/logo1.png" alt="Logo" className="w-32 md:w-44 transition-transform duration-300   animate-bounceIn" />
+          <img src="src/assets/images/icons/logo1.png" alt="Logo" className="w-32 md:w-44 transition-transform duration-300   animate-bounceIn" />
         </a>
 
         <div className="hidden md:flex items-center bg-gray-100 rounded-md px-3 py-2 w-1/3 animate-slideInRight">
@@ -51,13 +51,13 @@ const Header = () => {
 
         <div className="flex items-center gap-4 md:gap-6">
           <a href={session?.loggedIn ? '/cart' : '/login'} className="flex items-center text-black hover:text-blue-500 transition-colors duration-200 animate-fadeInUp delay-200">
-            <img src="/images/header/cart-icon.png" alt="Cart" className="w-6 h-6 mr-1 transition-transform duration-300 hover:rotate-12 hover:shadow-md animate-pulseSlow" />
+            <img src="src/assets/images/icons/cart-icon.png" alt="Cart" className="w-6 h-6 mr-1 transition-transform duration-300 hover:rotate-12 hover:shadow-md animate-pulseSlow" />
             <span className="text-sm md:text-base">Cart</span>
           </a>
 
           <div className="relative">
             <a href={session?.loggedIn ? '/profile' : '/login'} className="flex items-center text-black hover:text-blue-500 transition-colors duration-200 animate-fadeInUp delay-300">
-              <img src="/images/header/profile-icon.png" alt="Profile" className="w-6 h-6 mr-1 hidden md:block transition-transform duration-300 hover:scale-110 hover:shadow-md" />
+              <img src="src/assets/images/icons/profile-icon.png" alt="Profile" className="w-6 h-6 mr-1 hidden md:block transition-transform duration-300 hover:scale-110 hover:shadow-md" />
               <span className={session?.loggedIn ? 'text-sm md:text-base' : 'bg-black text-white px-3 py-1 rounded text-sm transition-transform duration-200 hover:scale-105 hover:shadow-md'}>
                 {session?.loggedIn ? session.name.split(' ')[0] : 'Sign in'}
               </span>
