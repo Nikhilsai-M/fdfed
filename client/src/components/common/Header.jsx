@@ -50,13 +50,13 @@ const Header = () => {
         </div>
 
         <div className="flex items-center gap-4 md:gap-6">
-          <a href={session?.loggedIn ? '/cart' : '/login'} className="flex items-center text-black hover:text-blue-500 transition-colors duration-200 animate-fadeInUp delay-200">
+          <a href={session?.loggedIn ? '/cart' : '/sign-in'} className="flex items-center text-black hover:text-blue-500 transition-colors duration-200 animate-fadeInUp delay-200">
             <img src="src/assets/images/icons/cart-icon.png" alt="Cart" className="w-6 h-6 mr-1 transition-transform duration-300 hover:rotate-12 hover:shadow-md animate-pulseSlow" />
             <span className="text-sm md:text-base">Cart</span>
           </a>
 
           <div className="relative">
-            <a href={session?.loggedIn ? '/profile' : '/login'} className="flex items-center text-black hover:text-blue-500 transition-colors duration-200 animate-fadeInUp delay-300">
+            <a href={session?.loggedIn ? '/profile' : '/sign-in'} className="flex items-center text-black hover:text-blue-500 transition-colors duration-200 animate-fadeInUp delay-300">
               <img src="src/assets/images/icons/profile-icon.png" alt="Profile" className="w-6 h-6 mr-1 hidden md:block transition-transform duration-300 hover:scale-110 hover:shadow-md" />
               <span className={session?.loggedIn ? 'text-sm md:text-base' : 'bg-black text-white px-3 py-1 rounded text-sm transition-transform duration-200 hover:scale-105 hover:shadow-md'}>
                 {session?.loggedIn ? session.name.split(' ')[0] : 'Sign in'}
