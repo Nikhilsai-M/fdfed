@@ -5,6 +5,7 @@ import Footer from './components/common/Footer';
 import Homepage from './pages/Homepage';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
+import SellLaptop from './pages/SellLaptop';
 
 import AccessoryRouter from './components/AccessoryRouter';
 // Component to handle category-based routing for Accessories
@@ -26,7 +27,7 @@ function App() {
             
            
             <Route path="/sell-phone" element={<div>Sell Phone Page</div>} />
-            <Route path="/sell-laptop" element={<div>Sell Laptop Page</div>} />
+            <Route path="/sell-laptop" element={<SellLaptop />} />
             <Route path="/buy-phone" element={<div>Buy Phone Page</div>} />
             <Route path="/buy-laptop" element={<div>Buy Laptop Page</div>} />
             <Route path="/profile" element={<div>Profile Page</div>} />
