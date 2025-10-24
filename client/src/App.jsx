@@ -3,7 +3,10 @@ import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-route
 import Header from './components/common/Header';
 import Footer from './components/common/Footer';
 import Homepage from './pages/Homepage';
-import Sell_laptop from './pages/Sell_laptop';
+import SignIn from './pages/SignIn';
+import SignUp from './pages/SignUp';
+import SellLaptop from './pages/SellLaptop';
+
 import AccessoryRouter from './components/AccessoryRouter';
 function App() {
   return (
@@ -22,11 +25,12 @@ function App() {
             
            
             <Route path="/sell-phone" element={<div>Sell Phone Page</div>} />
-            <Route path="/sell-laptop" element={<Sell_laptop />} />
+            <Route path="/sell-laptop" element={<SellLaptop />} />
             <Route path="/buy-phone" element={<div>Buy Phone Page</div>} />
             <Route path="/buy-laptop" element={<div>Buy Laptop Page</div>} />
             <Route path="/profile" element={<div>Profile Page</div>} />
-            <Route path="/login" element={<div>Login Page</div>} />
+            <Route path="/sign-in" element={<SignIn />} />
+            <Route path="/sign-up" element={<SignUp />} />
             <Route path="/cart" element={<div>Cart Page</div>} />
           </Routes>
         </main>
