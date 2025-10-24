@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import Header from './components/common/Header';
 import Footer from './components/common/Footer';
 import Homepage from './pages/Homepage';
@@ -12,12 +12,18 @@ function App() {
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<Homepage />} />
-            {/* Add other routes as needed */}
+            
+            
+            <Route path="/Accessories" element={<AccessoryRouter />} />
+            
+            
+            <Route path="/mouse/:id" element={<div>Mouse Detail Page</div>} />
+            
+           
             <Route path="/sell-phone" element={<div>Sell Phone Page</div>} />
             <Route path="/sell-laptop" element={<Sell_laptop />} />
             <Route path="/buy-phone" element={<div>Buy Phone Page</div>} />
             <Route path="/buy-laptop" element={<div>Buy Laptop Page</div>} />
-            <Route path="/Accessories" element={<div>Accessories Page</div>} />
             <Route path="/profile" element={<div>Profile Page</div>} />
             <Route path="/login" element={<div>Login Page</div>} />
             <Route path="/cart" element={<div>Cart Page</div>} />
