@@ -4,6 +4,7 @@ import Header from './components/common/Header';
 import Footer from './components/common/Footer';
 import Homepage from './pages/Homepage';
 import Sell_laptop from './pages/Sell_laptop';
+import AccessoryRouter from './components/AccessoryRouter';
 function App() {
   return (
     <Router>
