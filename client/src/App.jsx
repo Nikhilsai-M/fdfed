@@ -8,8 +8,6 @@ import SignUp from './pages/SignUp';
 import SellLaptop from './pages/SellLaptop';
 
 import AccessoryRouter from './components/AccessoryRouter';
-// Component to handle category-based routing for Accessories
-
 function App() {
   return (
     <Router>
