@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
+import { Link } from 'react-router-dom';
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [session, setSession] = useState(null);
@@ -133,7 +133,7 @@ const Header = () => {
             <div className="absolute top-full left-0 bg-white text-black shadow-md rounded-md hidden group-hover:block w-40 animate-slideInRight">
               <a href="/Accessories?category=smartwatches" className="block px-4 py-2 hover:bg-gray-100 transition-colors duration-200">Smart Watches</a>
               <a href="/Accessories?category=earbuds" className="block px-4 py-2 hover:bg-gray-100 transition-colors duration-200">Ear Phones</a>
-              <a href="/Accessories?category=chargers" className="block px-4 py-2 hover:bg-gray-100 transition-colors duration-200">Chargers</a>
+              <Link to="/chargers" className="block px-4 py-2 hover:bg-gray-100 transition-colors duration-200">Chargers</Link>
               <a href="/Accessories?category=mouses" className="block px-4 py-2 hover:bg-gray-100 transition-colors duration-200">Mouses</a>
             </div>
           </div>
