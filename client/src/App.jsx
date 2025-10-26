@@ -6,8 +6,8 @@ import Homepage from './pages/Homepage';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import SellLaptop from './pages/SellLaptop';
+import ChargersPage from './pages/ChargersPage';
 
-import AccessoryRouter from './components/AccessoryRouter';
 function App() {
   return (
     <Router>
@@ -18,7 +18,7 @@ function App() {
             <Route path="/" element={<Homepage />} />
             
             
-            <Route path="/Accessories" element={<AccessoryRouter />} />
+            <Route path="/chargers" element={<ChargersPage />} />
             
             
             <Route path="/mouse/:id" element={<div>Mouse Detail Page</div>} />

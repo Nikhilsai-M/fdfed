@@ -3,10 +3,13 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import userRouter from "./routes/user.route.js";
 import authRouter from "./routes/auth.route.js";
+import chargerRouter from "./routes/charger.route.js";
+import { initChargers } from './crud/chargers.js';
 dotenv.config({ path: '../.env' });
 
-mongoose.connect(process.env.MONGO).then(() => {
+mongoose.connect(process.env.MONGO).then(async() => {
   console.log("Connected to MongoDB successfully!!!");
+ await initChargers();
 }).catch((err) => {
   console.error("Error connecting to MongoDB:", err);
 });
@@ -21,6 +24,7 @@ app.listen(3000, () => {
 
 app.use("/api/user", userRouter);
 app.use("/api/auth", authRouter); 
+app.use("/api/Accessories/chargers", chargerRouter);
 
 app.use((err,req,res,next) => {
   const statusCode = err.statusCode || 500;
