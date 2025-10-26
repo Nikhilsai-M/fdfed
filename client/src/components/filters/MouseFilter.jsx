@@ -1,6 +1,6 @@
 import React from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-
+import './style.css'; // ✅ Import external CSS
 const MouseFilter = ({ 
   filters, 
   onFilterChange, 
@@ -204,35 +204,6 @@ const MouseFilter = ({
         )}
       </div>
 
-      <style jsx>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        
-        @keyframes slideDown {
-          from { opacity: 0; max-height: 0; }
-          to { opacity: 1; max-height: 500px; }
-        }
-        
-        .animate-fadeIn {
-          animation: fadeIn 0.6s ease-out forwards;
-        }
-        
-        .animate-slideDown {
-          animation: slideDown 0.3s ease-out;
-        }
-
-        /* Adjust sticky positioning */
-        .sticky {
-          top: 1rem; /* Reduced top offset to avoid overlap with header */
-        }
-
-        /* Reduce padding for compact filter */
-        .p-4 {
-          padding: 1rem;
-        }
-      `}</style>
     </div>
   );
 };

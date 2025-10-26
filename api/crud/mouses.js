@@ -1,13 +1,18 @@
-import Mouse from "../models/mouse.model.js";
-const mouseCount = await Mouse.countDocuments();
+import Mouse from '../models/mouse.model.js';
+
+const prefix = '../../client/src/assets/images/mouses/';
+
+export async function initMouses() {
+  try {
+    const mouseCount = await Mouse.countDocuments();
     if (mouseCount === 0) {
       await Mouse.insertMany([
         {
           id: 'logitech_m196_202',
           title: 'Logitech M196 Wireless Optical Mouse with Bluetooth',
-          image: 'images/accessories/mouses/Logitech M196.webp',
+          image: prefix + 'Logitech M196.webp',
           brand: 'Logitech',
-          original_price: 1125,
+          originalPrice: 1125,
           discount: '20%',
           type: 'Wireless',
           connectivity: 'Bluetooth & USB',
@@ -15,10 +20,11 @@ const mouseCount = await Mouse.countDocuments();
         },
         {
           id: 'logitech_g502_303',
-          title: 'Logitech G502 Hero / Hero 25K Sensor, Adj DPI Upto 25600, RGB, 11 Programmable Buttons Wired Optical Gaming Mouse',
-          image: 'images/accessories/mouses/Logotech G502 Hero.webp',
+          title:
+            'Logitech G502 Hero / Hero 25K Sensor, Adj DPI Upto 25600, RGB, 11 Programmable Buttons Wired Optical Gaming Mouse',
+          image: prefix + 'Logotech G502 Hero.webp',
           brand: 'Logitech',
-          original_price: 5495,
+          originalPrice: 5495,
           discount: '25%',
           type: 'Wired',
           connectivity: 'USB',
@@ -26,10 +32,11 @@ const mouseCount = await Mouse.countDocuments();
         },
         {
           id: 'arctic_fox_breathing_404',
-          title: 'Arctic Fox Breathing Lights and DPI Upto 3600 Wired Optical Gaming Mouse',
-          image: 'images/accessories/mouses/Arctic Fox Breathing Lights.webp',
+          title:
+            'Arctic Fox Breathing Lights and DPI Upto 3600 Wired Optical Gaming Mouse',
+          image: prefix + 'Arctic Fox Breathing Lights.webp',
           brand: 'Arctic Fox',
-          original_price: 599,
+          originalPrice: 599,
           discount: '35%',
           type: 'Wired',
           connectivity: 'USB',
@@ -38,9 +45,9 @@ const mouseCount = await Mouse.countDocuments();
         {
           id: 'zebronics_jaguar_606',
           title: 'ZEBRONICS Zeb-Jaguar Wireless Optical Mouse',
-          image: 'images/accessories/mouses/Zebronics Zeb Jaguar.webp',
+          image: prefix + 'Zebronics Zeb Jaguar.webp',
           brand: 'ZEBRONICS',
-          original_price: 1190,
+          originalPrice: 1190,
           discount: '39%',
           type: 'Wireless',
           connectivity: 'USB',
@@ -49,9 +56,9 @@ const mouseCount = await Mouse.countDocuments();
         {
           id: 'zebronics_rise_707',
           title: 'ZEBRONICS ZEB-RISE Wired Optical Mouse',
-          image: 'images/accessories/mouses/Zebronics Zeb Rise.webp',
+          image: prefix + 'Zebronics Zeb Rise.webp',
           brand: 'ZEBRONICS',
-          original_price: 699,
+          originalPrice: 699,
           discount: '19%',
           type: 'Wired',
           connectivity: 'USB',
@@ -59,10 +66,11 @@ const mouseCount = await Mouse.countDocuments();
         },
         {
           id: 'zebronics_blanc_808',
-          title: 'ZEBRONICS Zeb-Blanc /Dual Mode,Type C rechargeable built-in battery,upto 1600 DPI Wireless Optical Mouse',
-          image: 'images/accessories/mouses/Zebronics Zeb Blanc.webp',
+          title:
+            'ZEBRONICS Zeb-Blanc /Dual Mode,Type C rechargeable built-in battery,upto 1600 DPI Wireless Optical Mouse',
+          image: prefix + 'Zebronics Zeb Blanc.webp',
           brand: 'ZEBRONICS',
-          original_price: 999,
+          originalPrice: 999,
           discount: '15%',
           type: 'Wireless',
           connectivity: 'Bluetooth & USB',
@@ -71,9 +79,9 @@ const mouseCount = await Mouse.countDocuments();
         {
           id: 'dell_ms116_909',
           title: 'DELL MS 116-BK Wired Optical Mouse',
-          image: 'images/accessories/mouses/Dell MS 116-BK.webp',
+          image: prefix + 'Dell MS 116-BK.webp',
           brand: 'DELL',
-          original_price: 650,
+          originalPrice: 650,
           discount: '30%',
           type: 'Wired',
           connectivity: 'USB',
@@ -82,9 +90,9 @@ const mouseCount = await Mouse.countDocuments();
         {
           id: 'hp_m160_1010',
           title: 'HP M160 Wired Optical Gaming Mouse',
-          image: 'images/accessories/mouses/HP M160.webp',
+          image: prefix + 'HP M160.webp',
           brand: 'HP',
-          original_price: 799,
+          originalPrice: 799,
           discount: '40%',
           type: 'Wired',
           connectivity: 'USB',
@@ -92,10 +100,11 @@ const mouseCount = await Mouse.countDocuments();
         },
         {
           id: 'hp_z3700_1111',
-          title: 'HP Z3700 /Slim form with USB receiver,16 month battery life, 1200DPI Wireless Optical Mouse',
-          image: 'images/accessories/mouses/HP Z3700.webp',
+          title:
+            'HP Z3700 /Slim form with USB receiver,16 month battery life, 1200DPI Wireless Optical Mouse',
+          image: prefix + 'HP Z3700.webp',
           brand: 'HP',
-          original_price: 1499,
+          originalPrice: 1499,
           discount: '30%',
           type: 'Wireless',
           connectivity: 'USB',
@@ -103,31 +112,36 @@ const mouseCount = await Mouse.countDocuments();
         },
         {
           id: 'logitech_b175_101',
-          title: 'Logitech B175 / Optical Tracking, 12-Months Battery Life, Ambidextrous Wireless Optical Mouse',
-          image: 'images/accessories/mouses/Logitech B175.webp',
+          title:
+            'Logitech B175 / Optical Tracking, 12-Months Battery Life, Ambidextrous Wireless Optical Mouse',
+          image: prefix + 'Logitech B175.webp',
           brand: 'Logitech',
-          original_price: 995,
+          originalPrice: 995,
           discount: '49%',
           type: 'Wireless',
           connectivity: 'USB',
           resolution: '3000',
         },
       ]);
-      console.log('Test mouses added to database');
+      console.log('✅ Test mouses added to database');
+    } else {
+      console.log('✅ Mouses already exist in database');
     }
-  
+  } catch (err) {
+    console.error('❌ Error initializing mouses:', err);
+  }
+}
 
-// Mouse Functions
 export async function getAllMouses() {
   try {
     const mouses = await Mouse.find().lean();
-    
-    return mouses.map(mouse => ({
+
+    return mouses.map((mouse) => ({
       id: mouse.id,
       title: mouse.title,
       image: mouse.image,
       brand: mouse.brand,
-      originalPrice: mouse.original_price,
+      originalPrice: mouse.originalPrice,
       discount: mouse.discount,
       type: mouse.type,
       connectivity: mouse.connectivity,
@@ -142,18 +156,18 @@ export async function getAllMouses() {
 export async function getMouseById(id) {
   try {
     const mouse = await Mouse.findOne({ id }).lean();
-    
+
     if (!mouse) {
       return null;
     }
-    
+
     return {
       id: mouse.id,
       title: mouse.title,
       image: mouse.image,
       brand: mouse.brand,
       pricing: {
-        originalPrice: Number(mouse.original_price),
+        originalPrice: Number(mouse.originalPrice),
         discount: mouse.discount,
       },
       type: mouse.type,
@@ -168,20 +182,21 @@ export async function getMouseById(id) {
 
 export async function addMouse(mouseData) {
   try {
-    const { id, title, image, brand, pricing, type, connectivity, resolution } = mouseData;
-    
+    const { id, title, image, brand, pricing, type, connectivity, resolution } =
+      mouseData;
+
     await Mouse.create({
       id,
       title,
       image,
       brand,
-      original_price: pricing.originalPrice,
+      originalPrice: pricing.originalPrice,
       discount: pricing.discount,
       type,
       connectivity,
       resolution,
     });
-    
+
     return { success: true, id };
   } catch (error) {
     console.error('Error adding mouse:', error);
@@ -191,8 +206,9 @@ export async function addMouse(mouseData) {
 
 export async function updateMouse(id, mouseData) {
   try {
-    const { title, image, brand, pricing, type, connectivity, resolution } = mouseData;
-    
+    const { title, image, brand, pricing, type, connectivity, resolution } =
+      mouseData;
+
     await Mouse.updateOne(
       { id },
       {
@@ -200,7 +216,7 @@ export async function updateMouse(id, mouseData) {
           title,
           image,
           brand,
-          original_price: pricing.originalPrice,
+          originalPrice: pricing.originalPrice,
           discount: pricing.discount,
           type,
           connectivity,
@@ -208,7 +224,7 @@ export async function updateMouse(id, mouseData) {
         },
       }
     );
-    
+
     return { success: true };
   } catch (error) {
     console.error('Error updating mouse:', error);

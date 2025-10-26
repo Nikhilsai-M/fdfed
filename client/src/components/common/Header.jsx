@@ -131,10 +131,10 @@ const Header = () => {
           <div className="relative group">
             <a href="/Accessories" className="px-4 py-2 hover:bg-blue-600 transition-colors duration-200 animate-fadeInUp delay-600">Accessories</a>
             <div className="absolute top-full left-0 bg-white text-black shadow-md rounded-md hidden group-hover:block w-40 animate-slideInRight">
-              <a href="/Accessories?category=smartwatches" className="block px-4 py-2 hover:bg-gray-100 transition-colors duration-200">Smart Watches</a>
-              <a href="/Accessories?category=earbuds" className="block px-4 py-2 hover:bg-gray-100 transition-colors duration-200">Ear Phones</a>
+              <Link to="/smartwatches" className="block px-4 py-2 hover:bg-gray-100 transition-colors duration-200">Smart Watches</Link>
+              <Link to="/earphones" className="block px-4 py-2 hover:bg-gray-100 transition-colors duration-200">Ear Phones</Link>
               <Link to="/chargers" className="block px-4 py-2 hover:bg-gray-100 transition-colors duration-200">Chargers</Link>
-              <a href="/Accessories?category=mouses" className="block px-4 py-2 hover:bg-gray-100 transition-colors duration-200">Mouses</a>
+              <Link to="/mouses" className="block px-4 py-2 hover:bg-gray-100 transition-colors duration-200">Mouses</Link>
             </div>
           </div>
         </div>

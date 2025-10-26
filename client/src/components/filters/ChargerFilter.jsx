@@ -1,5 +1,6 @@
 import React from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import './style.css'; // ✅ Import external CSS
 
 const ChargerFilter = ({ 
   filters, 
@@ -17,7 +18,7 @@ const ChargerFilter = ({
       { label: "45W", value: "45" },
       { label: "65W", value: "65" },
     ],
-    types: ["USB-B", "USB-C", "Lightning"],
+    types: ["USB-B", "USB-C", "Lightning"], // ✅ Updated to match your data (e.g., 'USB C' → 'USB-C' for consistency; adjust if needed)
     outputCurrents: [
       { label: "1A", value: "1A" },
       { label: "2A", value: "2A" },
@@ -96,35 +97,6 @@ const ChargerFilter = ({
 
       {/* Discount */}
       {renderSection('discount', 'Discount', filterOptions.discount, true)}
-
-      {/* Animations and Styling */}
-      <style jsx>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes slideDown {
-          from { opacity: 0; max-height: 0; }
-          to { opacity: 1; max-height: 500px; }
-        }
-
-        .animate-fadeIn {
-          animation: fadeIn 0.6s ease-out forwards;
-        }
-
-        .animate-slideDown {
-          animation: slideDown 0.3s ease-out;
-        }
-
-        .sticky {
-          top: 1rem;
-        }
-
-        .p-4 {
-          padding: 1rem;
-        }
-      `}</style>
     </div>
   );
 };

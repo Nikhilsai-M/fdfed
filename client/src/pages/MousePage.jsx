@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ShoppingCart, X, Check } from 'lucide-react';
-import MouseFilter from '../components/Filters/MouseFilter';
+import MouseFilter from '../components/filters/MouseFilter';
 
 const MousePage = () => {
   const [mouses, setMouses] = useState([]);
@@ -33,7 +33,7 @@ const MousePage = () => {
     const fetchMouseData = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/mouses');
+        const response = await fetch('/api/Accessories/mouses');
         if (!response.ok) throw new Error('Failed to fetch mouse data');
         const data = await response.json();
         setMouses(data);
@@ -65,7 +65,7 @@ const MousePage = () => {
           if (!includesOthers) {
             return includesSpecificBrand;
           } else {
-            return includesSpecificBrand || isOtherBrand;
+            return  isOtherBrand;
           }
         });
       }
