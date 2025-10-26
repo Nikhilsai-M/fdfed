@@ -12,6 +12,7 @@ import EarbudsPage from './pages/EarbudsPage';
 import SmartWatchesPage from './pages/SmartWatchesPage';
 import AccessoriesPage from './pages/Accessories';
 import ChargerDetails from './pages/ChargerDetails';
+import SupervisorDashboard from './pages/SupervisorDashboard'; // Add this import
 
 function App() {
   return (
@@ -21,8 +22,6 @@ function App() {
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<Homepage />} />
-            
-            
             <Route path="/chargers" element={<ChargersPage />} />
             <Route path="/mouses" element={<MousePage/>}/>
             <Route path="/earphones" element={<EarbudsPage/>}/>
@@ -39,6 +38,7 @@ function App() {
             <Route path="/sign-in" element={<SignIn />} />
             <Route path="/sign-up" element={<SignUp />} />
             <Route path="/cart" element={<div>Cart Page</div>} />
+            <Route path="/supervisor-dashboard" element={<SupervisorDashboard />} /> {/* Add this route */}
           </Routes>
         </main>
         <Footer />
