@@ -18,7 +18,7 @@ function App() {
   return (
     <Router>
       <div className="flex flex-col min-h-screen">
-        <Header />
+        
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<Homepage />} />
@@ -41,7 +41,7 @@ function App() {
             <Route path="/supervisor-dashboard" element={<SupervisorDashboard />} /> {/* Add this route */}
           </Routes>
         </main>
-        <Footer />
+      
       </div>
     </Router>
   );
