@@ -7,6 +7,11 @@ import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import SellLaptop from './pages/SellLaptop';
 import ChargersPage from './pages/ChargersPage';
+import MousePage from './pages/MousePage';
+import EarbudsPage from './pages/EarbudsPage';
+import SmartWatchesPage from './pages/SmartWatchesPage';
+import AccessoriesPage from './pages/Accessories';
+import ChargerDetails from './pages/ChargerDetails';
 import SupervisorDashboard from './pages/SupervisorDashboard'; // Add this import
 
 function App() {
@@ -18,7 +23,13 @@ function App() {
           <Routes>
             <Route path="/" element={<Homepage />} />
             <Route path="/chargers" element={<ChargersPage />} />
-            <Route path="/mouse/:id" element={<div>Mouse Detail Page</div>} />
+            <Route path="/mouses" element={<MousePage/>}/>
+            <Route path="/earphones" element={<EarbudsPage/>}/>
+            <Route path="/smartwatches" element={<SmartWatchesPage/>}/>
+            
+            <Route path="/chargers/:id" element={<ChargerDetails/>} />
+            <Route path="/Accessories" element={<AccessoriesPage />} />
+           
             <Route path="/sell-phone" element={<div>Sell Phone Page</div>} />
             <Route path="/sell-laptop" element={<SellLaptop />} />
             <Route path="/buy-phone" element={<div>Buy Phone Page</div>} />

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Star, TrendingUp, Shield, Zap } from 'lucide-react';
-
+import { Link } from 'react-router-dom';
 const AccessoriesPage = () => {
   const [accessories, setAccessories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,10 +15,10 @@ const AccessoriesPage = () => {
   ];
 
   const categories = [
-    { name: 'Chargers', icon: 'src/assets/images/icons/charger.jpg', link: '/Accessories?category=chargers' },
-    { name: 'Earbuds', icon: 'src/assets/images/icons/Ear buds.png', link: '/Accessories?category=earbuds' },
-    { name: 'Mouses', icon: 'src/assets/images/icons/mouse.jpg', link: '/Accessories?category=mouses' },
-    { name: 'SmartWatches', icon: 'src/assets/images/icons/Smart watch.jpg', link: '/Accessories?category=smartwatches' }
+    { name: 'Chargers', icon: 'src/assets/images/icons/charger.jpg', link: '/chargers' },
+    { name: 'Earbuds', icon: 'src/assets/images/icons/Ear buds.png', link: '/earphones' },
+    { name: 'Mouses', icon: 'src/assets/images/icons/mouse.jpg', link: '/mouses' },
+    { name: 'SmartWatches', icon: 'src/assets/images/icons/Smart watch.jpg', link: '/smartwatches' }
   ];
 
   const features = [
@@ -186,9 +186,9 @@ const AccessoriesPage = () => {
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-5xl mx-auto">
           {categories.map((category, index) => (
-            <a
+            <Link
               key={index}
-              href={category.link}
+              to={category.link}
               className="group flex flex-col items-center p-4 md:p-6 bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 animate-fadeInUp"
               style={{ animationDelay: `${index * 100}ms` }}
             >
@@ -202,7 +202,7 @@ const AccessoriesPage = () => {
               <span className="text-gray-800 font-semibold text-center text-sm md:text-base group-hover:text-blue-600 transition-colors duration-300">
                 {category.name}
               </span>
-            </a>
+            </Link>
           ))}
         </div>
       </div>

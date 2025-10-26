@@ -33,7 +33,7 @@ const SmartWatchesPage = () => {
     const fetchSmartWatchData = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/smartwatches');
+        const response = await fetch('/api/Accessories/smartwatches');
         if (!response.ok) throw new Error('Failed to fetch smartwatch data');
         const data = await response.json();
         setSmartwatches(data);
@@ -79,20 +79,20 @@ const SmartWatchesPage = () => {
           if (!includesOthers) {
             return includesSpecificBrand;
           } else {
-            return includesSpecificBrand || isOtherBrand;
+            return isOtherBrand;
           }
         });
       }
 
       // Display Type filter
       if (filters.displayTypes.length > 0) {
-        filtered = filtered.filter((smartwatch) => filters.displayTypes.includes(smartwatch.display_type));
+        filtered = filtered.filter((smartwatch) => filters.displayTypes.includes(smartwatch.displayType));
       }
 
       // Display Size filter
       if (filters.displaySizes.length > 0) {
         filtered = filtered.filter((smartwatch) => {
-          const smartwatchSize = parseInt(smartwatch.display_size);
+          const smartwatchSize = parseInt(smartwatch.displaySize);
           return filters.displaySizes.some((size) => smartwatchSize >= size);
         });
       }
@@ -100,7 +100,7 @@ const SmartWatchesPage = () => {
       // Battery Runtime filter
       if (filters.batteryRuntimes.length > 0) {
         filtered = filtered.filter((smartwatch) => {
-          const smartwatchBattery = parseInt(smartwatch.battery_runtime);
+          const smartwatchBattery = parseInt(smartwatch.batteryRuntime);
           return filters.batteryRuntimes.some((battery) => smartwatchBattery >= battery);
         });
       }
@@ -180,9 +180,9 @@ const SmartWatchesPage = () => {
         id: smartwatch.id,
         title: smartwatch.title,
         brand: smartwatch.brand,
-        displayType: smartwatch.display_type,
-        displaySize: smartwatch.display_size,
-        batteryRuntime: smartwatch.battery_runtime,
+        displayType: smartwatch.displayType,
+        displaySize: smartwatch.displaySize,
+        batteryRuntime: smartwatch.batteryRuntime,
         image: smartwatch.image,
         price: smartwatch.originalPrice,
         discount: parseFloat(smartwatch.discount),
@@ -308,15 +308,15 @@ const SmartWatchesPage = () => {
                             </li>
                             <li className="flex justify-between">
                               <span className="font-semibold">Display Type:</span>
-                              <span>{smartwatch.display_type}</span>
+                              <span>{smartwatch.displayType}</span>
                             </li>
                             <li className="flex justify-between">
                               <span className="font-semibold">Display Size:</span>
-                              <span>{smartwatch.display_size}mm</span>
+                              <span>{smartwatch.displaySize}mm</span>
                             </li>
                             <li className="flex justify-between">
                               <span className="font-semibold">Battery Runtime:</span>
-                              <span>{smartwatch.battery_runtime} days</span>
+                              <span>{smartwatch.batteryRuntime} days</span>
                             </li>
                           </ul>
                         </div>

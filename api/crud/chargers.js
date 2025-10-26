@@ -1,5 +1,7 @@
 import Charger from '../models/charger.model.js';
 
+const prefix = '../../client/src/assets/images/chargers/';
+
 export async function initChargers() {
   try {
     const chargerCount = await Charger.countDocuments();
@@ -9,7 +11,7 @@ export async function initChargers() {
         {
           id: 'chg001',
           title: 'Apple 20W USB-C Power Adapter',
-          image: 'images/accessories/chargers/apple_20w.webp',
+          image: prefix + 'apple_20w.webp',
           brand: 'Apple',
           wattage: '20',
           type: 'USB C',
@@ -20,7 +22,7 @@ export async function initChargers() {
         {
           id: 'chg002',
           title: 'Samsung 25W Fast Charger',
-          image: 'images/accessories/chargers/samsung_25.webp',
+          image: prefix + 'samsung_25.webp',
           brand: 'Samsung',
           wattage: '25',
           type: 'USB C',
@@ -32,7 +34,7 @@ export async function initChargers() {
           id: 'chg003',
           title:
             'RoarX 33 W SuperVOOC 6 A Wall Charger for Mobile with Detachable Cable  (White, Cable Included)',
-          image: 'images/accessories/chargers/roar_33v.webp',
+          image: prefix + 'roar_33v.webp',
           brand: 'RoarX',
           wattage: '33',
           type: 'USB C',
@@ -44,7 +46,7 @@ export async function initChargers() {
           id: 'chg004',
           title:
             'EYNK 44 W Quick Charge 5 A Wall Charger for Mobile with Detachable Cable  (Supported All Flash Charge 2.0 devices, White, Cable Included)',
-          image: 'images/accessories/chargers/eynk_44.webp',
+          image: prefix + 'eynk_44.webp',
           brand: 'EYNK',
           wattage: '44',
           type: 'USB C',
@@ -56,7 +58,7 @@ export async function initChargers() {
           id: 'chg005',
           title:
             'Pacificdeals 44 W Supercharge 4 A Wall Charger for Mobile with Detachable Cable  (White, Cable Included)',
-          image: 'images/accessories/chargers/PACIFIC.webp',
+          image: prefix + 'PACIFIC.webp',
           brand: 'Pacificdeals',
           wattage: '44',
           type: 'USB C',
@@ -68,7 +70,7 @@ export async function initChargers() {
           id: 'chg006',
           title:
             'SB 80 W SuperVOOC 7.3 A Wall Charger for Mobile with Detachable Cable  (White, Cable Included)',
-          image: 'images/accessories/chargers/sb_80.webp',
+          image: prefix + 'sb80.jpg',
           brand: 'SB',
           wattage: '80',
           type: 'USB C',
@@ -80,7 +82,7 @@ export async function initChargers() {
           id: 'chg007',
           title:
             'Apple Lightning Cable 2 m MW2R3ZM/A  (Compatible with Mobile, Tablet, White)',
-          image: 'images/accessories/chargers/apple_light.webp',
+          image: prefix + 'apple_light.webp',
           brand: 'Apple',
           wattage: '20',
           type: 'lightning',
@@ -98,6 +100,7 @@ export async function initChargers() {
     console.error('❌ Error initializing chargers:', err);
   }
 }
+
 export async function getAllChargers() {
   try {
     const chargers = await Charger.find().lean();
@@ -145,6 +148,7 @@ export async function getChargerById(id) {
     throw error;
   }
 }
+
 export async function addCharger(chargerData) {
   try {
     const { id, title, image, brand, wattage, type, pricing, outputCurrent } = chargerData;

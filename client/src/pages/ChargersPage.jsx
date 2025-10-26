@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ShoppingCart, X, Check } from 'lucide-react';
-import ChargerFilter from '../components/Filters/ChargerFilter';
-
+import ChargerFilter from '../components/filters/ChargerFilter';
+import { Link } from 'react-router-dom';
 const ChargersPage = () => {
   const [chargers, setChargers] = useState([]);
   const [filteredChargers, setFilteredChargers] = useState([]);
@@ -14,7 +14,7 @@ const ChargersPage = () => {
     brands: [],
     wattages: [],
     types: [],
-    outputCurrents: [], // ✅ Added new filter
+    outputCurrents: [], 
     discount: [],
   });
 
@@ -22,11 +22,11 @@ const ChargersPage = () => {
     brand: true,
     wattage: true,
     type: true,
-    outputCurrents: true, // ✅ Added new section
+    outputCurrents: true, 
     discount: true,
   });
 
-  const mainBrands = ["Apple", "Samsung", "Anker", "Belkin", "Xiaomi"];
+  const mainBrands = ["Apple", "Samsung", "RoarX", "Pacificdeals", "EYNK"];
 
   // Fetch charger data
   useEffect(() => {
@@ -198,7 +198,7 @@ const ChargersPage = () => {
         <div className="fixed bottom-6 right-6 bg-green-500 text-white px-6 py-4 rounded-lg shadow-2xl z-50 animate-slideIn flex items-center gap-3">
           <Check className="w-5 h-5" />
           <span className="flex-1">{cartItem} added to cart!</span>
-          <a href="/cart" className="text-white underline hover:no-underline">View Cart</a>
+          <Link to="/cart" className="text-white underline hover:no-underline">View Cart</Link>
           <button onClick={() => setCartItem(null)} className="ml-2 p-1">
             <X className="w-4 h-4" />
           </button>
@@ -206,10 +206,10 @@ const ChargersPage = () => {
       )}
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 pt-24 pb-8"> {/* ✅ Added pt-24 to avoid header overlap */}
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Filters Sidebar */}
-          <aside className="w-full lg:w-1/4 xl:w-1/5 lg:sticky lg:top-24 self-start">
+          <aside className="w-full lg:w-80 xl:w-1/5 lg:order-first lg:sticky lg:top-28 self-start"> {/* ✅ Fixed width for better left positioning, order-first for left, top-28 for extra clearance */}
             <ChargerFilter
               filters={filters}
               onFilterChange={handleFilterChange}
@@ -220,8 +220,8 @@ const ChargersPage = () => {
           </aside>
 
           {/* Product Grid */}
-          <main className="flex-1">
-            <div className="mb-6">
+          <main className="flex-1"> {/* ✅ Added mt-4 to main for extra top margin if needed */}
+            <div className="mb-6 mt-6"> {/* ✅ Added mt-4 to the header section */}
               <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
                 Premium <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Chargers</span>
               </h2>
@@ -263,7 +263,7 @@ const ChargersPage = () => {
                     <div key={charger.id} className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden animate-fadeInUp hover:-translate-y-2">
                       {/* Your existing charger card UI stays unchanged */}
                       {/* ✅ No import of ChargerCard needed */}
-                      <a href={`/charger/${charger.id}`} className="block">
+                      <Link to={`/chargers/${charger.id}`} className="block">
                         <div className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
                           <img
                             src={charger.image}
@@ -288,11 +288,12 @@ const ChargersPage = () => {
                           </div>
                           <ul className="space-y-2 text-sm text-gray-600 border-t pt-3 mb-4">
                             <li className="flex justify-between"><span className="font-semibold">Brand:</span> <span>{charger.brand}</span></li>
+                            <li className="flex justify-between"><span className="font-semibold">Type:</span> <span>{charger.type}</span></li>
                             <li className="flex justify-between"><span className="font-semibold">Wattage:</span> <span>{charger.wattage}W</span></li>
                             <li className="flex justify-between"><span className="font-semibold">Output Current:</span> <span>{charger.outputCurrent}</span></li>
                           </ul>
                         </div>
-                      </a>
+                      </Link>
                       <div className="px-5 pb-5">
                         <button
                           onClick={(e) => {

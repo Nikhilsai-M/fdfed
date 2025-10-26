@@ -5,10 +5,12 @@ const earphoneSchema = new mongoose.Schema({
   title: { type: String, required: true },
   image: { type: String, required: true },
   brand: { type: String, required: true },
-  original_price: { type: Number, required: true },
+  
+  originalPrice: { type: Number, required: true },
   discount: { type: String, required: true },
   design: { type: String, required: true },
-  battery_life: { type: String, required: true },
+ 
+  batteryLife: { type: String, required: true },
   created_at: { type: Date, default: Date.now },
 });
 

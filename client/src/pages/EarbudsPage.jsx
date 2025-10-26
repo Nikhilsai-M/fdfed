@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ShoppingCart, X, Check } from 'lucide-react';
-import EarbudsFilter from '../components/Filters/EarbudsFilter';
+import EarbudsFilter from '../components/filters/EarbudsFilter';
 
 const EarbudsPage = () => {
   const [earbuds, setEarbuds] = useState([]);
@@ -31,7 +31,7 @@ const EarbudsPage = () => {
     const fetchEarphoneData = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/earbuds');
+        const response = await fetch('/api/Accessories/earphones');
         if (!response.ok) throw new Error('Failed to fetch earphone data');
         const data = await response.json();
         setEarbuds(data);
@@ -77,7 +77,7 @@ const EarbudsPage = () => {
           if (!includesOthers) {
             return includesSpecificBrand;
           } else {
-            return includesSpecificBrand || isOtherBrand;
+            return  isOtherBrand;
           }
         });
       }

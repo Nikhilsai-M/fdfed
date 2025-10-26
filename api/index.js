@@ -6,7 +6,13 @@ import userRouter from "./routes/user.route.js";
 import authRouter from "./routes/auth.route.js";
 import supervisorAuthRouter from "./routes/supervisorAuth.route.js"; // Add this
 import chargerRouter from "./routes/charger.route.js";
+import earphoneRouter from "./routes/earphone.route.js";
+import mouseRouter from "./routes/mouse.route.js";
+import smartwatchRouter from "./routes/smartwatch.route.js";
 import { initChargers } from './crud/chargers.js';
+import { initEarphones } from "./crud/earphones.js";
+import { initMouses } from "./crud/mouses.js";
+import { initSmartwatches } from "./crud/smartwatches.js";
 import { initializeSupervisors } from './crud/supervisors.js'; // Add this
 
 dotenv.config({ path: '../.env' });
@@ -14,6 +20,9 @@ dotenv.config({ path: '../.env' });
 mongoose.connect(process.env.MONGO).then(async() => {
   console.log("Connected to MongoDB successfully!!!");
   await initChargers();
+ await initEarphones();
+ await initMouses();
+ await initSmartwatches();
   await initializeSupervisors(); // Add this line
 }).catch((err) => {
   console.error("Error connecting to MongoDB:", err);
@@ -43,6 +52,9 @@ app.use("/api/user", userRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/supervisor-auth", supervisorAuthRouter); // Add this line
 app.use("/api/Accessories/chargers", chargerRouter);
+app.use("/api/Accessories/earphones", earphoneRouter);
+app.use("/api/Accessories/mouses", mouseRouter);
+app.use("/api/Accessories/smartwatches",smartwatchRouter);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
