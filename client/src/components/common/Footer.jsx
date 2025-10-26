@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const Footer = () => {
   return (
@@ -145,19 +146,19 @@ const Footer = () => {
             <h2 className="footer-title text-xl font-bold mb-3">Our Services</h2>
             <ul className="list-none space-y-2">
               <li className="footer-item">
-                <a href="/sell-phone" className="footer-link text-gray-200 text-sm">Sell Phone</a>
+                <Link to="/sell-phone" className="footer-link text-gray-200 text-sm">Sell Phone</Link>
               </li>
               <li className="footer-item">
-                <a href="/sell-laptop" className="footer-link text-gray-200 text-sm">Sell Laptop</a>
+                <Link to="/sell-laptop" className="footer-link text-gray-200 text-sm">Sell Laptop</Link>
               </li>
               <li className="footer-item">
-                <a href="/buy-phone" className="footer-link text-gray-200 text-sm">Buy Phone</a>
+                <Link to="/buy-phone" className="footer-link text-gray-200 text-sm">Buy Phone</Link>
               </li>
               <li className="footer-item">
-                <a href="/buy-laptop" className="footer-link text-gray-200 text-sm">Buy Laptop</a>
+                <Link to="/buy-laptop" className="footer-link text-gray-200 text-sm">Buy Laptop</Link>
               </li>
               <li className="footer-item">
-                <a href="/Accessories" className="footer-link text-gray-200 text-sm">Accessories</a>
+                <Link to="/Accessories" className="footer-link text-gray-200 text-sm">Accessories</Link>
               </li>
             </ul>
           </div>
@@ -167,19 +168,19 @@ const Footer = () => {
             <h2 className="footer-title text-xl font-bold mb-3">Quick Links</h2>
             <ul className="list-none space-y-2">
               <li className="footer-item">
-                <a href="/about_us" className="footer-link text-gray-200 text-sm">About Us</a>
+                <Link to="/about_us" className="footer-link text-gray-200 text-sm">About Us</Link>
               </li>
               <li className="footer-item">
-                <a href="/contact_us" className="footer-link text-gray-200 text-sm">Contact</a>
+                <Link to="/contact_us" className="footer-link text-gray-200 text-sm">Contact</Link>
               </li>
               <li className="footer-item">
-                <a href="/blog" className="footer-link text-gray-200 text-sm">Blog</a>
+                <Link to="/blog" className="footer-link text-gray-200 text-sm">Blog</Link>
               </li>
               <li className="footer-item">
-                <a href="/privacy" className="footer-link text-gray-200 text-sm">Privacy Policy</a>
+                <Link to="/privacy" className="footer-link text-gray-200 text-sm">Privacy Policy</Link>
               </li>
               <li className="footer-item">
-                <a href="/terms" className="footer-link text-gray-200 text-sm">Terms & Conditions</a>
+                <Link to="/terms" className="footer-link text-gray-200 text-sm">Terms & Conditions</Link>
               </li>
             </ul>
           </div>
@@ -223,9 +224,3 @@ const Footer = () => {
 };
 
 export default Footer;
-
-
-
-
-
-

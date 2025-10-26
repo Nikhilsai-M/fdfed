@@ -1,15 +1,41 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [session, setSession] = useState(null);
+  const [cartCount, setCartCount] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
     const currentSession = JSON.parse(localStorage.getItem('currentSession'));
     setSession(currentSession);
+    
+    // Fetch cart count when user is logged in
+    if (currentSession?.loggedIn) {
+      fetchCartCount();
+    }
   }, []);
+
+  const fetchCartCount = async () => {
+    try {
+      const response = await fetch('/api/cart/count', { 
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      const data = await response.json();
+      if (data.success && typeof data.count === 'number') {
+        setCartCount(data.count);
+      } else {
+        setCartCount(0);
+      }
+    } catch (error) {
+      console.error('Error fetching cart count:', error);
+      setCartCount(0);
+    }
+  };
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
@@ -140,23 +166,125 @@ const Header = () => {
             padding-left: 1.25rem;
           }
 
-          /* Icon Animations */
-          .cart-icon:hover, .profile-icon:hover {
-            transform: scale(1.1);
+          /* Enhanced Cart & Profile Section */
+          .action-btn {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+            font-weight: 500;
           }
 
-          .cart-icon, .profile-icon {
-            transition: transform 0.2s ease;
+          .action-btn:hover {
+            background: #f3f4f6;
+            transform: translateY(-2px);
           }
 
-          /* Sign In Button */
-          .sign-in-btn {
+          .action-btn-icon {
+            width: 24px;
+            height: 24px;
+            transition: transform 0.3s ease;
+          }
+
+          .action-btn:hover .action-btn-icon {
+            transform: scale(1.15);
+          }
+
+          /* Cart Badge */
+          .cart-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #ef4444;
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 700;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            animation: badge-pulse 2s ease-in-out infinite;
+          }
+
+          @keyframes badge-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+          }
+
+          /* Profile Dropdown */
+          .profile-dropdown {
+            position: absolute;
+            top: calc(100% + 0.5rem);
+            right: 0;
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            min-width: 200px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+          }
+
+          .profile-container:hover .profile-dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+          }
+
+          .profile-dropdown-header {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            padding: 1rem;
+            font-weight: 600;
+          }
+
+          .profile-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
             transition: all 0.2s ease;
+            color: #374151;
+            font-size: 0.95rem;
           }
 
-          .sign-in-btn:hover {
-            background: #1f2937;
-            transform: scale(1.05);
+          .profile-dropdown-item:hover {
+            background: #f9fafb;
+            color: #3b82f6;
+            padding-left: 1.25rem;
+          }
+
+          .profile-dropdown-divider {
+            height: 1px;
+            background: #e5e7eb;
+            margin: 0.25rem 0;
+          }
+
+          /* Sign In Button Enhanced */
+          .sign-in-btn-enhanced {
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            color: white;
+            padding: 0.625rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          }
+
+          .sign-in-btn-enhanced:hover {
+            background: linear-gradient(135deg, #111827 0%, #000000 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
           }
 
           /* Logo */
@@ -179,42 +307,105 @@ const Header = () => {
               margin: 0.25rem 0.5rem;
               border-radius: 0.5rem;
             }
+            
+            .action-btn {
+              padding: 0.375rem 0.75rem;
+            }
+            
+            .action-btn-text {
+              display: none;
+            }
+          }
+
+          @media (min-width: 768px) {
+            .cart-badge-mobile-hide {
+              display: none;
+            }
           }
         `}</style>
 
         <div className="flex justify-between items-center px-4 py-2 md:px-5">
-          <a href="/" className="logo-container block">
+          <Link to="/" className="logo-container block">
             <img src="src/assets/images/icons/logo1.png" alt="Logo" className="w-32 md:w-44" />
-          </a>
+          </Link>
 
           <div className="hidden md:flex items-center bg-gray-100 rounded-md px-3 py-2 w-1/3 transition-all duration-300 hover:bg-gray-200">
             <i className="fa-solid fa-magnifying-glass text-gray-500 mr-2"></i>
             <input type="text" placeholder="Search for mobiles, laptops & More" className="bg-transparent outline-none w-full" />
           </div>
 
-          <div className="flex items-center gap-4 md:gap-6">
-            <a href={session?.loggedIn ? '/cart' : '/sign-in'} className="flex items-center text-black hover:text-blue-500 transition-colors duration-200">
-              <img src="src/assets/images/icons/cart-icon.png" alt="Cart" className="cart-icon w-6 h-6 mr-1" />
-              <span className="text-sm md:text-base">Cart</span>
-            </a>
+          <div className="flex items-center gap-2 md:gap-3">
+            {/* Cart Button */}
+            <Link to={session?.loggedIn ? '/cart' : '/sign-in'} className="action-btn relative">
+              <div className="relative">
+                <img src="src/assets/images/icons/cart-icon.png" alt="Cart" className="action-btn-icon" />
+                {session?.loggedIn && cartCount > 0 && (
+                  <span className="cart-badge">{cartCount > 99 ? '99+' : cartCount}</span>
+                )}
+              </div>
+              <span className="action-btn-text text-sm md:text-base">Cart</span>
+            </Link>
 
-            <div className="relative group">
-              <a href={session?.loggedIn ? '/profile' : '/sign-in'} className="flex items-center text-black hover:text-blue-500 transition-colors duration-200">
-                <img src="src/assets/images/icons/profile-icon.png" alt="Profile" className="profile-icon w-6 h-6 mr-1 hidden md:block" />
-                <span className={session?.loggedIn ? 'text-sm md:text-base' : 'sign-in-btn bg-black text-white px-3 py-1 rounded text-sm'}>
-                  {session?.loggedIn ? session.name.split(' ')[0] : 'Sign in'}
-                </span>
-              </a>
-              {session?.loggedIn && (
-                <div className="dropdown-menu absolute top-full right-0 bg-white shadow-lg rounded-md w-40 z-50 hidden group-hover:block border border-gray-100">
-                  <a href="/profile" className="dropdown-item block px-4 py-2">User Profile</a>
-                  <a href="/myorders" className="dropdown-item block px-4 py-2">My Orders</a>
-                  <a href="/listings" className="dropdown-item block px-4 py-2">My Listings</a>
-                  <a href="/cart" className="dropdown-item block px-4 py-2">Cart</a>
-                  <button onClick={handleLogout} className="dropdown-item block w-full text-left px-4 py-2">Logout</button>
+            {/* Profile Section */}
+            {session?.loggedIn ? (
+              <div className="profile-container relative">
+                <div className="action-btn cursor-pointer">
+                  <img src="src/assets/images/icons/profile-icon.png" alt="Profile" className="action-btn-icon hidden md:block" />
+                  <span className="text-sm md:text-base font-semibold">{session.name.split(' ')[0]}</span>
+                  <svg className="w-4 h-4 hidden md:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
                 </div>
-              )}
-            </div>
+                
+                <div className="profile-dropdown">
+                  <div className="profile-dropdown-header">
+                    <div className="text-sm opacity-90">Welcome back,</div>
+                    <div className="text-base">{session.name}</div>
+                  </div>
+                  
+                  <Link to="/profile" className="profile-dropdown-item">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    My Profile
+                  </Link>
+                  
+                  <Link to="/myorders" className="profile-dropdown-item">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+                    My Orders
+                  </Link>
+                  
+                  <Link to="/listings" className="profile-dropdown-item">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    My Listings
+                  </Link>
+                  
+                  <Link to="/cart" className="profile-dropdown-item">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    Cart
+                  </Link>
+                  
+                  <div className="profile-dropdown-divider"></div>
+                  
+                  <button onClick={handleLogout} className="profile-dropdown-item w-full text-left text-red-600 hover:text-red-700 hover:bg-red-50">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    Logout
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <Link to="/sign-in" className="sign-in-btn-enhanced">
+                Sign In
+              </Link>
+            )}
           </div>
         </div>
 
@@ -228,58 +419,58 @@ const Header = () => {
 
           <div className={`md:flex md:gap-x-2 ${isMenuOpen ? 'flex flex-col absolute top-full right-0 bg-white text-black w-48 shadow-md rounded-md z-50' : 'hidden md:flex'}`}>
             
-            {/* ALL Button - Blue */}
+            {/* ALL Button */}
             <div className="relative group">
-              <a href="#" className="nav-item nav-item-all">All</a>
+              <Link to="#" className="nav-item nav-item-all">All</Link>
               <div className="dropdown-menu absolute top-full left-0 bg-white text-black shadow-lg rounded-lg hidden group-hover:block w-48 border border-gray-200 overflow-hidden">
-                <a href="/sell-phone" className="dropdown-item block px-4 py-2.5">Sell Phone</a>
-                <a href="/sell-laptop" className="dropdown-item block px-4 py-2.5">Sell Laptop</a>
-                <a href="/buy-phone" className="dropdown-item block px-4 py-2.5">Buy Phone</a>
-                <a href="/buy-laptop" className="dropdown-item block px-4 py-2.5">Buy Laptop</a>
-                <a href="/Accessories" className="dropdown-item block px-4 py-2.5">Accessories</a>
+                <Link to="/sell-phone" className="dropdown-item block px-4 py-2.5">Sell Phone</Link>
+                <Link to="/sell-laptop" className="dropdown-item block px-4 py-2.5">Sell Laptop</Link>
+                <Link to="/buy-phone" className="dropdown-item block px-4 py-2.5">Buy Phone</Link>
+                <Link to="/buy-laptop" className="dropdown-item block px-4 py-2.5">Buy Laptop</Link>
+                <Link to="/Accessories" className="dropdown-item block px-4 py-2.5">Accessories</Link>
               </div>
             </div>
 
-            {/* Sell Phone - Green Border */}
+            {/* Sell Phone */}
             <div className="relative group">
-              <a href="/sell-phone" className="nav-item nav-item-sell-phone">Sell Phone</a>
+              <Link to="/sell-phone" className="nav-item nav-item-sell-phone">Sell Phone</Link>
             </div>
 
-            {/* Sell Laptop - Orange Border */}
+            {/* Sell Laptop */}
             <div className="relative group">
-              <a href="/sell-laptop" className="nav-item nav-item-sell-laptop">Sell Laptop</a>
+              <Link to="/sell-laptop" className="nav-item nav-item-sell-laptop">Sell Laptop</Link>
             </div>
 
-            {/* Buy Phone - Blue Border */}
+            {/* Buy Phone */}
             <div className="relative group">
-              <a href="/buy-phone" className="nav-item nav-item-buy-phone">Buy Phones</a>
+              <Link to="/buy-phone" className="nav-item nav-item-buy-phone">Buy Phones</Link>
               <div className="dropdown-menu absolute top-full left-0 bg-white text-black shadow-lg rounded-lg hidden group-hover:block w-48 border border-gray-200 overflow-hidden">
                 <span className="block px-4 py-2.5 font-bold text-gray-700 bg-gray-50">Top brands</span>
                 {['Apple', 'Samsung', 'Xiaomi', 'One plus', 'Realme', 'Motorola', 'Google', 'Vivo'].map(brand => (
-                  <a key={brand} onClick={() => goToFilterPage('phone', brand)} className="dropdown-item block px-4 py-2.5 cursor-pointer">{brand}</a>
+                  <Link key={brand} to={`/filter-buy-phone?brand=${encodeURIComponent(brand.toUpperCase())}`} className="dropdown-item block px-4 py-2.5 cursor-pointer">{brand}</Link>
                 ))}
               </div>
             </div>
 
-            {/* Buy Laptop - Purple Border */}
+            {/* Buy Laptop */}
             <div className="relative group">
-              <a href="/buy-laptop" className="nav-item nav-item-buy-laptop">Buy Laptop</a>
+              <Link to="/buy-laptop" className="nav-item nav-item-buy-laptop">Buy Laptop</Link>
               <div className="dropdown-menu absolute top-full left-0 bg-white text-black shadow-lg rounded-lg hidden group-hover:block w-48 border border-gray-200 overflow-hidden">
                 <span className="block px-4 py-2.5 font-bold text-gray-700 bg-gray-50">Top brands</span>
                 {['Apple', 'Dell', 'Hp', 'Asus', 'Acer', 'Microsoft', 'Msi', 'Lenovo'].map(brand => (
-                  <a key={brand} onClick={() => goToFilterPage('laptop', brand)} className="dropdown-item block px-4 py-2.5 cursor-pointer">{brand}</a>
+                  <Link key={brand} to={`/filter-buy-laptop?brand=${encodeURIComponent(brand.toUpperCase())}`} className="dropdown-item block px-4 py-2.5 cursor-pointer">{brand}</Link>
                 ))}
               </div>
             </div>
 
-            {/* Accessories - Pink Border */}
+            {/* Accessories */}
             <div className="relative group">
-              <a href="/Accessories" className="nav-item nav-item-accessories">Accessories</a>
+              <Link to="/Accessories" className="nav-item nav-item-accessories">Accessories</Link>
               <div className="dropdown-menu absolute top-full left-0 bg-white text-black shadow-lg rounded-lg hidden group-hover:block w-48 border border-gray-200 overflow-hidden">
-                <a href="/smartwatches" className="dropdown-item block px-4 py-2.5">Smart Watches</a>
-                <a href="/earphones" className="dropdown-item block px-4 py-2.5">Ear Phones</a>
-                <a href="/chargers" className="dropdown-item block px-4 py-2.5">Chargers</a>
-                <a href="/mouses" className="dropdown-item block px-4 py-2.5">Mouses</a>
+                <Link to="/smartwatches" className="dropdown-item block px-4 py-2.5">Smart Watches</Link>
+                <Link to="/earphones" className="dropdown-item block px-4 py-2.5">Ear Phones</Link>
+                <Link to="/chargers" className="dropdown-item block px-4 py-2.5">Chargers</Link>
+                <Link to="/mouses" className="dropdown-item block px-4 py-2.5">Mouses</Link>
               </div>
             </div>
 
@@ -287,7 +478,6 @@ const Header = () => {
         </nav>
       </header>
       
-      {/* Spacer to prevent content from hiding under fixed header */}
       <div className="h-[100px] md:h-[110px]"></div>
     </>
   );
