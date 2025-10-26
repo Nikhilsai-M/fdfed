@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
+
 const HomePage = () => {
   const [products, setProducts] = useState([]);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isVisible, setIsVisible] = useState({});
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchLatestProducts = async () => {
@@ -53,7 +56,7 @@ const HomePage = () => {
   };
 
   const redirectToFilterPage = (brand) => {
-    window.location.href = `/filter-buy-phone?brand=${brand}`;
+    navigate(`/filter-buy-phone?brand=${brand}`);
   };
 
   const slides = [
@@ -246,7 +249,7 @@ const HomePage = () => {
         }
       `}</style>
 
-      {/* Hero Carousel with enhanced animations */}
+      {/* Hero Carousel */}
       <div className="relative w-[95vw] mx-auto rounded-3xl overflow-hidden shadow-2xl h-[450px] mb-12 animate-scale-in">
         <div className="relative w-full h-full">
           {slides.map((slide, index) => (
@@ -263,7 +266,7 @@ const HomePage = () => {
                 style={{ objectPosition: 'center' }}
               />
               {slideLinks[index] && (
-                <a href={slideLinks[index]} className="block w-full h-full absolute top-0 left-0"></a>
+                <Link to={slideLinks[index]} className="block w-full h-full absolute top-0 left-0"></Link>
               )}
               <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/50 to-transparent"></div>
             </div>
@@ -319,7 +322,7 @@ const HomePage = () => {
                     key={product.id}
                     className={`bg-white p-6 rounded-2xl shadow-lg min-w-[280px] card-hover border border-gray-100 animate-fade-in-up delay-${Math.min(index, 8)}00`}
                   >
-                    <a href={`/product/${product.id}`} className="block text-black no-underline">
+                    <Link to={`/product/${product.id}`} className="block text-black no-underline">
                       <div className="relative overflow-hidden rounded-xl mb-4 bg-gray-50 p-4">
                         <img
                           src={product.image}
@@ -348,7 +351,7 @@ const HomePage = () => {
                         <i className="fa-solid fa-shield-halved mr-2"></i>
                         FREE 6 Months Warranty
                       </div>
-                    </a>
+                    </Link>
                   </div>
                 );
               })
@@ -374,7 +377,7 @@ const HomePage = () => {
               { brand: 'Realme', img: '/src/assets/images/topbrands/realme.webp' },
               { brand: 'Motorola', img: 'src/assets/images/topbrands/motorola.webp' },
               { brand: 'Google', img: '/src/assets/images/topbrands/google pixel.webp' },
-              { brand: 'Vivo', img: 'src/assets/images/topbrands/vivo.png' },
+              { brand: 'Vivo', img: '/src/assets/images/topbrands/vivo.png' },
             ].map(({ brand, img }, index) => (
               <div
                 key={brand}
@@ -454,12 +457,12 @@ const HomePage = () => {
             Discover the best deals on refurbished devices with warranty
           </p>
           <div className="flex gap-4 justify-center relative z-10">
-            <a href="/buy-phone" className="bg-white text-purple-600 px-8 py-4 rounded-full font-bold hover:bg-gray-100 transform hover:scale-105 transition-all duration-300 shadow-lg">
+            <Link to="/buy-phone" className="bg-white text-purple-600 px-8 py-4 rounded-full font-bold hover:bg-gray-100 transform hover:scale-105 transition-all duration-300 shadow-lg">
               Shop Phones
-            </a>
-            <a href="/sell-phone" className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-full font-bold hover:bg-white hover:text-purple-600 transform hover:scale-105 transition-all duration-300">
+            </Link>
+            <Link to="/sell-phone" className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-full font-bold hover:bg-white hover:text-purple-600 transform hover:scale-105 transition-all duration-300">
               Sell Your Device
-            </a>
+            </Link>
           </div>
         </div>
       </div>
