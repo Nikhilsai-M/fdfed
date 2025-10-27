@@ -11,7 +11,7 @@ import MousePage from './pages/MousePage';
 import EarbudsPage from './pages/EarbudsPage';
 import SmartWatchesPage from './pages/SmartWatchesPage';
 import AccessoriesPage from './pages/Accessories';
-import ChargerDetails from './pages/ChargerDetails';
+import AccessoryDetails from './pages/AccessoryDetails';
 import SupervisorDashboard from './pages/SupervisorDashboard'; // Add this import
 
 function App() {
@@ -22,12 +22,15 @@ function App() {
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<Homepage />} />
-            <Route path="/chargers" element={<ChargersPage />} />
-            <Route path="/mouses" element={<MousePage/>}/>
-            <Route path="/earphones" element={<EarbudsPage/>}/>
-            <Route path="/smartwatches" element={<SmartWatchesPage/>}/>
+            <Route path="/accessories/chargers" element={<ChargersPage />} />
+            <Route path="/accessories/mouses" element={<MousePage/>}/>
+            <Route path="/accessories/earphones" element={<EarbudsPage/>}/>
+            <Route path="/accessories/smartwatches" element={<SmartWatchesPage/>}/>
             
-            <Route path="/chargers/:id" element={<ChargerDetails/>} />
+            <Route path="/charger/:id" element={<AccessoryDetails type="charger" />} />
+            <Route path="/mouse/:id" element={<AccessoryDetails type="mouse" />} />
+            <Route path="/smartwatch/:id" element={<AccessoryDetails type="smartwatch" />} />
+            <Route path="/earphone/:id" element={<AccessoryDetails type="earphone" />} />
             <Route path="/Accessories" element={<AccessoriesPage />} />
            
             <Route path="/sell-phone" element={<div>Sell Phone Page</div>} />

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { ShoppingCart, X, Check } from 'lucide-react';
 import ChargerFilter from '../components/filters/ChargerFilter';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom'; // ✅ Added useNavigate for redirects
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
+
 const ChargersPage = () => {
   const [chargers, setChargers] = useState([]);
   const [filteredChargers, setFilteredChargers] = useState([]);
@@ -29,6 +30,7 @@ const ChargersPage = () => {
   });
 
   const mainBrands = ["Apple", "Samsung", "RoarX", "Pacificdeals", "EYNK"];
+  const navigate = useNavigate(); // ✅ For login redirects
 
   // Fetch charger data
   useEffect(() => {
@@ -52,18 +54,14 @@ const ChargersPage = () => {
     fetchChargerData();
   }, []);
 
-  // Initialize cart count
+  // Initialize cart count (fallback to 0 if no session; full check happens in addToCart)
   useEffect(() => {
-    const initCart = () => {
-      const session = JSON.parse(localStorage.getItem("currentSession") || '{"loggedIn": false}');
-      if (session.loggedIn) {
-        const userId = session.userId;
-        const userCartKey = `cart_${userId}`;
-        const cart = JSON.parse(localStorage.getItem(userCartKey) || '[]');
-        updateCartCount(cart);
-      }
-    };
-    initCart();
+    // Optional: Initial cart count via API if desired, but keep simple for page load
+    const cartCountElement = document.querySelector(".cart-count");
+    if (cartCountElement) {
+      cartCountElement.textContent = '0';
+      cartCountElement.style.display = 'none';
+    }
   }, []);
 
   // Apply filters
@@ -157,40 +155,69 @@ const ChargersPage = () => {
     }
   };
 
-  const addToCart = (charger) => {
-    const session = JSON.parse(localStorage.getItem("currentSession") || '{"loggedIn": false}');
-
-    if (!session.loggedIn) {
-      window.location.href = "/login";
-      return;
-    }
-
-    let userId = session.userId;
-    let userCartKey = `cart_${userId}`;
-    let cart = JSON.parse(localStorage.getItem(userCartKey)) || [];
-
-    const existingProductIndex = cart.findIndex((item) => item.id === charger.id);
-
-    if (existingProductIndex !== -1) {
-      cart[existingProductIndex].quantity += 1;
-    } else {
-      cart.push({
-        id: charger.id,
-        title: charger.title,
-        brand: charger.brand,
-        wattage: charger.wattage,
-        outputCurrent: charger.outputCurrent,
-        image: charger.image,
-        price: charger.originalPrice,
-        discount: parseFloat(charger.discount),
-        quantity: 1,
+  // ✅ Updated addToCart with JWT API verification
+  const addToCart = async (charger) => {
+    try {
+      // Verify user session via API (sends JWT cookie automatically)
+      const response = await fetch('/api/user/profile', {
+        method: 'GET',
+        credentials: 'include', // Includes the httpOnly JWT cookie
       });
-    }
 
-    localStorage.setItem(userCartKey, JSON.stringify(cart));
-    updateCartCount(cart);
-    setCartItem(charger.title);
-    setTimeout(() => setCartItem(null), 3000);
+      if (!response.ok) {
+        // Not logged in or token invalid/expired
+        navigate('/sign-in');
+        return;
+      }
+
+      const userData = await response.json();
+      if (!userData.success || !userData.user) {
+        navigate('/sign-in');
+        return;
+      }
+
+      const userId = userData.user.user_id; // From backend response
+      const userCartKey = `cart_${userId}`;
+
+      if (!charger || !charger.id) {
+        setError('Product data not available');
+        return;
+      }
+
+      const productData = charger;
+      let currentCart = JSON.parse(localStorage.getItem(userCartKey)) || [];
+
+      const existingProductIndex = currentCart.findIndex((item) => item.id === productData.id);
+
+      let updatedCart;
+      if (existingProductIndex !== -1) {
+        updatedCart = [...currentCart];
+        updatedCart[existingProductIndex].quantity += 1;
+      } else {
+        updatedCart = [...currentCart, {
+          id: productData.id,
+          title: productData.title,
+          brand: productData.brand,
+          wattage: productData.wattage,
+          outputCurrent: productData.outputCurrent,
+          image: productData.image,
+          price: productData.originalPrice,
+          discount: parseFloat(productData.discount),
+          quantity: 1,
+        }];
+      }
+
+      localStorage.setItem(userCartKey, JSON.stringify(updatedCart));
+      updateCartCount(updatedCart);
+      setCartItem(productData.title);
+      setTimeout(() => setCartItem(null), 3000);
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      // Fallback: Redirect to login on network/error
+      navigate('/sign-in');
+      setCartItem(`${charger?.title || 'Item'} added to cart! (Please log in to sync)`);
+      setTimeout(() => setCartItem(null), 3000);
+    }
   };
 
   return (
@@ -200,7 +227,7 @@ const ChargersPage = () => {
       {cartItem && (
         <div className="fixed bottom-6 right-6 bg-green-500 text-white px-6 py-4 rounded-lg shadow-2xl z-50 animate-slideIn flex items-center gap-3">
           <Check className="w-5 h-5" />
-          <span className="flex-1">{cartItem} added to cart!</span>
+          <span className="flex-1">{cartItem}</span>
           <Link to="/cart" className="text-white underline hover:no-underline">View Cart</Link>
           <button onClick={() => setCartItem(null)} className="ml-2 p-1">
             <X className="w-4 h-4" />
@@ -233,8 +260,6 @@ const ChargersPage = () => {
               </p>
             </div>
 
-            {/* (Existing product rendering remains same as your version) */}
-            {/* ✅ The filter logic now includes outputCurrent */}
             {loading ? (
               <div className="flex flex-col justify-center items-center py-20">
                 <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600 mb-4"></div>
@@ -264,9 +289,7 @@ const ChargersPage = () => {
                   const discountedPrice = calculateDiscountedPrice(charger.originalPrice, charger.discount);
                   return (
                     <div key={charger.id} className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden animate-fadeInUp hover:-translate-y-2">
-                      {/* Your existing charger card UI stays unchanged */}
-                      {/* ✅ No import of ChargerCard needed */}
-                      <Link to={`/chargers/${charger.id}`} className="block">
+                      <Link to={`/charger/${charger.id}`} className="block"> {/* ✅ Fixed route to /chargers/:id */}
                         <div className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
                           <img
                             src={charger.image}

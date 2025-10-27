@@ -17,10 +17,10 @@ const AccessoriesPage = () => {
   ];
 
   const categories = [
-    { name: 'Chargers', icon: 'src/assets/images/icons/charger.jpg', link: '/chargers' },
-    { name: 'Earbuds', icon: 'src/assets/images/icons/Ear buds.png', link: '/earphones' },
-    { name: 'Mouses', icon: 'src/assets/images/icons/mouse.jpg', link: '/mouses' },
-    { name: 'SmartWatches', icon: 'src/assets/images/icons/Smart watch.jpg', link: '/smartwatches' }
+    { name: 'Chargers', icon: 'src/assets/images/icons/charger.jpg', link: '/accessories/chargers' },
+    { name: 'Earbuds', icon: 'src/assets/images/icons/Ear buds.png', link: '/accessories/earphones' },
+    { name: 'Mouses', icon: 'src/assets/images/icons/mouse.jpg', link: '/accessories/mouses' },
+    { name: 'SmartWatches', icon: 'src/assets/images/icons/Smart watch.jpg', link: '/accessories/smartwatches' }
   ];
 
   const features = [
