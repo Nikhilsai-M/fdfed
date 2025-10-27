@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-// Add this constant
 const API_BASE_URL = 'http://localhost:3000';
 
 export default function SignIn() {
@@ -21,17 +20,13 @@ export default function SignIn() {
         if (error) setError(null);
     };
 
-    // Function to detect user type based on email pattern
     const detectUserType = (username) => {
-        // Regex pattern for supervisor emails: supervisor(somenumber)@se.com
         const supervisorPattern = /^supervisor\d*@se\.com$/i;
         
-        // Check if it matches supervisor pattern
         if (supervisorPattern.test(username)) {
             return 'supervisor';
         }
         
-        // Default to customer
         return 'customer';
     };
 
@@ -47,20 +42,17 @@ export default function SignIn() {
             setLoading(true);
             setError(null);
 
-            // Detect user type based on email pattern
             const userType = detectUserType(formData.username);
             console.log(`Detected user type: ${userType} for username: ${formData.username}`);
 
-            let apiEndpoint, successKey, userKey, role;
+            let apiEndpoint, userKey, role;
 
             if (userType === 'supervisor') {
-                apiEndpoint = `${API_BASE_URL}/api/supervisor-auth/signin`; // Added full URL
-                successKey = 'supervisor';
+                apiEndpoint = `${API_BASE_URL}/api/supervisor-auth/signin`;
                 userKey = 'supervisor';
                 role = 'supervisor';
             } else {
-                apiEndpoint = `${API_BASE_URL}/api/auth/signin`; // Added full URL
-                successKey = 'user';
+                apiEndpoint = `${API_BASE_URL}/api/auth/signin`;
                 userKey = 'user';
                 role = 'customer';
             }
