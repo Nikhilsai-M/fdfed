@@ -17,3 +17,24 @@ export const verifyToken = (req, res, next) => {
         next();
     });
 };
+
+export const verifySupervisor = (req, res, next) => {
+    const token = req.cookies.supervisor_access_token;
+
+    if (!token) {
+        return next(errorHandler(401, 'Unauthorized - Supervisor access required'));
+    }
+
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+        if (err) {
+            return next(errorHandler(403, 'Forbidden - Invalid supervisor token'));
+        }
+
+        if (user.role !== 'supervisor') {
+            return next(errorHandler(403, 'Forbidden - Supervisor access required'));
+        }
+
+        req.user = user;
+        next();
+    });
+};

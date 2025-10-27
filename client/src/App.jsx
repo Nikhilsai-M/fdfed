@@ -12,7 +12,11 @@ import EarbudsPage from './pages/EarbudsPage';
 import SmartWatchesPage from './pages/SmartWatchesPage';
 import AccessoriesPage from './pages/Accessories';
 import AccessoryDetails from './pages/AccessoryDetails';
-import SupervisorDashboard from './pages/SupervisorDashboard'; // Add this import
+import SupervisorDashboard from './pages/supervisor/SupervisorDashboard';
+import VerifyListings from './pages/supervisor/VerifyListings';
+import ManageInventory from './pages/supervisor/ManageInventory';
+import Statistics from './pages/supervisor/Statistics';
+import Profile from './pages/supervisor/Profile';
 
 function App() {
   return (
@@ -41,7 +45,13 @@ function App() {
             <Route path="/sign-in" element={<SignIn />} />
             <Route path="/sign-up" element={<SignUp />} />
             <Route path="/cart" element={<div>Cart Page</div>} />
-            <Route path="/supervisor-dashboard" element={<SupervisorDashboard />} /> {/* Add this route */}
+            
+            {/* Supervisor Routes */}
+            <Route path="/supervisor-dashboard" element={<SupervisorDashboard />} />
+            <Route path="/supervisor/verify-listings" element={<VerifyListings />} />
+            <Route path="/supervisor/manage-inventory" element={<ManageInventory />} />
+            <Route path="/supervisor/statistics" element={<Statistics />} />
+            <Route path="/supervisor/profile" element={<Profile />} />
           </Routes>
         </main>
       

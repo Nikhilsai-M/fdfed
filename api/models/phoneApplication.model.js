@@ -1,0 +1,35 @@
+import mongoose from "mongoose";
+
+const phoneApplicationSchema = new mongoose.Schema({
+  id: { type: Number, unique: true, required: true },
+  user_id: { type: String },
+  brand: { type: String, required: true },
+  model: { type: String, required: true },
+  ram: { type: String, required: true },
+  rom: { type: String, required: true },
+  processor: { type: String, required: true },
+  network: { type: String, required: true },
+  size: { type: String },
+  weight: { type: String },
+  device_age: { type: String, required: true },
+  switching_on: { type: String, required: true },
+  phone_calls: { type: String, required: true },
+  cameras_working: { type: String, required: true },
+  battery_issues: { type: String, required: true },
+  physically_damaged: { type: String, required: true },
+  sound_issues: { type: String, required: true },
+  location: { type: String, required: true },
+  email: { type: String, required: true },
+  phone: { type: String, required: true },
+  battery: { type: String, required: true },
+  camera: { type: String, required: true },
+  os: { type: String, required: true },
+  image_path: { type: String },
+  status: { type: String, default: 'pending' },
+  rejection_reason: { type: String },
+  price: { type: Number },
+  created_at: { type: Date, default: Date.now },
+});
+
+const PhoneApplication = mongoose.model("PhoneApplication", phoneApplicationSchema);
+export default PhoneApplication;
