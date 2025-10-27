@@ -1,6 +1,8 @@
 // src/components/SellLaptopForm.js (Styled version)
 import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Header from '../components/common/Header';
+import Footer from '../components/common/Footer';
 
 /**
  * SellLaptopForm Component
@@ -123,6 +125,7 @@ const SellLaptopForm = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 p-4 sm:p-8 font-sans">
+            <Header />
             {/* Header/Navigation Placeholder */}
             <header className="flex justify-between items-center max-w-4xl mx-auto mb-8 py-3 border-b border-gray-200">
                
@@ -344,8 +347,9 @@ const SellLaptopForm = () => {
             
             {/* Footer Placeholder */}
             <footer className="mt-10 text-center text-gray-400 text-sm">
-                &copy; 2025 Smart Exchange. All rights reserved.
+               
             </footer>
+            <Footer />
         </div>
     );
 };

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Star, TrendingUp, Shield, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import Header from '../components/common/Header';
+import Footer from '../components/common/Footer';
 const AccessoriesPage = () => {
   const [accessories, setAccessories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -96,6 +98,7 @@ const AccessoriesPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50">
       {/* Spacer for header */}
+      <Header />
       <div className="h-4"></div>
       
       {/* Carousel Section */}
@@ -345,6 +348,7 @@ const AccessoriesPage = () => {
           overflow: hidden;
         }
       `}</style>
+         <Footer />
     </div>
   );
 };

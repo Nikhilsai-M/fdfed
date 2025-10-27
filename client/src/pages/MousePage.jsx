@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ShoppingCart, X, Check } from 'lucide-react';
 import MouseFilter from '../components/filters/MouseFilter';
-
+import Header from '../components/common/Header';
+import Footer from '../components/common/Footer';
 const MousePage = () => {
   const [mouses, setMouses] = useState([]);
   const [filteredMouses, setFilteredMouses] = useState([]);
@@ -172,6 +173,7 @@ const MousePage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
       {/* Cart Message */}
+      <Header />
       {cartMessage && (
         <div className="fixed bottom-6 right-6 bg-green-500 text-white px-6 py-4 rounded-lg shadow-2xl z-50 animate-slideIn flex items-center gap-3">
           <Check className="w-5 h-5" />
@@ -367,6 +369,7 @@ const MousePage = () => {
           margin-top: 0;
         }
       `}</style>
+         <Footer />
     </div>
   );
 };

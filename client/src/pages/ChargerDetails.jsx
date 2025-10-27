@@ -8,6 +8,8 @@ import ProductContent from '../components/ProductContent';
 import CartMessage from '../components/CartMessage';
 import PropTypes from 'prop-types';
 import { useParams } from 'react-router-dom';
+import Header from '../components/common/Header';
+import Footer from '../components/common/Footer';
 
 const ChargerDetails = () => {
   const { id } = useParams(); // id from URL, e.g., /chargers/123
@@ -178,6 +180,7 @@ const ChargerDetails = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Assuming Header and Footer are separate components */}
       {/* <Header /> */}
+      <Header />
       
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Product Details Grid */}
@@ -206,6 +209,7 @@ const ChargerDetails = () => {
 
       {/* Assuming Footer component */}
       {/* <Footer /> */}
+      <Footer />
     </div>
   );
 };
