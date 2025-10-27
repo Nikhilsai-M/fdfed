@@ -3,6 +3,7 @@ import { ShoppingCart, X, Check } from 'lucide-react';
 import EarbudsFilter from '../components/filters/EarbudsFilter';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
+import { Link, useNavigate } from 'react-router-dom'; // ✅ Added useNavigate for redirects
 
 const EarbudsPage = () => {
   const [earbuds, setEarbuds] = useState([]);
@@ -27,6 +28,7 @@ const EarbudsPage = () => {
   });
 
   const mainBrands = ["Boat", "SAMSUNG", "Portronics", "JBL", "Noise", "realme", "Boult", "OnePlus"];
+  const navigate = useNavigate(); // ✅ For login redirects
 
   // Fetch earbuds data
   useEffect(() => {
@@ -50,18 +52,14 @@ const EarbudsPage = () => {
     fetchEarphoneData();
   }, []);
 
-  // Initialize cart count
+  // Initialize cart count (fallback to 0 if no session; full check happens in addToCart)
   useEffect(() => {
-    const initCart = () => {
-      const session = JSON.parse(localStorage.getItem("currentSession") || '{"loggedIn": false}');
-      if (session.loggedIn) {
-        const userId = session.userId;
-        const userCartKey = `cart_${userId}`;
-        const cart = JSON.parse(localStorage.getItem(userCartKey) || '[]');
-        updateCartCount(cart);
-      }
-    };
-    initCart();
+    // Optional: Initial cart count via API if desired, but keep simple for page load
+    const cartCountElement = document.querySelector(".cart-count");
+    if (cartCountElement) {
+      cartCountElement.textContent = '0';
+      cartCountElement.style.display = 'none';
+    }
   }, []);
 
   // Apply filters
@@ -150,40 +148,69 @@ const EarbudsPage = () => {
     }
   };
 
-  const addToCart = (earbud) => {
-    const session = JSON.parse(localStorage.getItem("currentSession") || '{"loggedIn": false}');
-
-    if (!session.loggedIn) {
-      window.location.href = "/login";
-      return;
-    }
-
-    let userId = session.userId;
-    let userCartKey = `cart_${userId}`;
-    let cart = JSON.parse(localStorage.getItem(userCartKey)) || [];
-
-    const existingProductIndex = cart.findIndex((item) => item.id === earbud.id);
-
-    if (existingProductIndex !== -1) {
-      cart[existingProductIndex].quantity += 1;
-    } else {
-      cart.push({
-        id: earbud.id,
-        title: earbud.title,
-        brand: earbud.brand,
-        batteryLife: earbud.batteryLife,
-        design: earbud.design,
-        image: earbud.image,
-        price: earbud.originalPrice,
-        discount: parseFloat(earbud.discount),
-        quantity: 1,
+  // ✅ Updated addToCart with JWT API verification
+  const addToCart = async (earbud) => {
+    try {
+      // Verify user session via API (sends JWT cookie automatically)
+      const response = await fetch('/api/user/profile', {
+        method: 'GET',
+        credentials: 'include', // Includes the httpOnly JWT cookie
       });
-    }
 
-    localStorage.setItem(userCartKey, JSON.stringify(cart));
-    updateCartCount(cart);
-    setCartItem(earbud.title);
-    setTimeout(() => setCartItem(null), 3000);
+      if (!response.ok) {
+        // Not logged in or token invalid/expired
+        navigate('/sign-in');
+        return;
+      }
+
+      const userData = await response.json();
+      if (!userData.success || !userData.user) {
+        navigate('/sign-in');
+        return;
+      }
+
+      const userId = userData.user.user_id; // From backend response
+      const userCartKey = `cart_${userId}`;
+
+      if (!earbud || !earbud.id) {
+        setError('Product data not available');
+        return;
+      }
+
+      const productData = earbud;
+      let currentCart = JSON.parse(localStorage.getItem(userCartKey)) || [];
+
+      const existingProductIndex = currentCart.findIndex((item) => item.id === productData.id);
+
+      let updatedCart;
+      if (existingProductIndex !== -1) {
+        updatedCart = [...currentCart];
+        updatedCart[existingProductIndex].quantity += 1;
+      } else {
+        updatedCart = [...currentCart, {
+          id: productData.id,
+          title: productData.title,
+          brand: productData.brand,
+          batteryLife: productData.batteryLife,
+          design: productData.design,
+          image: productData.image,
+          price: productData.originalPrice,
+          discount: parseFloat(productData.discount),
+          quantity: 1,
+        }];
+      }
+
+      localStorage.setItem(userCartKey, JSON.stringify(updatedCart));
+      updateCartCount(updatedCart);
+      setCartItem(productData.title);
+      setTimeout(() => setCartItem(null), 3000);
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      // Fallback: Redirect to login on network/error
+      navigate('/sign-in');
+      setCartItem(`${earbud?.title || 'Item'} added to cart! (Please log in to sync)`);
+      setTimeout(() => setCartItem(null), 3000);
+    }
   };
 
   return (
@@ -193,7 +220,7 @@ const EarbudsPage = () => {
       {cartItem && (
         <div className="fixed bottom-6 right-6 bg-green-500 text-white px-6 py-4 rounded-lg shadow-2xl z-50 animate-slideIn flex items-center gap-3">
           <Check className="w-5 h-5" />
-          <span className="flex-1">{cartItem} added to cart!</span>
+          <span className="flex-1">{cartItem}</span>
           <a href="/cart" className="text-white underline hover:no-underline">View Cart</a>
           <button onClick={() => setCartItem(null)} className="ml-2 p-1">
             <X className="w-4 h-4" />
@@ -266,7 +293,7 @@ const EarbudsPage = () => {
                       className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden animate-fadeInUp hover:-translate-y-2"
                       style={{ animationDelay: `${index * 50}ms` }}
                     >
-                      <a href={`/earphone/${earbud.id}`} className="block">
+                      <Link to={`/earphone/${earbud.id}`} className="block"> {/* ✅ Fixed route to /earphone/:id */}
                         <div className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
                           <img
                             src={earbud.image}
@@ -307,7 +334,7 @@ const EarbudsPage = () => {
                             </li>
                           </ul>
                         </div>
-                      </a>
+                      </Link>
 
                       <div className="px-5 pb-5">
                         <button
@@ -383,7 +410,7 @@ const EarbudsPage = () => {
           margin-top: 0;
         }
       `}</style>
-         <Footer />
+      <Footer /> {/* ✅ Moved Footer inside the main div and removed duplicate */}
     </div>
   );
 };

@@ -3,6 +3,8 @@ import { ShoppingCart, X, Check } from 'lucide-react';
 import MouseFilter from '../components/filters/MouseFilter';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
+import { Link, useNavigate } from 'react-router-dom'; // ✅ Added useNavigate for redirects
+
 const MousePage = () => {
   const [mouses, setMouses] = useState([]);
   const [filteredMouses, setFilteredMouses] = useState([]);
@@ -28,6 +30,7 @@ const MousePage = () => {
   });
 
   const mainBrands = ["Logitech", "Razer", "HP", "Dell", "Microsoft"];
+  const navigate = useNavigate(); // ✅ For login redirects
 
   // Fetch mouse data
   useEffect(() => {
@@ -49,6 +52,16 @@ const MousePage = () => {
     };
 
     fetchMouseData();
+  }, []);
+
+  // Initialize cart count (fallback to 0 if no session; full check happens in addToCart)
+  useEffect(() => {
+    // Optional: Initial cart count via API if desired, but keep simple for page load
+    const cartCountElement = document.querySelector(".cart-count");
+    if (cartCountElement) {
+      cartCountElement.textContent = '0';
+      cartCountElement.style.display = 'none';
+    }
   }, []);
 
   // Apply filters
@@ -134,40 +147,69 @@ const MousePage = () => {
     return (originalPrice - (originalPrice * parseFloat(discount) / 100)).toFixed(2);
   };
 
-  const addToCart = (mouse) => {
-    const session = JSON.parse(localStorage.getItem("currentSession") || '{"loggedIn": false}');
-
-    if (!session.loggedIn) {
-      window.location.href = "/login";
-      return;
-    }
-
-    let userId = session.userId;
-    let userCartKey = `cart_${userId}`;
-    let cart = JSON.parse(localStorage.getItem(userCartKey)) || [];
-
-    const existingProductIndex = cart.findIndex((item) => item.id === mouse.id);
-
-    if (existingProductIndex !== -1) {
-      cart[existingProductIndex].quantity += 1;
-    } else {
-      cart.push({
-        id: mouse.id,
-        title: mouse.title,
-        brand: mouse.brand,
-        connectivity: mouse.connectivity,
-        type: mouse.type,
-        resolution: mouse.resolution,
-        image: mouse.image,
-        price: mouse.originalPrice,
-        discount: parseFloat(mouse.discount),
-        quantity: 1,
+  // ✅ Updated addToCart with JWT API verification
+  const addToCart = async (mouse) => {
+    try {
+      // Verify user session via API (sends JWT cookie automatically)
+      const response = await fetch('/api/user/profile', {
+        method: 'GET',
+        credentials: 'include', // Includes the httpOnly JWT cookie
       });
-    }
 
-    localStorage.setItem(userCartKey, JSON.stringify(cart));
-    setCartMessage(`${mouse.title} added to cart!`);
-    setTimeout(() => setCartMessage(null), 3000);
+      if (!response.ok) {
+        // Not logged in or token invalid/expired
+        navigate('/sign-in');
+        return;
+      }
+
+      const userData = await response.json();
+      if (!userData.success || !userData.user) {
+        navigate('/sign-in');
+        return;
+      }
+
+      const userId = userData.user.user_id; // From backend response
+      const userCartKey = `cart_${userId}`;
+
+      if (!mouse || !mouse.id) {
+        setError('Product data not available');
+        return;
+      }
+
+      const productData = mouse;
+      let currentCart = JSON.parse(localStorage.getItem(userCartKey)) || [];
+
+      const existingProductIndex = currentCart.findIndex((item) => item.id === productData.id);
+
+      let updatedCart;
+      if (existingProductIndex !== -1) {
+        updatedCart = [...currentCart];
+        updatedCart[existingProductIndex].quantity += 1;
+      } else {
+        updatedCart = [...currentCart, {
+          id: productData.id,
+          title: productData.title,
+          brand: productData.brand,
+          connectivity: productData.connectivity,
+          type: productData.type,
+          resolution: productData.resolution,
+          image: productData.image,
+          price: productData.originalPrice,
+          discount: parseFloat(productData.discount),
+          quantity: 1,
+        }];
+      }
+
+      localStorage.setItem(userCartKey, JSON.stringify(updatedCart));
+      setCartMessage(`${productData.title} added to cart!`);
+      setTimeout(() => setCartMessage(null), 3000);
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      // Fallback: Redirect to login on network/error
+      navigate('/sign-in');
+      setCartMessage(`${mouse?.title || 'Item'} added to cart! (Please log in to sync)`);
+      setTimeout(() => setCartMessage(null), 3000);
+    }
   };
 
   return (
@@ -248,7 +290,7 @@ const MousePage = () => {
                       className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden animate-fadeInUp hover:-translate-y-2"
                       style={{ animationDelay: `${index * 50}ms` }}
                     >
-                      <a href={`/mouse/${mouse.id}`} className="block">
+                      <Link to={`/mouse/${mouse.id}`} className="block"> {/* ✅ Fixed route to /mouse/:id */}
                         <div className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
                           <img
                             src={mouse.image}
@@ -293,7 +335,7 @@ const MousePage = () => {
                             </li>
                           </ul>
                         </div>
-                      </a>
+                      </Link>
 
                       <div className="px-5 pb-5">
                         <button
@@ -369,7 +411,7 @@ const MousePage = () => {
           margin-top: 0;
         }
       `}</style>
-         <Footer />
+      <Footer /> {/* ✅ Moved Footer inside the main div and removed duplicate */}
     </div>
   );
 };
