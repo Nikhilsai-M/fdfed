@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { ShoppingCart, X, Check } from 'lucide-react';
 import ChargerFilter from '../components/filters/ChargerFilter';
-import { Link, useNavigate } from 'react-router-dom'; // ✅ Added useNavigate for redirects
+import { Link, useNavigate } from 'react-router-dom';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
+import { useCart } from '../context/CartContent'; // ✅ Import useCart
 
 const ChargersPage = () => {
   const [chargers, setChargers] = useState([]);
@@ -12,12 +13,15 @@ const ChargersPage = () => {
   const [error, setError] = useState(null);
   const [cartItem, setCartItem] = useState(null);
 
+  // ✅ Get the updateCart function from the context
+  const { updateCart } = useCart();
+
   // Filter states
   const [filters, setFilters] = useState({
     brands: [],
     wattages: [],
     types: [],
-    outputCurrents: [], 
+    outputCurrents: [],
     discount: [],
   });
 
@@ -25,12 +29,12 @@ const ChargersPage = () => {
     brand: true,
     wattage: true,
     type: true,
-    outputCurrents: true, 
+    outputCurrents: true,
     discount: true,
   });
 
   const mainBrands = ["Apple", "Samsung", "RoarX", "Pacificdeals", "EYNK"];
-  const navigate = useNavigate(); // ✅ For login redirects
+  const navigate = useNavigate();
 
   // Fetch charger data
   useEffect(() => {
@@ -54,15 +58,6 @@ const ChargersPage = () => {
     fetchChargerData();
   }, []);
 
-  // Initialize cart count (fallback to 0 if no session; full check happens in addToCart)
-  useEffect(() => {
-    // Optional: Initial cart count via API if desired, but keep simple for page load
-    const cartCountElement = document.querySelector(".cart-count");
-    if (cartCountElement) {
-      cartCountElement.textContent = '0';
-      cartCountElement.style.display = 'none';
-    }
-  }, []);
 
   // Apply filters
   useEffect(() => {
@@ -94,7 +89,7 @@ const ChargersPage = () => {
         filtered = filtered.filter((charger) => filters.types.includes(charger.type));
       }
 
-      // ✅ Output Current filter
+      // Output Current filter
       if (filters.outputCurrents.length > 0) {
         filtered = filtered.filter((charger) =>
           filters.outputCurrents.includes(charger.outputCurrent)
@@ -130,7 +125,7 @@ const ChargersPage = () => {
       brands: [],
       wattages: [],
       types: [],
-      outputCurrents: [], // ✅ Reset added
+      outputCurrents: [],
       discount: [],
     });
   };
@@ -146,26 +141,17 @@ const ChargersPage = () => {
     return originalPrice - (originalPrice * parseFloat(discount) / 100);
   };
 
-  const updateCartCount = (cart) => {
-    const cartCountElement = document.querySelector(".cart-count");
-    if (cartCountElement) {
-      const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
-      cartCountElement.textContent = totalItems;
-      cartCountElement.style.display = totalItems > 0 ? "flex" : "none";
-    }
-  };
 
-  // ✅ Updated addToCart with JWT API verification
+  //  Updated addToCart with CartContext
   const addToCart = async (charger) => {
     try {
-      // Verify user session via API (sends JWT cookie automatically)
+      // Verify user session via API
       const response = await fetch('/api/user/profile', {
         method: 'GET',
-        credentials: 'include', // Includes the httpOnly JWT cookie
+        credentials: 'include',
       });
 
       if (!response.ok) {
-        // Not logged in or token invalid/expired
         navigate('/sign-in');
         return;
       }
@@ -176,8 +162,9 @@ const ChargersPage = () => {
         return;
       }
 
-      const userId = userData.user.user_id; // From backend response
-      const userCartKey = `cart_${userId}`;
+      const userId = userData.user.user_id;
+      
+      const userCartKey = `cart_user_${userId}`;
 
       if (!charger || !charger.id) {
         setError('Product data not available');
@@ -207,18 +194,20 @@ const ChargersPage = () => {
         }];
       }
 
-      localStorage.setItem(userCartKey, JSON.stringify(updatedCart));
-      updateCartCount(updatedCart);
+      updateCart(updatedCart, userId);
+
+      // Keep the UI feedback
       setCartItem(productData.title);
       setTimeout(() => setCartItem(null), 3000);
+
     } catch (error) {
       console.error('Error adding to cart:', error);
-      // Fallback: Redirect to login on network/error
       navigate('/sign-in');
       setCartItem(`${charger?.title || 'Item'} added to cart! (Please log in to sync)`);
       setTimeout(() => setCartItem(null), 3000);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
@@ -236,10 +225,10 @@ const ChargersPage = () => {
       )}
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 pt-24 pb-8"> {/* ✅ Added pt-24 to avoid header overlap */}
+      <div className="container mx-auto px-4 pt-24 pb-8">
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Filters Sidebar */}
-          <aside className="w-full lg:w-80 xl:w-1/5 lg:order-first lg:sticky lg:top-28 self-start"> {/* ✅ Fixed width for better left positioning, order-first for left, top-28 for extra clearance */}
+          <aside className="w-full lg:w-80 xl:w-1/5 lg:order-first lg:sticky lg:top-28 self-start">
             <ChargerFilter
               filters={filters}
               onFilterChange={handleFilterChange}
@@ -250,8 +239,8 @@ const ChargersPage = () => {
           </aside>
 
           {/* Product Grid */}
-          <main className="flex-1"> {/* ✅ Added mt-4 to main for extra top margin if needed */}
-            <div className="mb-6 mt-6"> {/* ✅ Added mt-4 to the header section */}
+          <main className="flex-1">
+            <div className="mb-6 mt-6">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
                 Premium <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Chargers</span>
               </h2>
@@ -289,7 +278,7 @@ const ChargersPage = () => {
                   const discountedPrice = calculateDiscountedPrice(charger.originalPrice, charger.discount);
                   return (
                     <div key={charger.id} className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden animate-fadeInUp hover:-translate-y-2">
-                      <Link to={`/charger/${charger.id}`} className="block"> {/* ✅ Fixed route to /chargers/:id */}
+                      <Link to={`/charger/${charger.id}`} className="block">
                         <div className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
                           <img
                             src={charger.image}

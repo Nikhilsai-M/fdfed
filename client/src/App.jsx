@@ -17,9 +17,13 @@ import VerifyListings from './pages/supervisor/VerifyListings';
 import ManageInventory from './pages/supervisor/ManageInventory';
 import Statistics from './pages/supervisor/Statistics';
 import Profile from './pages/supervisor/Profile';
+import { CartProvider } from './context/CartContent';
+import { Car } from 'lucide-react';
+import UserProfile from './pages/UserProfile';
 
 function App() {
   return (
+    <CartProvider>
     <Router>
       <div className="flex flex-col min-h-screen">
         
@@ -30,7 +34,7 @@ function App() {
             <Route path="/accessories/mouses" element={<MousePage/>}/>
             <Route path="/accessories/earphones" element={<EarbudsPage/>}/>
             <Route path="/accessories/smartwatches" element={<SmartWatchesPage/>}/>
-            
+            <Route path="/profile" element={<UserProfile />} />
             <Route path="/charger/:id" element={<AccessoryDetails type="charger" />} />
             <Route path="/mouse/:id" element={<AccessoryDetails type="mouse" />} />
             <Route path="/smartwatch/:id" element={<AccessoryDetails type="smartwatch" />} />
@@ -57,6 +61,7 @@ function App() {
       
       </div>
     </Router>
+    </CartProvider>
   );
 }
 

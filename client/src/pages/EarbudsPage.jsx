@@ -3,7 +3,8 @@ import { ShoppingCart, X, Check } from 'lucide-react';
 import EarbudsFilter from '../components/filters/EarbudsFilter';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
-import { Link, useNavigate } from 'react-router-dom'; // ✅ Added useNavigate for redirects
+import { Link, useNavigate } from 'react-router-dom';
+import { useCart } from '../context/CartContent'; // ✅ Import useCart
 
 const EarbudsPage = () => {
   const [earbuds, setEarbuds] = useState([]);
@@ -11,6 +12,9 @@ const EarbudsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [cartItem, setCartItem] = useState(null);
+
+  // ✅ Get the updateCart function from the context
+  const { updateCart } = useCart();
 
   // Filter states
   const [filters, setFilters] = useState({
@@ -28,7 +32,7 @@ const EarbudsPage = () => {
   });
 
   const mainBrands = ["Boat", "SAMSUNG", "Portronics", "JBL", "Noise", "realme", "Boult", "OnePlus"];
-  const navigate = useNavigate(); // ✅ For login redirects
+  const navigate = useNavigate();
 
   // Fetch earbuds data
   useEffect(() => {
@@ -52,15 +56,8 @@ const EarbudsPage = () => {
     fetchEarphoneData();
   }, []);
 
-  // Initialize cart count (fallback to 0 if no session; full check happens in addToCart)
-  useEffect(() => {
-    // Optional: Initial cart count via API if desired, but keep simple for page load
-    const cartCountElement = document.querySelector(".cart-count");
-    if (cartCountElement) {
-      cartCountElement.textContent = '0';
-      cartCountElement.style.display = 'none';
-    }
-  }, []);
+  // ⛔️ Removed useEffect for initial cart count.
+  // This is now handled by the Header component using CartContext.
 
   // Apply filters
   useEffect(() => {
@@ -77,7 +74,7 @@ const EarbudsPage = () => {
           if (!includesOthers) {
             return includesSpecificBrand;
           } else {
-            return  isOtherBrand;
+            return isOtherBrand;
           }
         });
       }
@@ -139,26 +136,18 @@ const EarbudsPage = () => {
     return (originalPrice - (originalPrice * parseFloat(discount) / 100)).toFixed(2);
   };
 
-  const updateCartCount = (cart) => {
-    const cartCountElement = document.querySelector(".cart-count");
-    if (cartCountElement) {
-      const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
-      cartCountElement.textContent = totalItems;
-      cartCountElement.style.display = totalItems > 0 ? "flex" : "none";
-    }
-  };
+  // ⛔️ Removed local updateCartCount function.
 
-  // ✅ Updated addToCart with JWT API verification
+  // ✅ Updated addToCart with CartContext
   const addToCart = async (earbud) => {
     try {
-      // Verify user session via API (sends JWT cookie automatically)
+      // Verify user session via API
       const response = await fetch('/api/user/profile', {
         method: 'GET',
-        credentials: 'include', // Includes the httpOnly JWT cookie
+        credentials: 'include',
       });
 
       if (!response.ok) {
-        // Not logged in or token invalid/expired
         navigate('/sign-in');
         return;
       }
@@ -169,8 +158,9 @@ const EarbudsPage = () => {
         return;
       }
 
-      const userId = userData.user.user_id; // From backend response
-      const userCartKey = `cart_${userId}`;
+      const userId = userData.user.user_id;
+      // ✅ Use the same key format as your CartContext ("cart_user_")
+      const userCartKey = `cart_user_${userId}`;
 
       if (!earbud || !earbud.id) {
         setError('Product data not available');
@@ -200,13 +190,13 @@ const EarbudsPage = () => {
         }];
       }
 
-      localStorage.setItem(userCartKey, JSON.stringify(updatedCart));
-      updateCartCount(updatedCart);
+      // ✅ Use the context function to update localStorage and state
+      updateCart(updatedCart, userId);
+
       setCartItem(productData.title);
       setTimeout(() => setCartItem(null), 3000);
     } catch (error) {
       console.error('Error adding to cart:', error);
-      // Fallback: Redirect to login on network/error
       navigate('/sign-in');
       setCartItem(`${earbud?.title || 'Item'} added to cart! (Please log in to sync)`);
       setTimeout(() => setCartItem(null), 3000);
@@ -221,7 +211,8 @@ const EarbudsPage = () => {
         <div className="fixed bottom-6 right-6 bg-green-500 text-white px-6 py-4 rounded-lg shadow-2xl z-50 animate-slideIn flex items-center gap-3">
           <Check className="w-5 h-5" />
           <span className="flex-1">{cartItem}</span>
-          <a href="/cart" className="text-white underline hover:no-underline">View Cart</a>
+          {/* ✅ Changed <a> to <Link> for React Router */}
+          <Link to="/cart" className="text-white underline hover:no-underline">View Cart</Link>
           <button onClick={() => setCartItem(null)} className="ml-2 p-1">
             <X className="w-4 h-4" />
           </button>
@@ -293,7 +284,7 @@ const EarbudsPage = () => {
                       className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden animate-fadeInUp hover:-translate-y-2"
                       style={{ animationDelay: `${index * 50}ms` }}
                     >
-                      <Link to={`/earphone/${earbud.id}`} className="block"> {/* ✅ Fixed route to /earphone/:id */}
+                      <Link to={`/earphone/${earbud.id}`} className="block">
                         <div className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
                           <img
                             src={earbud.image}
@@ -410,7 +401,7 @@ const EarbudsPage = () => {
           margin-top: 0;
         }
       `}</style>
-      <Footer /> {/* ✅ Moved Footer inside the main div and removed duplicate */}
+      <Footer />
     </div>
   );
 };
