@@ -1,66 +1,96 @@
 import React, { useState, useEffect } from 'react';
 import { User, Mail, Phone, MapPin, Lock, Edit2, X, Check, ShoppingBag, Package } from 'lucide-react';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
-import { Pie } from 'recharts';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
 
-ChartJS.register(ArcElement, Tooltip, Legend);
+const API_BASE_URL = 'http://localhost:3000';
 
 export default function UserProfile() {
-  const [user, setUser] = useState({
-    firstName: 'John',
-    lastName: 'Doe',
-    email: 'john.doe@example.com',
-    phone: '+1 (555) 123-4567',
-    address: {
-      street: '123 Main Street',
-      city: 'San Francisco',
-      state: 'CA',
-      postal_code: '94102',
-      country: 'United States'
-    },
-    ordersCount: 24,
-    itemsSoldCount: 48,
-    passwordLastChanged: '2025-01-15'
-  });
-
+  const [user, setUser] = useState(null);
   const [isEditingPersonal, setIsEditingPersonal] = useState(false);
   const [isEditingPassword, setIsEditingPassword] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
-  const [formData, setFormData] = useState({});
+  const [message, setMessage] = useState('');
+  
+  const [formData, setFormData] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone: '',
+    address: {
+      street: '',
+      city: '',
+      state: '',
+      postal_code: '',
+      country: ''
+    }
+  });
+  
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
-    newPassword: ''
+    newPassword: '',
+    confirmPassword: ''
   });
 
   useEffect(() => {
-    setFormData({
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      phone: user.phone,
-      street: user.address?.street || '',
-      city: user.address?.city || '',
-      state: user.address?.state || '',
-      postal_code: user.address?.postal_code || '',
-      country: user.address?.country || ''
-    });
-  }, [user]);
+    fetchUserProfile();
+  }, []);
+
+  const fetchUserProfile = async () => {
+    try {
+      const userData = JSON.parse(localStorage.getItem('user'));
+      if (!userData || userData.role !== 'customer') {
+        window.location.href = '/sign-in';
+        return;
+      }
+
+      const res = await fetch(`${API_BASE_URL}/api/customer/profile`, {
+        credentials: 'include'
+      });
+      
+      const data = await res.json();
+      
+      if (data.success) {
+        setUser(data.user);
+        setFormData({
+          first_name: data.user.first_name,
+          last_name: data.user.last_name,
+          email: data.user.email,
+          phone: data.user.phone,
+          address: {
+            street: data.user.address?.street || '',
+            city: data.user.address?.city || '',
+            state: data.user.address?.state || '',
+            postal_code: data.user.address?.postal_code || '',
+            country: data.user.address?.country || ''
+          }
+        });
+      } else {
+        setMessage('Error loading profile');
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      setMessage('Error loading profile data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const validatePersonalInfo = () => {
     const newErrors = {};
     
-    if (!formData.firstName?.trim()) {
-      newErrors.firstName = 'First name is required';
-    } else if (formData.firstName.length < 2) {
-      newErrors.firstName = 'First name must be at least 2 characters';
+    if (!formData.first_name?.trim()) {
+      newErrors.first_name = 'First name is required';
+    } else if (formData.first_name.length < 2) {
+      newErrors.first_name = 'First name must be at least 2 characters';
     }
 
-    if (!formData.lastName?.trim()) {
-      newErrors.lastName = 'Last name is required';
-    } else if (formData.lastName.length < 2) {
-      newErrors.lastName = 'Last name must be at least 2 characters';
+    if (!formData.last_name?.trim()) {
+      newErrors.last_name = 'Last name is required';
+    } else if (formData.last_name.length < 2) {
+      newErrors.last_name = 'Last name must be at least 2 characters';
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -70,8 +100,27 @@ export default function UserProfile() {
       newErrors.email = 'Please enter a valid email address';
     }
 
-    if (formData.phone && !/^[0-9+\-\s()]{10,15}$/.test(formData.phone)) {
+    if (!formData.phone?.trim()) {
+      newErrors.phone = 'Phone number is required';
+    } else if (!/^[0-9+\-\s()]{10,15}$/.test(formData.phone)) {
       newErrors.phone = 'Please enter a valid phone number';
+    }
+
+    // Address validation
+    if (!formData.address.street?.trim()) {
+      newErrors.street = 'Street address is required';
+    }
+    if (!formData.address.city?.trim()) {
+      newErrors.city = 'City is required';
+    }
+    if (!formData.address.state?.trim()) {
+      newErrors.state = 'State is required';
+    }
+    if (!formData.address.postal_code?.trim()) {
+      newErrors.postal_code = 'Postal code is required';
+    }
+    if (!formData.address.country?.trim()) {
+      newErrors.country = 'Country is required';
     }
 
     setErrors(newErrors);
@@ -83,81 +132,179 @@ export default function UserProfile() {
 
     if (!passwordData.currentPassword) {
       newErrors.currentPassword = 'Current password is required';
-    } else if (passwordData.currentPassword.length < 6) {
-      newErrors.currentPassword = 'Current password must be at least 6 characters';
     }
 
     if (!passwordData.newPassword) {
       newErrors.newPassword = 'New password is required';
-    } else if (passwordData.newPassword.length < 8) {
-      newErrors.newPassword = 'New password must be at least 8 characters';
-    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(passwordData.newPassword)) {
-      newErrors.newPassword = 'Password must contain uppercase, lowercase, and number';
-    } else if (passwordData.newPassword === passwordData.currentPassword) {
-      newErrors.newPassword = 'New password must be different from current password';
+    } else if (passwordData.newPassword.length < 6) {
+      newErrors.newPassword = 'New password must be at least 6 characters';
+    }
+
+    if (!passwordData.confirmPassword) {
+      newErrors.confirmPassword = 'Please confirm your new password';
+    } else if (passwordData.newPassword !== passwordData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handlePersonalInfoSubmit = (e) => {
+  const handlePersonalInfoSubmit = async (e) => {
     e.preventDefault();
     if (!validatePersonalInfo()) return;
 
-    setUser({
-      ...user,
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      email: formData.email,
-      phone: formData.phone,
-      address: {
-        street: formData.street,
-        city: formData.city,
-        state: formData.state,
-        postal_code: formData.postal_code,
-        country: formData.country
+    setSaving(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/customer/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(formData)
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setUser(prev => ({
+          ...prev,
+          first_name: formData.first_name,
+          last_name: formData.last_name,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address
+        }));
+        
+        // Update localStorage user data
+        const currentUser = JSON.parse(localStorage.getItem('user'));
+        localStorage.setItem('user', JSON.stringify({
+          ...currentUser,
+          first_name: formData.first_name,
+          last_name: formData.last_name,
+          email: formData.email
+        }));
+
+        setIsEditingPersonal(false);
+        setMessage('Profile updated successfully');
+        setTimeout(() => setMessage(''), 3000);
+        setErrors({});
+      } else {
+        setMessage(data.message || 'Failed to update profile');
       }
-    });
-    setIsEditingPersonal(false);
-    setErrors({});
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      setMessage('Error updating profile');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handlePasswordSubmit = (e) => {
+  const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     if (!validatePassword()) return;
 
-    setUser({ ...user, passwordLastChanged: new Date().toISOString().split('T')[0] });
-    setIsEditingPassword(false);
-    setPasswordData({ currentPassword: '', newPassword: '' });
-    setErrors({});
+    setSaving(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/customer/password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword
+        })
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setUser(prev => ({ 
+          ...prev, 
+          password_last_changed: new Date().toISOString() 
+        }));
+        setIsEditingPassword(false);
+        setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+        setMessage('Password updated successfully');
+        setTimeout(() => setMessage(''), 3000);
+        setErrors({});
+      } else {
+        setMessage(data.message || 'Failed to update password');
+      }
+    } catch (error) {
+      console.error('Error updating password:', error);
+      setMessage('Error updating password');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const chartData = [
-    { name: 'Orders', value: user.ordersCount, fill: '#3b82f6' },
-    { name: 'Items Sold', value: user.itemsSoldCount, fill: '#ec4899' }
-  ];
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+        <Header />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+        <Header />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center py-12">
+            <p className="text-red-600 text-lg">Error loading profile data</p>
+            <button 
+              onClick={fetchUserProfile}
+              className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      {/* Header */}
-    <Header />
+      <Header />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Success/Error Message */}
+        {message && (
+          <div className={`mb-6 p-4 rounded-lg ${
+            message.includes('successfully') 
+              ? 'bg-green-100 text-green-700 border border-green-200'
+              : 'bg-red-100 text-red-700 border border-red-200'
+          }`}>
+            {message}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Sidebar */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl shadow-xl p-6 border border-slate-200 transform transition-all duration-300 hover:shadow-2xl hover:scale-[1.02]">
+            <div className="bg-white rounded-2xl shadow-xl p-6 border border-slate-200">
               <div className="flex flex-col items-center">
                 <div className="relative group">
-                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-3xl font-bold shadow-lg transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
-                    {user.firstName[0]}{user.lastName[0]}
+                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-3xl font-bold shadow-lg">
+                    {user.first_name[0]}{user.last_name[0]}
                   </div>
-                  <div className="absolute inset-0 rounded-full bg-blue-400 blur-xl opacity-30 group-hover:opacity-50 transition-opacity duration-300"></div>
                 </div>
                 
-                <h2 className="mt-4 text-2xl font-bold text-slate-800 animate-fade-in">
-                  {user.firstName} {user.lastName}
+                <h2 className="mt-4 text-2xl font-bold text-slate-800">
+                  {user.first_name} {user.last_name}
                 </h2>
                 <p className="text-slate-600 mt-1 flex items-center gap-1">
                   <Mail className="w-4 h-4" />
@@ -166,18 +313,18 @@ export default function UserProfile() {
               </div>
 
               <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-slate-200">
-                <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl transform transition-all duration-300 hover:scale-105 hover:shadow-md">
+                <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
                   <div className="flex justify-center mb-2">
                     <ShoppingBag className="w-6 h-6 text-blue-600" />
                   </div>
-                  <div className="text-3xl font-bold text-blue-600 animate-count-up">{user.ordersCount}</div>
+                  <div className="text-3xl font-bold text-blue-600">{user.orders_count || 0}</div>
                   <div className="text-sm text-slate-600 mt-1">Orders</div>
                 </div>
-                <div className="text-center p-4 bg-gradient-to-br from-pink-50 to-rose-50 rounded-xl transform transition-all duration-300 hover:scale-105 hover:shadow-md">
+                <div className="text-center p-4 bg-gradient-to-br from-pink-50 to-rose-50 rounded-xl">
                   <div className="flex justify-center mb-2">
                     <Package className="w-6 h-6 text-pink-600" />
                   </div>
-                  <div className="text-3xl font-bold text-pink-600 animate-count-up">{user.itemsSoldCount}</div>
+                  <div className="text-3xl font-bold text-pink-600">{user.items_sold_count || 0}</div>
                   <div className="text-sm text-slate-600 mt-1">Items Sold</div>
                 </div>
               </div>
@@ -187,7 +334,7 @@ export default function UserProfile() {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Personal Information */}
-            <div className="bg-white rounded-2xl shadow-xl p-6 border border-slate-200 transform transition-all duration-300 hover:shadow-2xl">
+            <div className="bg-white rounded-2xl shadow-xl p-6 border border-slate-200">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                   <User className="w-5 h-5 text-blue-600" />
@@ -196,7 +343,7 @@ export default function UserProfile() {
                 {!isEditingPersonal && (
                   <button
                     onClick={() => setIsEditingPersonal(true)}
-                    className="flex items-center gap-2 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 hover:scale-105"
+                    className="flex items-center gap-2 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
                   >
                     <Edit2 className="w-4 h-4" />
                     Edit
@@ -205,38 +352,36 @@ export default function UserProfile() {
               </div>
 
               {!isEditingPersonal ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
-                  <div className="space-y-1 p-4 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors duration-200">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-1 p-4 rounded-lg bg-slate-50">
                     <div className="text-sm font-semibold text-slate-600">Full Name</div>
-                    <div className="text-slate-800">{user.firstName} {user.lastName}</div>
+                    <div className="text-slate-800">{user.first_name} {user.last_name}</div>
                   </div>
-                  <div className="space-y-1 p-4 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors duration-200">
+                  <div className="space-y-1 p-4 rounded-lg bg-slate-50">
                     <div className="text-sm font-semibold text-slate-600">Email</div>
                     <div className="text-slate-800 flex items-center gap-2">
                       <Mail className="w-4 h-4 text-slate-400" />
                       {user.email}
                     </div>
                   </div>
-                  <div className="space-y-1 p-4 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors duration-200">
+                  <div className="space-y-1 p-4 rounded-lg bg-slate-50">
                     <div className="text-sm font-semibold text-slate-600">Phone</div>
                     <div className="text-slate-800 flex items-center gap-2">
                       <Phone className="w-4 h-4 text-slate-400" />
-                      {user.phone || 'Not provided'}
+                      {user.phone}
                     </div>
                   </div>
-                  <div className="space-y-1 p-4 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors duration-200">
+                  <div className="space-y-1 p-4 rounded-lg bg-slate-50">
                     <div className="text-sm font-semibold text-slate-600 flex items-center gap-2">
                       <MapPin className="w-4 h-4 text-slate-400" />
                       Address
                     </div>
-                    {user.address && (user.address.street || user.address.city) ? (
+                    {user.address ? (
                       <div className="text-slate-800 text-sm space-y-0.5">
-                        {user.address.street && <div>{user.address.street}</div>}
-                        {user.address.city && <div>{user.address.city}</div>}
-                        {(user.address.state || user.address.postal_code) && (
-                          <div>{[user.address.state, user.address.postal_code].filter(Boolean).join(' ')}</div>
-                        )}
-                        {user.address.country && <div>{user.address.country}</div>}
+                        <div>{user.address.street}</div>
+                        <div>{user.address.city}</div>
+                        <div>{user.address.state} {user.address.postal_code}</div>
+                        <div>{user.address.country}</div>
                       </div>
                     ) : (
                       <div className="text-slate-500 text-sm">Not provided</div>
@@ -244,7 +389,7 @@ export default function UserProfile() {
                   </div>
                 </div>
               ) : (
-                <form onSubmit={handlePersonalInfoSubmit} className="space-y-4 animate-slide-in">
+                <form onSubmit={handlePersonalInfoSubmit} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -252,12 +397,12 @@ export default function UserProfile() {
                       </label>
                       <input
                         type="text"
-                        value={formData.firstName}
-                        onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        value={formData.first_name}
+                        onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
-                      {errors.firstName && (
-                        <p className="text-red-500 text-sm mt-1 animate-shake">{errors.firstName}</p>
+                      {errors.first_name && (
+                        <p className="text-red-500 text-sm mt-1">{errors.first_name}</p>
                       )}
                     </div>
                     <div>
@@ -266,12 +411,12 @@ export default function UserProfile() {
                       </label>
                       <input
                         type="text"
-                        value={formData.lastName}
-                        onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        value={formData.last_name}
+                        onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
-                      {errors.lastName && (
-                        <p className="text-red-500 text-sm mt-1 animate-shake">{errors.lastName}</p>
+                      {errors.last_name && (
+                        <p className="text-red-500 text-sm mt-1">{errors.last_name}</p>
                       )}
                     </div>
                     <div>
@@ -282,97 +427,136 @@ export default function UserProfile() {
                         type="email"
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                       {errors.email && (
-                        <p className="text-red-500 text-sm mt-1 animate-shake">{errors.email}</p>
+                        <p className="text-red-500 text-sm mt-1">{errors.email}</p>
                       )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
-                        Phone
+                        Phone *
                       </label>
                       <input
                         type="tel"
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                       {errors.phone && (
-                        <p className="text-red-500 text-sm mt-1 animate-shake">{errors.phone}</p>
+                        <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
                       )}
                     </div>
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium text-slate-700 mb-1">
-                        Street Address
+                        Street Address *
                       </label>
                       <input
                         type="text"
-                        value={formData.street}
-                        onChange={(e) => setFormData({ ...formData, street: e.target.value })}
-                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        value={formData.address.street}
+                        onChange={(e) => setFormData({ 
+                          ...formData, 
+                          address: { ...formData.address, street: e.target.value } 
+                        })}
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
+                      {errors.street && (
+                        <p className="text-red-500 text-sm mt-1">{errors.street}</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
-                        City
+                        City *
                       </label>
                       <input
                         type="text"
-                        value={formData.city}
-                        onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        value={formData.address.city}
+                        onChange={(e) => setFormData({ 
+                          ...formData, 
+                          address: { ...formData.address, city: e.target.value } 
+                        })}
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
+                      {errors.city && (
+                        <p className="text-red-500 text-sm mt-1">{errors.city}</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
-                        State/Province
+                        State *
                       </label>
                       <input
                         type="text"
-                        value={formData.state}
-                        onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        value={formData.address.state}
+                        onChange={(e) => setFormData({ 
+                          ...formData, 
+                          address: { ...formData.address, state: e.target.value } 
+                        })}
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
+                      {errors.state && (
+                        <p className="text-red-500 text-sm mt-1">{errors.state}</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
-                        Postal Code
+                        Postal Code *
                       </label>
                       <input
                         type="text"
-                        value={formData.postal_code}
-                        onChange={(e) => setFormData({ ...formData, postal_code: e.target.value })}
-                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        value={formData.address.postal_code}
+                        onChange={(e) => setFormData({ 
+                          ...formData, 
+                          address: { ...formData.address, postal_code: e.target.value } 
+                        })}
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
+                      {errors.postal_code && (
+                        <p className="text-red-500 text-sm mt-1">{errors.postal_code}</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
-                        Country
+                        Country *
                       </label>
                       <input
                         type="text"
-                        value={formData.country}
-                        onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        value={formData.address.country}
+                        onChange={(e) => setFormData({ 
+                          ...formData, 
+                          address: { ...formData.address, country: e.target.value } 
+                        })}
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
+                      {errors.country && (
+                        <p className="text-red-500 text-sm mt-1">{errors.country}</p>
+                      )}
                     </div>
                   </div>
                   <div className="flex gap-3 pt-4">
                     <button
                       type="submit"
-                      className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg"
+                      disabled={saving}
+                      className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
                     >
                       <Check className="w-4 h-4" />
-                      Save Changes
+                      {saving ? 'Saving...' : 'Save Changes'}
                     </button>
                     <button
                       type="button"
                       onClick={() => {
                         setIsEditingPersonal(false);
                         setErrors({});
+                        // Reset form data
+                        setFormData({
+                          first_name: user.first_name,
+                          last_name: user.last_name,
+                          email: user.email,
+                          phone: user.phone,
+                          address: user.address
+                        });
                       }}
-                      className="flex items-center gap-2 px-6 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-all duration-200 hover:scale-105"
+                      className="flex items-center gap-2 px-6 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200"
                     >
                       <X className="w-4 h-4" />
                       Cancel
@@ -383,29 +567,29 @@ export default function UserProfile() {
             </div>
 
             {/* Account Security */}
-            <div className="bg-white rounded-2xl shadow-xl p-6 border border-slate-200 transform transition-all duration-300 hover:shadow-2xl">
+            <div className="bg-white rounded-2xl shadow-xl p-6 border border-slate-200">
               <div className="flex items-center gap-2 mb-6">
                 <Lock className="w-5 h-5 text-blue-600" />
                 <h3 className="text-xl font-bold text-slate-800">Account Security</h3>
               </div>
 
               {!isEditingPassword ? (
-                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors duration-200">
+                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
                   <div>
                     <h4 className="font-semibold text-slate-800">Password</h4>
                     <p className="text-sm text-slate-600 mt-1">
-                      Last changed: {new Date(user.passwordLastChanged).toLocaleDateString()}
+                      Last changed: {new Date(user.password_last_changed).toLocaleDateString()}
                     </p>
                   </div>
                   <button
                     onClick={() => setIsEditingPassword(true)}
-                    className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                   >
                     Change Password
                   </button>
                 </div>
               ) : (
-                <form onSubmit={handlePasswordSubmit} className="space-y-4 animate-slide-in">
+                <form onSubmit={handlePasswordSubmit} className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">
                       Current Password *
@@ -414,10 +598,10 @@ export default function UserProfile() {
                       type="password"
                       value={passwordData.currentPassword}
                       onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                      className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                      className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                     {errors.currentPassword && (
-                      <p className="text-red-500 text-sm mt-1 animate-shake">{errors.currentPassword}</p>
+                      <p className="text-red-500 text-sm mt-1">{errors.currentPassword}</p>
                     )}
                   </div>
                   <div>
@@ -428,31 +612,46 @@ export default function UserProfile() {
                       type="password"
                       value={passwordData.newPassword}
                       onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                      className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                      className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                     <p className="text-xs text-slate-500 mt-1">
-                      Minimum 8 characters with uppercase, lowercase, and number
+                      Minimum 6 characters
                     </p>
                     {errors.newPassword && (
-                      <p className="text-red-500 text-sm mt-1 animate-shake">{errors.newPassword}</p>
+                      <p className="text-red-500 text-sm mt-1">{errors.newPassword}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Confirm New Password *
+                    </label>
+                    <input
+                      type="password"
+                      value={passwordData.confirmPassword}
+                      onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                      className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    {errors.confirmPassword && (
+                      <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>
                     )}
                   </div>
                   <div className="flex gap-3 pt-4">
                     <button
                       type="submit"
-                      className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg"
+                      disabled={saving}
+                      className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
                     >
                       <Check className="w-4 h-4" />
-                      Update Password
+                      {saving ? 'Updating...' : 'Update Password'}
                     </button>
                     <button
                       type="button"
                       onClick={() => {
                         setIsEditingPassword(false);
-                        setPasswordData({ currentPassword: '', newPassword: '' });
+                        setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
                         setErrors({});
                       }}
-                      className="flex items-center gap-2 px-6 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-all duration-200 hover:scale-105"
+                      className="flex items-center gap-2 px-6 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200"
                     >
                       <X className="w-4 h-4" />
                       Cancel
@@ -461,99 +660,11 @@ export default function UserProfile() {
                 </form>
               )}
             </div>
-
-            {/* Statistics */}
-            <div className="bg-white rounded-2xl shadow-xl p-6 border border-slate-200 transform transition-all duration-300 hover:shadow-2xl">
-              <h3 className="text-xl font-bold text-slate-800 mb-6">Statistics</h3>
-              <div className="flex justify-center items-center h-80">
-                <div className="relative w-full max-w-sm">
-                  <svg viewBox="0 0 200 200" className="w-full h-full transform transition-transform duration-300 hover:scale-105">
-                    <circle cx="100" cy="100" r="80" fill="none" stroke="#e2e8f0" strokeWidth="20" />
-                    <circle
-                      cx="100"
-                      cy="100"
-                      r="80"
-                      fill="none"
-                      stroke="#3b82f6"
-                      strokeWidth="20"
-                      strokeDasharray={`${(user.ordersCount / (user.ordersCount + user.itemsSoldCount)) * 502.65} 502.65`}
-                      transform="rotate(-90 100 100)"
-                      className="transition-all duration-1000"
-                    />
-                    <circle
-                      cx="100"
-                      cy="100"
-                      r="80"
-                      fill="none"
-                      stroke="#ec4899"
-                      strokeWidth="20"
-                      strokeDasharray={`${(user.itemsSoldCount / (user.ordersCount + user.itemsSoldCount)) * 502.65} 502.65`}
-                      strokeDashoffset={`${-(user.ordersCount / (user.ordersCount + user.itemsSoldCount)) * 502.65}`}
-                      transform="rotate(-90 100 100)"
-                      className="transition-all duration-1000"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <div className="text-4xl font-bold text-slate-800">{user.ordersCount + user.itemsSoldCount}</div>
-                    <div className="text-sm text-slate-600">Total</div>
-                  </div>
-                </div>
-              </div>
-              <div className="flex justify-center gap-8 mt-6">
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
-                  <span className="text-sm text-slate-600">Orders ({user.ordersCount})</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-pink-500 rounded-full"></div>
-                  <span className="text-sm text-slate-600">Items Sold ({user.itemsSoldCount})</span>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
-      
       </main>
-  <Footer />
-      <style>{`
-        @keyframes fade-in {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        
-        @keyframes slide-in {
-          from {
-            opacity: 0;
-            transform: translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          25% { transform: translateX(-5px); }
-          75% { transform: translateX(5px); }
-        }
-        
-        .animate-fade-in {
-          animation: fade-in 0.3s ease-out;
-        }
-        
-        .animate-slide-in {
-          animation: slide-in 0.3s ease-out;
-        }
-        
-        .animate-shake {
-          animation: shake 0.3s ease-out;
-        }
-        
-        .animate-count-up {
-          animation: fade-in 0.5s ease-out;
-        }
-      `}</style>
+
+      <Footer />
     </div>
   );
 }

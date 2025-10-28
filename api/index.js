@@ -16,6 +16,7 @@ import { initMouses } from "./crud/mouses.js";
 import { initSmartwatches } from "./crud/smartwatches.js";
 import { initializeSupervisors } from './crud/supervisors.js';
 import { initializeApplications } from './crud/applications.js';
+import customerRouter from "./routes/customer.route.js";
 
 dotenv.config({ path: '../.env' });
 
@@ -52,9 +53,10 @@ app.use((req, res, next) => {
 
 // Routes
 app.use("/api/user", userRouter);
+app.use("/api/customer", customerRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/supervisor-auth", supervisorAuthRouter);
-app.use("/api/supervisor", supervisorRouter); // ✅ Now this will work
+app.use("/api/supervisor", supervisorRouter); 
 app.use("/api/Accessories/chargers", chargerRouter);
 app.use("/api/Accessories/earphones", earphoneRouter);
 app.use("/api/Accessories/mouses", mouseRouter);
