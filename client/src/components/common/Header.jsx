@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import logo from '../../assets/images/icons/logo1.png';
-import cartIcon from '../../assets/images/icons/cart-icon.png';
-import profileIcon from '../../assets/images/icons/profile-icon.png';
-
+import logo from "../../assets/images/icons/logo1.png";
+import cartIcon from "../../assets/images/icons/cart-icon.png";
+import profileIcon from "../../assets/images/icons/profile-icon.png";
+import { useCart } from "../../context/CartContent"; // ✅ Make sure file is correctly named
 
 const Header = () => {
   const [user, setUser] = useState(null);
-  const [cartCount, setCartCount] = useState(0);
+  const { cartCount, fetchCartCount } = useCart(); // ✅ from context
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -16,22 +16,8 @@ const Header = () => {
       const parsedUser = JSON.parse(storedUser);
       setUser(parsedUser);
     }
-    fetchCartCount();
+    fetchCartCount(); // ✅ uses context’s version
   }, []);
-
-  // ✅ Detects correct cart key dynamically
-  const fetchCartCount = () => {
-    const allKeys = Object.keys(localStorage);
-    const cartKey = allKeys.find((key) => key.startsWith("cart_user_"));
-    if (!cartKey) return setCartCount(0);
-
-    const cartData = JSON.parse(localStorage.getItem(cartKey)) || [];
-    const totalCount = cartData.reduce(
-      (sum, item) => sum + (item.quantity || 1),
-      0
-    );
-    setCartCount(totalCount);
-  };
 
   const handleLogout = () => {
     localStorage.clear();
@@ -47,11 +33,7 @@ const Header = () => {
         <div className="flex justify-between items-center px-6 py-3 md:px-10">
           {/* Logo */}
           <Link to="/" className="block">
-            <img
-              src={logo}
-              alt="Logo"
-              className="w-36 md:w-48 object-contain"
-            />
+            <img src={logo} alt="Logo" className="w-36 md:w-48 object-contain" />
           </Link>
 
           {/* Search Bar */}
@@ -71,11 +53,7 @@ const Header = () => {
               to={user ? "/cart" : "/sign-in"}
               className="relative flex items-center gap-2 text-gray-700 hover:text-blue-600 transition"
             >
-              <img
-                src={cartIcon}
-                alt="Cart"
-                className="w-6 h-6"
-              />
+              <img src={cartIcon} alt="Cart" className="w-6 h-6" />
               {cartCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold rounded-full px-1.5 py-0.5 shadow-md">
                   {cartCount > 99 ? "99+" : cartCount}
@@ -88,10 +66,7 @@ const Header = () => {
               <div className="relative group">
                 <div className="flex items-center gap-2 cursor-pointer hover:text-blue-600 transition">
                   <img
-                    src=
-                      {user.profileImage ||
-                      profileIcon}
-                    
+                    src={user.profileImage || profileIcon}
                     alt="Profile"
                     className="w-9 h-9 rounded-full object-cover"
                   />
@@ -210,23 +185,26 @@ const Header = () => {
 
             {/* Accessories Dropdown */}
             <li className="relative group">
-              <Link to="/Accessories" className="cursor-pointer hover:text-gray-300">
-                Accessories ▾
-              </Link>
-              <div className="absolute hidden group-hover:block bg-white text-gray-800 rounded-md shadow-lg mt-2 w-52">
-                {["Smartwatches", "Chargers", "Earphones", "Mouses"].map(
-                  (item) => (
-                    <Link
-                      key={item}
-                      to={`/accessories/${item.toLowerCase()}`}
-                      className="block px-4 py-2 hover:bg-gray-100"
-                    >
-                      {item}
-                    </Link>
-                  )
-                )}
-              </div>
-            </li>
+  <Link
+    to="/Accessories"
+    className="cursor-pointer hover:text-gray-300"
+  >
+    Accessories ▾
+  </Link>
+  <div className="absolute left-0 top-full hidden group-hover:block bg-white text-gray-800 rounded-md shadow-lg w-52 z-10">
+    {["Smartwatches", "Chargers", "Earphones", "Mouses"].map(
+      (item) => (
+        <Link
+          key={item}
+          to={`/accessories/${item.toLowerCase()}`}
+          className="block px-4 py-2 hover:bg-gray-100"
+        >
+          {item}
+        </Link>
+      )
+    )}
+  </div>
+</li>
           </ul>
         </nav>
       </header>
