@@ -58,7 +58,7 @@ export default function SupervisorLayout({ children }) {
                                 </svg>
                             </button>
                             <Link to="/supervisor-dashboard" className="flex items-center ml-4 md:ml-0">
-                                <img src="src//assets/images/icons/logo1.png" alt="Logo" className="h-8 w-auto" />
+                                <img src="/src/assets/images/icons/logo1.png" alt="Logo" className="h-8 w-auto" />
                                 <span className="ml-2 text-xl font-semibold text-gray-900">Supervisor Portal</span>
                             </Link>
                         </div>
