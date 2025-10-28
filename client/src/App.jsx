@@ -18,7 +18,6 @@ import ManageInventory from './pages/supervisor/ManageInventory';
 import Statistics from './pages/supervisor/Statistics';
 import Profile from './pages/supervisor/Profile';
 import { CartProvider } from './context/CartContent';
-import { Car } from 'lucide-react';
 import UserProfile from './pages/UserProfile';
 
 function App() {
