@@ -19,6 +19,7 @@ import Statistics from './pages/supervisor/Statistics';
 import Profile from './pages/supervisor/Profile';
 import { CartProvider } from './context/CartContent';
 import UserProfile from './pages/UserProfile';
+import CartPage from './pages/CartPage';
 
 function App() {
   return (
@@ -47,7 +48,7 @@ function App() {
             <Route path="/profile" element={<div>Profile Page</div>} />
             <Route path="/sign-in" element={<SignIn />} />
             <Route path="/sign-up" element={<SignUp />} />
-            <Route path="/cart" element={<div>Cart Page</div>} />
+            <Route path="/cart" element={<CartPage/>} />
             
             {/* Supervisor Routes */}
             <Route path="/supervisor-dashboard" element={<SupervisorDashboard />} />
