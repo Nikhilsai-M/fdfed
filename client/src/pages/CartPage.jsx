@@ -1,11 +1,16 @@
 import React, { useEffect, useState } from "react";
-import Header from '../components/common/Header';
-import Footer from '../components/common/Footer';
+import { Link } from 'react-router-dom';
+import Header from "../components/common/Header";
+import Footer from "../components/common/Footer";
+import { useCart } from "../context/CartContent"; // ✅ Import context
+
 const Cart = () => {
   const [cartItems, setCartItems] = useState([]);
   const [subtotal, setSubtotal] = useState(0);
   const [shipping, setShipping] = useState(0);
   const [total, setTotal] = useState(0);
+
+  const { fetchCartCount } = useCart(); // ✅ Get from context
 
   // Load cart from localStorage
   useEffect(() => {
@@ -40,17 +45,19 @@ const Cart = () => {
   // Update quantity handler
   const handleQuantityChange = (index, newQty) => {
     if (newQty < 1) return;
+
     const updatedItems = [...cartItems];
     updatedItems[index].quantity = newQty;
     setCartItems(updatedItems);
     updateTotals(updatedItems);
 
-    // Save updated cart to localStorage
     const allKeys = Object.keys(localStorage);
     const cartKey = allKeys.find((key) => key.startsWith("cart_user"));
     if (cartKey) {
       localStorage.setItem(cartKey, JSON.stringify(updatedItems));
     }
+
+    fetchCartCount(); // ✅ Immediately update global cart count
   };
 
   // Remove item from cart
@@ -64,11 +71,13 @@ const Cart = () => {
     if (cartKey) {
       localStorage.setItem(cartKey, JSON.stringify(updatedItems));
     }
+
+    fetchCartCount(); // ✅ Immediately update global cart count
   };
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800">
-      <Header/>
+      <Header />
 
       {/* Cart Container */}
       <div className="max-w-6xl mx-auto p-6">
@@ -108,7 +117,9 @@ const Cart = () => {
                         >
                           -
                         </button>
-                        <span className="font-semibold">{item.quantity || 1}</span>
+                        <span className="font-semibold">
+                          {item.quantity || 1}
+                        </span>
                         <button
                           onClick={() =>
                             handleQuantityChange(index, item.quantity + 1)
@@ -158,9 +169,12 @@ const Cart = () => {
               <span>Total:</span>
               <span>₹{total}</span>
             </div>
-            <button className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold">
+            <Link
+              to="/checkout"
+              className="block w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold text-center"
+            >
               Proceed to Checkout
-            </button>
+            </Link>
             <button
               onClick={() => (window.location.href = "/products")}
               className="w-full mt-3 border border-blue-600 text-blue-600 hover:bg-blue-50 py-2 rounded-lg font-semibold"
@@ -170,7 +184,8 @@ const Cart = () => {
           </div>
         </div>
       </div>
-      <Footer/>   
+
+      <Footer />
     </div>
   );
 };
