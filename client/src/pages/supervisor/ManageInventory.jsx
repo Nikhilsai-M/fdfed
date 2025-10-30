@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import SupervisorLayout from '../../components/supervisor/SupervisorLayout';
-import '/src/styles/ManageInventory.css'; // Import the external CSS file
+import '/src/styles/ManageInventory.css'; 
 
 const ManageInventory = () => {
     const [inventory, setInventory] = useState([]);
@@ -355,7 +355,7 @@ const ManageInventory = () => {
                     <input 
                         type="number" 
                         name="discount" 
-                        defaultValue={selectedProduct.discount || selectedProduct.pricing?.discount || '0'} 
+                        defaultValue={selectedProduct.discount || selectedProduct.pricing.discount || '0'} 
                         min="0" 
                         max="100" 
                         step="1" 
@@ -369,17 +369,17 @@ const ManageInventory = () => {
                 </div>
 
                 {/* Dynamic fields based on product type */}
-                {selectedProduct.type === 'phone' && (
+                {selectedProduct.type === 'phones' && (
                     <>
                         <div className="form-group"><label>Model:</label><input type="text" name="model" defaultValue={selectedProduct.model || ''} required /></div>
                         <div className="form-group"><label>Color:</label><input type="text" name="color" defaultValue={selectedProduct.color || ''} required /></div>
-                        <div className="form-group"><label>Processor:</label><input type="text" name="processor" defaultValue={selectedProduct.processor || ''} required /></div>
-                        <div className="form-group"><label>Display:</label><input type="text" name="display" defaultValue={selectedProduct.display || ''} required /></div>
-                        <div className="form-group"><label>Battery:</label><input type="number" name="battery" defaultValue={selectedProduct.battery || ''} required /></div>
-                        <div className="form-group"><label>Camera:</label><input type="text" name="camera" defaultValue={selectedProduct.camera || ''} required /></div>
-                        <div className="form-group"><label>OS:</label><input type="text" name="os" defaultValue={selectedProduct.os || ''} required /></div>
-                        <div className="form-group"><label>Network:</label><input type="text" name="network" defaultValue={selectedProduct.network || ''} required /></div>
-                        <div className="form-group"><label>Weight:</label><input type="text" name="weight" defaultValue={selectedProduct.weight || ''} required /></div>
+                        <div className="form-group"><label>Processor:</label><input type="text" name="processor" defaultValue={selectedProduct.specs.processor || ''} required /></div>
+                        <div className="form-group"><label>Display:</label><input type="text" name="display" defaultValue={selectedProduct.specs.display || ''} required /></div>
+                        <div className="form-group"><label>Battery:</label><input type="number" name="battery" defaultValue={selectedProduct.specs.battery || ''} required /></div>
+                        <div className="form-group"><label>Camera:</label><input type="text" name="camera" defaultValue={selectedProduct.specs.camera || ''} required /></div>
+                        <div className="form-group"><label>OS:</label><input type="text" name="os" defaultValue={selectedProduct.specs.os || ''} required /></div>
+                        <div className="form-group"><label>Network:</label><input type="text" name="network" defaultValue={selectedProduct.specs.network || ''} required /></div>
+                        <div className="form-group"><label>Weight:</label><input type="text" name="weight" defaultValue={selectedProduct.specs.weight || ''} required /></div>
                         <div className="form-group"><label>RAM:</label><input type="text" name="ram" defaultValue={selectedProduct.ram || ''} required /></div>
                         <div className="form-group"><label>ROM:</label><input type="text" name="rom" defaultValue={selectedProduct.rom || ''} required /></div>
                         <div className="form-group">
@@ -393,15 +393,15 @@ const ManageInventory = () => {
                     </>
                 )}
 
-                {selectedProduct.type === 'laptop' && (
+                {selectedProduct.type === 'laptops' && (
                     <>
                         <div className="form-group"><label>Series:</label><input type="text" name="series" defaultValue={selectedProduct.series || ''} required /></div>
-                        <div className="form-group"><label>Processor Name:</label><input type="text" name="processor_name" defaultValue={selectedProduct.processor_name || ''} required /></div>
-                        <div className="form-group"><label>Processor Generation:</label><input type="text" name="processor_generation" defaultValue={selectedProduct.processor_generation || ''} required /></div>
-                        <div className="form-group"><label>RAM:</label><input type="text" name="ram" defaultValue={selectedProduct.ram || ''} required /></div>
-                        <div className="form-group"><label>Storage Type:</label><input type="text" name="storage_type" defaultValue={selectedProduct.storage_type || ''} required /></div>
-                        <div className="form-group"><label>Storage Capacity:</label><input type="text" name="storage_capacity" defaultValue={selectedProduct.storage_capacity || ''} required /></div>
-                        <div className="form-group"><label>Display Size:</label><input type="number" name="display_size" defaultValue={selectedProduct.display_size || ''} step="0.1" required /></div>
+                        <div className="form-group"><label>Processor Name:</label><input type="text" name="processor_name" defaultValue={selectedProduct.processor.name || ''} required /></div>
+                        <div className="form-group"><label>Processor Generation:</label><input type="text" name="processor_generation" defaultValue={selectedProduct.processor.generation || ''} required /></div>
+                        <div className="form-group"><label>RAM:</label><input type="text" name="ram" defaultValue={selectedProduct.memory.ram || ''} required /></div>
+                        <div className="form-group"><label>Storage Type:</label><input type="text" name="storage_type" defaultValue={selectedProduct.memory.storage.type || ''} required /></div>
+                        <div className="form-group"><label>Storage Capacity:</label><input type="text" name="storage_capacity" defaultValue={selectedProduct.memory.storage.capacity || ''} required /></div>
+                        <div className="form-group"><label>Display Size:</label><input type="number" name="display_size" defaultValue={selectedProduct.displaysize || ''} step="0.1" required /></div>
                         <div className="form-group"><label>Weight:</label><input type="number" name="weight" defaultValue={selectedProduct.weight || ''} step="0.1" required /></div>
                         <div className="form-group">
                             <label>Condition:</label>
@@ -419,7 +419,7 @@ const ManageInventory = () => {
                     <>
                         <div className="form-group"><label>Title:</label><input type="text" name="title" defaultValue={selectedProduct.title || ''} required /></div>
                         <div className="form-group"><label>Design:</label><input type="text" name="design" defaultValue={selectedProduct.design || ''} required /></div>
-                        <div className="form-group"><label>Battery Life:</label><input type="text" name="battery_life" defaultValue={selectedProduct.battery_life || ''} required /></div>
+                        <div className="form-group"><label>Battery Life:</label><input type="text" name="battery_life" defaultValue={selectedProduct.batteryLife || ''} required /></div>
                     </>
                 )}
 
@@ -427,8 +427,8 @@ const ManageInventory = () => {
                     <>
                         <div className="form-group"><label>Title:</label><input type="text" name="title" defaultValue={selectedProduct.title || ''} required /></div>
                         <div className="form-group"><label>Wattage:</label><input type="text" name="wattage" defaultValue={selectedProduct.wattage || ''} required /></div>
-                        <div className="form-group"><label>Type:</label><input type="text" name="type" defaultValue={selectedProduct.Pin_type || ''} required /></div>
-                        <div className="form-group"><label>Output Current:</label><input type="text" name="output_current" defaultValue={selectedProduct.output_current || ''} required /></div>
+                        <div className="form-group"><label>Type:</label><input type="text" name="type" defaultValue={selectedProduct.type || ''} required /></div>
+                        <div className="form-group"><label>Output Current:</label><input type="text" name="output_current" defaultValue={selectedProduct.outputCurrent || ''} required /></div>
                     </>
                 )}
 
@@ -444,9 +444,9 @@ const ManageInventory = () => {
                 {selectedProduct.type === 'smartwatches' && (
                     <>
                         <div className="form-group"><label>Title:</label><input type="text" name="title" defaultValue={selectedProduct.title || ''} required /></div>
-                        <div className="form-group"><label>Display Size:</label><input type="text" name="display_size" defaultValue={selectedProduct.display_size || ''} required /></div>
-                        <div className="form-group"><label>Display Type:</label><input type="text" name="display_type" defaultValue={selectedProduct.display_type || ''} required /></div>
-                        <div className="form-group"><label>Battery Runtime:</label><input type="text" name="battery_runtime" defaultValue={selectedProduct.battery_runtime || ''} required /></div>
+                        <div className="form-group"><label>Display Size:</label><input type="text" name="display_size" defaultValue={selectedProduct.displaySize || ''} required /></div>
+                        <div className="form-group"><label>Display Type:</label><input type="text" name="display_type" defaultValue={selectedProduct.displayType || ''} required /></div>
+                        <div className="form-group"><label>Battery Runtime:</label><input type="text" name="battery_runtime" defaultValue={selectedProduct.batteryRuntime || ''} required /></div>
                     </>
                 )}
             </form>
@@ -524,13 +524,13 @@ const ManageInventory = () => {
                     </button>
                     <button 
                         className={`filter-btn ${activeFilter === 'phone' ? 'active' : ''}`}
-                        onClick={() => filterProducts('phone')}
+                        onClick={() => filterProducts('phones')}
                     >
                         Phones
                     </button>
                     <button 
                         className={`filter-btn ${activeFilter === 'laptop' ? 'active' : ''}`}
-                        onClick={() => filterProducts('laptop')}
+                        onClick={() => filterProducts('laptops')}
                     >
                         Laptops
                     </button>

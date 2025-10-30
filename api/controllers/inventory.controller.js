@@ -41,7 +41,7 @@ export const addInventoryItem = async (req, res, next) => {
     let result;
     const typeLower = type.toLowerCase();
 
-    if (typeLower === 'phones') {
+    if (typeLower === 'phone') {
       result = await addPhone({
         id: parseInt(id),
         brand,
@@ -60,7 +60,7 @@ export const addInventoryItem = async (req, res, next) => {
         rom: specificData.rom,
         condition: specificData.condition,
       });
-    } else if (typeLower === 'laptops') {
+    } else if (typeLower === 'laptop') {
       result = await addLaptop({
         id: parseInt(id),
         brand,

@@ -16,7 +16,7 @@ export async function initChargers() {
           wattage: '20',
           type: 'USB C',
           originalPrice: 1900,
-          discount: '10%',
+          discount: 10,
           outputCurrent: '3A',
         },
         {
@@ -27,7 +27,7 @@ export async function initChargers() {
           wattage: '25',
           type: 'USB C',
           originalPrice: 1800,
-          discount: '15%',
+          discount: 5,
           outputCurrent: '2.5A',
         },
         {
@@ -39,7 +39,7 @@ export async function initChargers() {
           wattage: '33',
           type: 'USB C',
           originalPrice: 2999,
-          discount: '87%',
+          discount: 7,
           outputCurrent: '6A',
         },
         {
@@ -51,7 +51,7 @@ export async function initChargers() {
           wattage: '44',
           type: 'USB C',
           originalPrice: 2999,
-          discount: '71%',
+          discount: 1,
           outputCurrent: '5A',
         },
         {
@@ -63,7 +63,7 @@ export async function initChargers() {
           wattage: '44',
           type: 'USB C',
           originalPrice: 1999,
-          discount: '63%',
+          discount: 3,
           outputCurrent: '4A',
         },
         {
@@ -75,7 +75,7 @@ export async function initChargers() {
           wattage: '80',
           type: 'USB C',
           originalPrice: 2499,
-          discount: '86%',
+          discount: 6,
           outputCurrent: '7.3A',
         },
         {
@@ -87,7 +87,7 @@ export async function initChargers() {
           wattage: '20',
           type: 'lightning',
           originalPrice: 2900,
-          discount: '0%',
+          discount:0,
           outputCurrent: '3A',
         },
       ]);

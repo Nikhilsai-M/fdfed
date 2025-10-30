@@ -6,7 +6,7 @@ const smartwatchSchema = new mongoose.Schema({
   image: { type: String, required: true },
   brand: { type: String, required: true },
   originalPrice: { type: Number, required: true },
-  discount: { type: String, required: true },
+  discount: { type: Number, required: true },
  displaySize: { type: String, required: true },
 displayType: { type: String, required: true },
  batteryRuntime: { type: String, required: true },

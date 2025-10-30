@@ -5,7 +5,7 @@ const mouseSchema = new mongoose.Schema({
   image: { type: String, required: true },
   brand: { type: String, required: true },
   originalPrice: { type: Number, required: true },
-  discount: { type: String, required: true },
+ discount: { type: Number, required: true },
   type: { type: String, required: true },
   connectivity: { type: String, required: true },
   resolution: { type: String, required: true },
