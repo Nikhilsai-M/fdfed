@@ -20,6 +20,7 @@ import Profile from './pages/supervisor/Profile';
 import { CartProvider } from './context/CartContent';
 import UserProfile from './pages/UserProfile';
 import CartPage from './pages/CartPage';
+import Checkout from './pages/Checkout';
 
 function App() {
   return (
@@ -49,7 +50,7 @@ function App() {
             <Route path="/sign-in" element={<SignIn />} />
             <Route path="/sign-up" element={<SignUp />} />
             <Route path="/cart" element={<CartPage/>} />
-            
+            <Route path="/checkout" element={<Checkout/>} />
             {/* Supervisor Routes */}
             <Route path="/supervisor-dashboard" element={<SupervisorDashboard />} />
             <Route path="/supervisor/verify-listings" element={<VerifyListings />} />
