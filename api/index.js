@@ -22,8 +22,6 @@ import { initializeSupervisors } from './crud/supervisors.js';
 import { initializeApplications } from './crud/applications.js';
 import { initPhones } from './crud/phones.js';
 import { initLaptops } from './crud/laptops.js';
-
-import customerRouter from "./routes/customer.route.js";
 import orderRouter from "./routes/orders.route.js";
 dotenv.config({ path: '../.env' });
 
