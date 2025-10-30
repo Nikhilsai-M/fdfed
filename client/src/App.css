@@ -40,3 +40,41 @@
 .read-the-docs {
   color: #888;
 }
+
+/* Manage Inventory Styles */
+.create-form {
+  @apply space-y-4;
+}
+
+.form-group {
+  @apply flex flex-col;
+}
+
+.form-group label {
+  @apply font-medium mb-1 text-gray-700;
+}
+
+.form-group input,
+.form-group select {
+  @apply border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500;
+}
+
+.filters {
+  @apply flex flex-wrap gap-2 mb-6;
+}
+
+.filter-btn {
+  @apply px-4 py-2 rounded transition-colors;
+}
+
+.filter-btn.active {
+  @apply bg-blue-500 text-white;
+}
+
+.filter-btn:not(.active) {
+  @apply bg-gray-200 text-gray-700 hover:bg-gray-300;
+}
+
+.inventory-card {
+  @apply border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow;
+}

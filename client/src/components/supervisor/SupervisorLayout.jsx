@@ -97,11 +97,11 @@ export default function SupervisorLayout({ children }) {
             </header>
 
             <div className="flex">
-                {/* Sidebar */}
-                <aside className={`bg-white shadow-xl w-64 min-h-screen fixed md:static transform ${
+                {/* Sidebar - Fixed on Desktop */}
+                <aside className={`bg-white shadow-xl w-64 fixed top-16 bottom-0 left-0 md:sticky md:top-16 md:h-[calc(100vh-4rem)] transform ${
                     sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-                } md:translate-x-0 transition-transform duration-300 ease-in-out z-40 border-r border-gray-200`}>
-                    <nav className="mt-8 px-4">
+                } md:translate-x-0 transition-transform duration-300 ease-in-out z-40 border-r border-gray-200 overflow-y-auto`}>
+                    <nav className="mt-8 px-4 pb-8">
                         <ul className="space-y-2">
                             <li>
                                 <Link 
@@ -111,6 +111,7 @@ export default function SupervisorLayout({ children }) {
                                             ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-200 scale-105' 
                                             : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 hover:translate-x-1'
                                     }`}
+                                    onClick={() => setSidebarOpen(false)}
                                 >
                                     <i className={`fas fa-house w-5 mr-3 ${isActive('/supervisor-dashboard') ? 'animate-pulse' : ''}`}></i>
                                     Dashboard
@@ -124,6 +125,7 @@ export default function SupervisorLayout({ children }) {
                                             ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-200 scale-105' 
                                             : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 hover:translate-x-1'
                                     }`}
+                                    onClick={() => setSidebarOpen(false)}
                                 >
                                     <i className="fas fa-clipboard-check w-5 mr-3"></i>
                                     Verify Listings
@@ -137,6 +139,7 @@ export default function SupervisorLayout({ children }) {
                                             ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-200 scale-105' 
                                             : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 hover:translate-x-1'
                                     }`}
+                                    onClick={() => setSidebarOpen(false)}
                                 >
                                     <i className="fas fa-boxes w-5 mr-3"></i>
                                     Manage Inventory
@@ -150,6 +153,7 @@ export default function SupervisorLayout({ children }) {
                                             ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-200 scale-105' 
                                             : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 hover:translate-x-1'
                                     }`}
+                                    onClick={() => setSidebarOpen(false)}
                                 >
                                     <i className="fas fa-chart-bar w-5 mr-3"></i>
                                     Statistics
@@ -168,14 +172,16 @@ export default function SupervisorLayout({ children }) {
                     </nav>
                 </aside>
 
+                {/* Mobile Overlay */}
+                {sidebarOpen && (
+                    <div 
+                        className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden backdrop-blur-sm transition-opacity duration-300"
+                        onClick={() => setSidebarOpen(false)}
+                    ></div>
+                )}
+
                 {/* Main Content */}
-                <main className="flex-1 md:ml-0">
-                    {sidebarOpen && (
-                        <div 
-                            className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden backdrop-blur-sm transition-opacity duration-300"
-                            onClick={() => setSidebarOpen(false)}
-                        ></div>
-                    )}
+                <main className="flex-1 md:ml-0 w-full">
                     <div className="p-6 md:p-8">
                         {children}
                     </div>
