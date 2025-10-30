@@ -23,6 +23,8 @@ import { initializeApplications } from './crud/applications.js';
 import { initPhones } from './crud/phones.js';
 import { initLaptops } from './crud/laptops.js';
 
+import customerRouter from "./routes/customer.route.js";
+import orderRouter from "./routes/orders.route.js";
 dotenv.config({ path: '../.env' });
 
 mongoose.connect(process.env.MONGO).then(async() => {
@@ -69,7 +71,7 @@ app.use("/api/Accessories/chargers", chargerRouter);
 app.use("/api/Accessories/earphones", earphoneRouter);
 app.use("/api/Accessories/mouses", mouseRouter);
 app.use("/api/Accessories/smartwatches", smartwatchRouter);
-
+app.use("/api",orderRouter);
 // Error handling middleware
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
