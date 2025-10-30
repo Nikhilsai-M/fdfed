@@ -21,7 +21,8 @@ import { CartProvider } from './context/CartContent';
 import UserProfile from './pages/UserProfile';
 import CartPage from './pages/CartPage';
 import Checkout from './pages/Checkout';
-
+import Orders from './pages/Orders';
+import MyOrders from './pages/MyOrders';
 function App() {
   return (
     <CartProvider>
@@ -41,7 +42,8 @@ function App() {
             <Route path="/smartwatch/:id" element={<AccessoryDetails type="smartwatch" />} />
             <Route path="/earphone/:id" element={<AccessoryDetails type="earphone" />} />
             <Route path="/Accessories" element={<AccessoriesPage />} />
-           
+            <Route path="/myorders" element={<MyOrders />} />
+            <Route path="/orders" element={<Orders />} />
             <Route path="/sell-phone" element={<div>Sell Phone Page</div>} />
             <Route path="/sell-laptop" element={<SellLaptop />} />
             <Route path="/buy-phone" element={<div>Buy Phone Page</div>} />
