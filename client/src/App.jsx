@@ -23,6 +23,7 @@ import CartPage from './pages/CartPage';
 import Checkout from './pages/Checkout';
 import Orders from './pages/Orders';
 import MyOrders from './pages/MyOrders';
+import BuyPhones from './pages/Buyphones';  
 function App() {
   return (
     <CartProvider>
@@ -53,6 +54,7 @@ function App() {
             <Route path="/sign-up" element={<SignUp />} />
             <Route path="/cart" element={<CartPage/>} />
             <Route path="/checkout" element={<Checkout/>} />
+            <Route path="/buyphones" element={<BuyPhones/>} />
             {/* Supervisor Routes */}
             <Route path="/supervisor-dashboard" element={<SupervisorDashboard />} />
             <Route path="/supervisor/verify-listings" element={<VerifyListings />} />
