@@ -469,58 +469,61 @@ const HomePage = () => {
 
       {/* Features Section */}
       <div className="mx-4 mb-16 animate-fade-in-up">
-        <div className="bg-gradient-to-br from-gray-100 via-blue-50 to-purple-50 rounded-3xl p-10 shadow-xl">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto">
+        <div className="bg-gradient-to-br from-gray-100 via-blue-50 to-purple-50 rounded-3xl p-10 shadow-xl relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-full opacity-10">
+            <div className="absolute top-10 left-10 w-40 h-40 bg-blue-400 rounded-full filter blur-3xl"></div>
+            <div className="absolute bottom-10 right-10 w-40 h-40 bg-purple-400 rounded-full filter blur-3xl"></div>
+          </div>
+          
+          <h3 className="text-3xl font-bold text-center text-gradient mb-10 relative z-10">Our Guarantees</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto relative z-10">
             
-            {/* 6 Month Warranty */}
             <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-5 card-hover">
-              <div className="bg-gradient-to-br from-blue-400 to-blue-500 rounded-xl p-4 flex-shrink-0">
+              <div className="bg-gradient-to-br from-blue-400 to-blue-500 rounded-xl p-4 flex-shrink-0 animate-bounce-slow">
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
               </div>
               <div>
                 <h3 className="text-xl font-bold text-gray-900 mb-0.5">6 Month Warranty</h3>
-                <p className="text-gray-600 text-sm">All devices covered</p>
+                <p className="text-gray-600 text-sm">All devices covered with comprehensive protection</p>
               </div>
             </div>
 
-            {/* Fast Delivery */}
             <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-5 card-hover">
-              <div className="bg-gradient-to-br from-blue-400 to-blue-500 rounded-xl p-4 flex-shrink-0">
+              <div className="bg-gradient-to-br from-green-400 to-green-500 rounded-xl p-4 flex-shrink-0 animate-bounce-slow" style={{ animationDelay: '0.2s' }}>
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
               <div>
                 <h3 className="text-xl font-bold text-gray-900 mb-0.5">Fast Delivery</h3>
-                <p className="text-gray-600 text-sm">Quick & secure shipping</p>
+                <p className="text-gray-600 text-sm">Quick & secure shipping to your doorstep</p>
               </div>
             </div>
 
-            {/* Quality Certified */}
             <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-5 card-hover">
-              <div className="bg-gradient-to-br from-blue-400 to-blue-500 rounded-xl p-4 flex-shrink-0">
+              <div className="bg-gradient-to-br from-purple-400 to-purple-500 rounded-xl p-4 flex-shrink-0 animate-bounce-slow" style={{ animationDelay: '0.4s' }}>
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
                 </svg>
               </div>
               <div>
                 <h3 className="text-xl font-bold text-gray-900 mb-0.5">Quality Certified</h3>
-                <p className="text-gray-600 text-sm">Tested & verified</p>
+                <p className="text-gray-600 text-sm">Rigorously tested & verified devices</p>
               </div>
             </div>
 
-            {/* Best Prices */}
             <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-5 card-hover">
-              <div className="bg-gradient-to-br from-blue-400 to-blue-500 rounded-xl p-4 flex-shrink-0">
+              <div className="bg-gradient-to-br from-orange-400 to-orange-500 rounded-xl p-4 flex-shrink-0 animate-bounce-slow" style={{ animationDelay: '0.6s' }}>
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                 </svg>
               </div>
               <div>
                 <h3 className="text-xl font-bold text-gray-900 mb-0.5">Best Prices</h3>
-                <p className="text-gray-600 text-sm">Up to 70% off</p>
+                <p className="text-gray-600 text-sm">Save up to 70% on retail prices</p>
               </div>
             </div>
 
