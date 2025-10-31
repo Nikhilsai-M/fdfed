@@ -38,12 +38,7 @@ const BuyPhones = () => {
     { price: '50,000', value: 50000, bg: 'from-green-400 to-green-600', image: 'src/assets/images/buy_phone/img7.webp', icon: '👑' }
   ];
 
-  const categories = [
-    { id: 'all', label: 'All Phones', icon: '📱' },
-    { id: 'flagship', label: 'Flagship', icon: '🌟' },
-    { id: 'budget', label: 'Budget', icon: '💰' },
-    { id: 'trending', label: 'Trending', icon: '🔥' }
-  ];
+  
 
   useEffect(() => {
     fetchLatestProducts();
@@ -317,21 +312,8 @@ const BuyPhones = () => {
             </div>
           ))}
 
-          {/* Floating Stats */}
-          <div className="absolute bottom-8 left-8 right-8 flex flex-wrap gap-4 z-20">
-            <div className="bg-white/10 backdrop-blur-md rounded-xl px-6 py-3 border border-white/20 animate-fade-in-up delay-200">
-              <p className="text-white/80 text-sm">Happy Customers</p>
-              <p className="text-white text-2xl font-bold">50,000+</p>
-            </div>
-            <div className="bg-white/10 backdrop-blur-md rounded-xl px-6 py-3 border border-white/20 animate-fade-in-up delay-400">
-              <p className="text-white/80 text-sm">Phones Sold</p>
-              <p className="text-white text-2xl font-bold">1,00,000+</p>
-            </div>
-            <div className="bg-white/10 backdrop-blur-md rounded-xl px-6 py-3 border border-white/20 animate-fade-in-up delay-600">
-              <p className="text-white/80 text-sm">Trust Score</p>
-              <p className="text-white text-2xl font-bold">4.8⭐</p>
-            </div>
-          </div>
+         
+       
         </div>
         
         <button
@@ -360,30 +342,26 @@ const BuyPhones = () => {
         </div>
       </div>
 
-      {/* Top Brands Section with Enhanced Design */}
-      <div id="brands-section" data-animate className={`mb-16 ${isVisible['brands-section'] ? 'scroll-reveal visible' : 'scroll-reveal'}`}>
+    
+     {/* Top Brands Section */}
+     <div id="brands-section" data-animate className={`mb-16 ${isVisible['brands-section'] ? 'scroll-reveal visible' : 'scroll-reveal'}`}>
         <div className="flex items-center justify-between ml-6 mr-6 mb-6">
-          <div className="flex items-center gap-3">
-            <h2 className="text-4xl font-bold text-gradient animate-slide-in-left">Top Brands</h2>
-            <TrendingUp className="w-8 h-8 text-purple-600 animate-bounce-slow" />
-          </div>
+          <h2 className="text-4xl font-bold text-gradient animate-slide-in-left">Top Brands</h2>
           <div className="h-1 flex-1 mx-6 bg-gradient-to-r from-purple-500 to-transparent rounded animate-slide-in-right"></div>
         </div>
         
         <div className="bg-gradient-to-br from-white to-blue-50 p-10 rounded-2xl mx-4 shadow-xl">
           <div className="flex flex-wrap justify-center gap-6">
-            {topBrands.map(({ name, image, color }, index) => (
+            {topBrands.map(({ name, image }, index) => (
               <div
                 key={name}
                 onClick={() => redirectToFilterPage(name)}
-                className={`bg-white rounded-2xl overflow-hidden w-40 shadow-lg cursor-pointer hover:shadow-xl transition-shadow duration-300 animate-scale-in delay-${index}00`}
+                className={`brand-card bg-white rounded-2xl overflow-hidden w-36 shadow-lg cursor-pointer animate-scale-in delay-${index}00`}
               >
                 <div className="p-4 bg-gradient-to-br from-gray-50 to-white">
-                  <img src={image} alt={name} className="w-full h-24 object-contain" />
+                  <img src={image} alt={name} className="w-full h-24 object-contain animate-float" />
                 </div>
-                <div className={`p-3 text-center font-bold text-white bg-gradient-to-r ${color}`}>
-                  {name}
-                </div>
+                <div className="p-3 text-center font-bold text-gray-800 bg-white">{name}</div>
               </div>
             ))}
           </div>
@@ -400,23 +378,6 @@ const BuyPhones = () => {
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
       </div>
 
-      {/* Category Tabs */}
-      <div className="mx-4 mb-8 animate-fade-in-up">
-        <div className="flex flex-wrap justify-center gap-4">
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setActiveTab(cat.id)}
-              className={`tab-button px-6 py-3 rounded-full font-semibold shadow-lg ${
-                activeTab === cat.id ? 'active scale-110' : 'bg-white hover:scale-105'
-              }`}
-            >
-              <span className="mr-2">{cat.icon}</span>
-              {cat.label}
-            </button>
-          ))}
-        </div>
-      </div>
 
       {/* Newly Added Phones Section */}
       <div id="products-section" data-animate className={`mb-16 ${isVisible['products-section'] ? 'scroll-reveal visible' : 'scroll-reveal'}`}>
@@ -532,11 +493,7 @@ const BuyPhones = () => {
                   <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-2 transition-transform" />
                 </div>
               </div>
-              <img
-                src={category.image}
-                alt={`Phones under ${category.price}`}
-                className="absolute bottom-0 right-0 w-40 h-40 object-contain opacity-80 group-hover:scale-110 transition-transform duration-300"
-              />
+             
               <div className="absolute inset-0 bg-gradient-to-tr from-black/10 to-transparent"></div>
               
               {/* Sparkle effects */}
@@ -548,51 +505,7 @@ const BuyPhones = () => {
         </div>
       </div>
 
-      {/* Testimonials Section */}
-      <div id="testimonials-section" data-animate className={`mb-16 ${isVisible['testimonials-section'] ? 'scroll-reveal visible' : 'scroll-reveal'}`}>
-        <div className="flex items-center justify-between ml-6 mr-6 mb-6">
-          <div className="flex items-center gap-3">
-            <h2 className="text-4xl font-bold text-gradient animate-slide-in-left">Customer Love</h2>
-            <span className="text-3xl animate-pulse-slow">❤️</span>
-          </div>
-          <div className="h-1 flex-1 mx-6 bg-gradient-to-r from-pink-500 to-transparent rounded animate-slide-in-right"></div>
-        </div>
-
-        <div className="mx-4 grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[
-            { name: 'Rahul Sharma', rating: 5, text: 'Amazing quality phones! Got my iPhone 13 at 60% off. Super happy with the purchase!', location: 'Mumbai' },
-            { name: 'Priya Patel', rating: 5, text: 'Fast delivery and excellent customer service. The phone condition is exactly as described.', location: 'Delhi' },
-            { name: 'Amit Kumar', rating: 5, text: 'Best place to buy refurbished phones. 6-month warranty gives great peace of mind!', location: 'Bangalore' }
-          ].map((review, index) => (
-            <div
-              key={index}
-              className={`bg-white rounded-2xl p-6 shadow-xl card-hover border-2 border-gray-100 animate-fade-in-up delay-${(index + 2) * 100} relative`}
-            >
-              <div className="absolute -top-4 -right-4 bg-gradient-to-br from-yellow-400 to-orange-500 w-12 h-12 rounded-full flex items-center justify-center text-white font-bold shadow-lg animate-bounce-slow">
-                <span className="text-xl">⭐</span>
-              </div>
-              
-              <div className="flex gap-1 mb-4">
-                {[...Array(review.rating)].map((_, i) => (
-                  <span key={i} className="text-yellow-400 text-xl">★</span>
-                ))}
-              </div>
-              
-              <p className="text-gray-700 mb-4 italic">"{review.text}"</p>
-              
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white font-bold text-xl">
-                  {review.name.charAt(0)}
-                </div>
-                <div>
-                  <p className="font-bold text-gray-800">{review.name}</p>
-                  <p className="text-sm text-gray-500">{review.location}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      
 
       {/* Interactive CTA Banner */}
       <div className="mx-4 mb-12 animate-fade-in-up">
@@ -718,29 +631,8 @@ const BuyPhones = () => {
         </div>
       </div>
 
-      {/* Newsletter Section */}
-      <div className="mx-4 mb-16 animate-fade-in-up">
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-3xl p-10 text-center shadow-2xl">
-          <div className="max-w-2xl mx-auto">
-            <h3 className="text-3xl font-bold text-white mb-4">Stay Updated!</h3>
-            <p className="text-white/90 mb-6">Subscribe to get exclusive deals, new arrivals, and special offers directly in your inbox.</p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="px-6 py-4 rounded-full w-full sm:w-96 text-gray-800 font-medium focus:outline-none focus:ring-4 focus:ring-white/50 transition-all"
-              />
-              <button className="bg-white text-purple-600 px-8 py-4 rounded-full font-bold hover:bg-gray-100 transform hover:scale-105 transition-all duration-300 shadow-lg flex items-center gap-2 whitespace-nowrap">
-                Subscribe
-                <Sparkles className="w-5 h-5" />
-              </button>
-            </div>
-            
-            <p className="text-white/70 text-sm mt-4">🎁 Get 5% OFF on your first purchase!</p>
-          </div>
-        </div>
-      </div>
+     
+    
 
       <Footer />
     </div>

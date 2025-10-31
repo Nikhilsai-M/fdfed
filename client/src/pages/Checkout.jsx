@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const Checkout = () => {
   const [userId, setUserId] = useState(null);
@@ -70,7 +70,7 @@ const Checkout = () => {
     return item.title || 'Unknown Item';
   };
 
-  // ---- UPDATED SUMMARY CALCULATION WITH DISCOUNT ----
+  // ---- SUMMARY CALCULATION WITH DISCOUNT ----
   const { subtotal, shipping, discountAmount, total } = useMemo(() => {
     const subtotal = cart.reduce((total, item) => total + calculateItemTotal(item), 0);
     const shipping = subtotal > 10000 ? 0 : 100;
@@ -170,7 +170,16 @@ const Checkout = () => {
         className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8"
       >
         <div className="max-w-7xl mx-auto text-center">
-          <h1 className="text-3xl font-bold text-gray-900">Checkout</h1>
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-3xl font-bold text-gray-900">Checkout</h1>
+            <Link
+              to="/"
+              className="inline-flex items-center px-4 py-2 bg-white text-gray-700 font-medium text-sm rounded-lg shadow hover:bg-gray-50 transition-all"
+            >
+              <i className="fas fa-arrow-left mr-2"></i>
+              Back to Shopping
+            </Link>
+          </div>
           <p className="text-gray-500 mt-4">No items in cart.</p>
         </div>
       </motion.div>
@@ -184,7 +193,17 @@ const Checkout = () => {
       className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8"
     >
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl font-bold text-gray-900 text-center mb-8">Checkout</h1>
+        {/* Header with Title and Back Button */}
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900">Checkout</h1>
+          <Link
+            to="/"
+            className="inline-flex items-center px-5 py-2.5 bg-white text-gray-700 font-medium text-sm rounded-lg shadow-md hover:bg-gray-50 hover:shadow-lg transition-all"
+          >
+            <i className="fas fa-arrow-left mr-2"></i>
+            Back to Shopping
+          </Link>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* ---- ORDER SUMMARY ---- */}
