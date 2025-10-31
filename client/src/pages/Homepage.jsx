@@ -68,7 +68,7 @@ const HomePage = () => {
   const slideLinks = ['', '', '/Accessories', '/buy-phone'];
 
   return (
-    <div className="pt-20 bg-gradient-to-br from-gray-50 via-blue-50 to-green-50 min-h-screen">
+    <div className="pt-6 bg-gradient-to-br from-gray-50 via-blue-50 to-green-50 min-h-screen">
       <Header />
       <style>{`
         @keyframes fadeInUp {

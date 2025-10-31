@@ -149,9 +149,9 @@ const Header = () => {
 
             {/* Buy Phone Dropdown */}
             <li className="relative group">
-              <span className="cursor-pointer hover:text-gray-300">
+              <Link to ='/buyphones' className="cursor-pointer hover:text-gray-300">
                 Buy Phone ▾
-              </span>
+              </Link>
               <div className="absolute hidden group-hover:block bg-white text-gray-800 rounded-md shadow-lg mt-2 w-48">
                 {["Apple", "Samsung", "OnePlus"].map((brand) => (
                   <Link
