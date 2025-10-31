@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-
+import Header from '../components/common/Header';
+import Footer from '../components/common/Footer';
 const Orders = () => {
   const [searchParams] = useSearchParams();
   const [recentOrder, setRecentOrder] = useState(null);
@@ -34,6 +35,7 @@ const Orders = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-100 py-8">
+       <Header />
       <div className="container mx-auto px-4 max-w-5xl">
         {recentOrder && (
           <motion.div
@@ -97,6 +99,7 @@ const Orders = () => {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 };

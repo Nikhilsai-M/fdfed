@@ -2,6 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion'; 
+import Header from '../components/common/Header';
+import Footer from '../components/common/Footer';
 
 const MyOrders = () => {
   const [orders, setOrders] = useState([]);
@@ -74,6 +76,7 @@ const MyOrders = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-100 py-8">
+       <Header />
       <div className="container mx-auto px-4 max-w-4xl">
         <motion.div
           initial={{ opacity: 0 }}
@@ -205,6 +208,7 @@ const MyOrders = () => {
           </Link>
         </motion.div>
       </div>
+      <Footer />
     </div>
   );
 };
