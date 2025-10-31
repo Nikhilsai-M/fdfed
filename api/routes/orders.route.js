@@ -1,17 +1,17 @@
 import { Router } from "express";
-import { requireCustomerAuth,verifyToken} from "../middleware/auth.middleware.js";
-import { getOrdersByUserId, createOrder } from "../crud/orders.js"; 
+import { verifyToken } from "../middleware/auth.middleware.js";
+import { getOrdersByUserId, createOrder } from "../crud/orders.js";
 
 const router = Router();
 
-// POST endpoint for creating a new order
-router.post('/orders', requireCustomerAuth, async (req, res) => {
+// ✅ POST: Create new order
+router.post('/orders', verifyToken, async (req, res) => {
   try {
-    const userId = req.session.user.userId;
+    // ✅ Use user_id from JWT payload
+    const userId = req.user.user_id;
     const { totalAmount, paymentMethod, items } = req.body;
 
-    // Validate input
-    if (!totalAmount || !paymentMethod || !items || !Array.isArray(items) || items.length === 0) {
+    if (!totalAmount || !paymentMethod || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ success: false, message: 'Invalid order data' });
     }
 
@@ -22,7 +22,9 @@ router.post('/orders', requireCustomerAuth, async (req, res) => {
       }
     }
 
+    // ✅ Create order
     const result = await createOrder(userId, totalAmount, paymentMethod, items);
+
     if (!result.success) {
       return res.status(500).json({ success: false, message: result.message });
     }
@@ -34,32 +36,36 @@ router.post('/orders', requireCustomerAuth, async (req, res) => {
   }
 });
 
-// GET endpoint for all orders (myorders)
-router.get('/myorders', requireCustomerAuth, async (req, res) => {
+// ✅ GET: My Orders
+router.get('/myorders', verifyToken, async (req, res) => {
   try {
-    const userId = req.session.user.userId;
+    const userId = req.user.user_id;
     const orders = await getOrdersByUserId(userId);
-    res.json(orders); // Returns plain array for consistency with provided code
+    res.json({ success: true, orders });
   } catch (error) {
     console.error('Error in /api/myorders:', error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 
-// GET endpoint for single order by ID
+// ✅ GET: Single Order
 router.get('/orders/:orderId', verifyToken, async (req, res) => {
   try {
-    const userId = req.session.user.userId;
+    const userId = req.user.user_id;
     const orderId = req.params.orderId;
+
     const orders = await getOrdersByUserId(userId);
     const order = orders.find(o => o.orderId === orderId);
+
     if (!order) {
       return res.status(404).json({ success: false, message: 'Order not found' });
     }
-    res.json({ success: true, order }); // Wrapped for consistency
+
+    res.json({ success: true, order });
   } catch (error) {
     console.error('Error in /api/orders/:orderId:', error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
+
 export default router;

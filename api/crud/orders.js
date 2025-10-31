@@ -2,6 +2,12 @@ import Counter from "../models/counter.model.js";
 import Order from "../models/order.model.js";
 import OrderItem from "../models/orderitem.model.js";
 import User from "../models/user.model.js";
+import Charger from "../models/charger.model.js";
+import Earphone from "../models/earphone.model.js";
+import Mouse from "../models/mouse.model.js";
+import Smartwatch from "../models/smartwatch.model.js";
+//import Phone from "../models/phone.model.js";
+//import Laptop from "../models/laptop.model.js";
 export async function createOrder(userId, totalAmount, paymentMethod, items) {
   try {
     // Validate inputs
@@ -32,12 +38,12 @@ export async function createOrder(userId, totalAmount, paymentMethod, items) {
       // Verify item exists in inventory
       let product;
       switch (item.type.toLowerCase()) {
-        case 'phone':
+       /* case 'phone':
           product = await Phone.findOne({ id: itemId });
           break;
         case 'laptop':
           product = await Laptop.findOne({ id: itemId });
-          break;
+          break;*/
         case 'charger':
           product = await Charger.findOne({ id: itemId });
           break;
@@ -92,12 +98,12 @@ export async function createOrder(userId, totalAmount, paymentMethod, items) {
       console.log(`Attempting to delete item: type=${item.type}, id=${itemId}`);
       let deleteResult;
       switch (item.type.toLowerCase()) {
-        case 'phone':
+        /*case 'phone':
           deleteResult = await Phone.deleteOne({ id: itemId });
           break;
         case 'laptop':
           deleteResult = await Laptop.deleteOne({ id: itemId });
-          break;
+          break;*/
         case 'charger':
           deleteResult = await Charger.deleteOne({ id: itemId });
           break;
