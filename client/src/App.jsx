@@ -46,7 +46,7 @@ function App() {
             <Route path="/earphone/:id" element={<AccessoryDetails type="earphone" />} />
             <Route path="/Accessories" element={<AccessoriesPage />} />
             <Route path="/myorders" element={<MyOrders />} />
-            <Route path="/orders" element={<Orders />} />
+            <Route path="/orders/:orderId" element={<Orders />} />
             <Route path="/sell-phone" element={<SellPhoneForm />}/>
             <Route path="/sell-laptop" element={<SellLaptop />} />
             <Route path="/buy-phone" element={<div>Buy Phone Page</div>} />

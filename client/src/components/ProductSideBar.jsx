@@ -101,7 +101,7 @@ const ProductSidebar = ({ product, type }) => {
           ₹{parseFloat(product.pricing.originalPrice).toLocaleString('en-IN')}
         </span>
         <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold animate-pulse">
-          {product.pricing.discount} Off
+          {product.pricing.discount}% Off
         </span>
       </div>
 

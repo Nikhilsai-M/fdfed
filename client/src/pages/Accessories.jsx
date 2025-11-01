@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, Star, TrendingUp, Shield, Zap } from 'lucide
 import { Link } from 'react-router-dom';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
+
 const AccessoriesPage = () => {
   const [accessories, setAccessories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -95,16 +96,25 @@ const AccessoriesPage = () => {
     setCurrentSlide((prev) => (prev - 1 + carouselImages.length) % carouselImages.length);
   };
 
+  const scrollAccessories = (direction) => {
+    const container = document.getElementById('accessories-scroll');
+    if (container) {
+      const scrollAmount = 320;
+      container.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50">
-      {/* Spacer for header */}
       <Header />
       <div className="h-4"></div>
       
       {/* Carousel Section */}
       <div className="container mx-auto px-8 pt-8 md:pt-14 pb-10">
         <div className="relative max-w-7xl mx-auto overflow-hidden rounded-2xl md:rounded-3xl shadow-2xl group bg-gray-200">
-          {/* Carousel Track */}
           <div className="relative w-full h-[350px] sm:h-[450px] md:h-[550px] lg:h-[600px]">
             {carouselImages.map((img, index) => (
               <div
@@ -123,7 +133,6 @@ const AccessoriesPage = () => {
             ))}
           </div>
           
-          {/* Navigation Buttons */}
           <button 
             onClick={prevSlide}
             aria-label="Previous slide"
@@ -139,7 +148,6 @@ const AccessoriesPage = () => {
             <ChevronRight className="w-5 h-5 md:w-7 md:h-7 text-gray-800" />
           </button>
 
-          {/* Indicators */}
           <div className="absolute bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 flex gap-2 md:gap-3">
             {carouselImages.map((_, index) => (
               <button
@@ -153,7 +161,6 @@ const AccessoriesPage = () => {
             ))}
           </div>
 
-          {/* Slide Counter */}
           <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-semibold">
             {currentSlide + 1} / {carouselImages.length}
           </div>
@@ -210,7 +217,7 @@ const AccessoriesPage = () => {
         </div>
       </div>
 
-      {/* Newly Added Accessories Section */}
+      {/* Newly Added Accessories Section - Horizontal Scroll */}
       <div className="container mx-auto px-4 py-12 md:py-16">
         <div className="text-center mb-8 md:mb-12">
           <h2 className="text-3xl md:text-5xl font-bold mb-3 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent animate-fadeIn">
@@ -221,11 +228,11 @@ const AccessoriesPage = () => {
           </p>
         </div>
 
-        <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 rounded-2xl md:rounded-3xl shadow-xl p-6 md:p-12 animate-fadeIn">
+        <div className="relative bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 rounded-2xl md:rounded-3xl shadow-xl p-6 md:p-8 animate-fadeIn">
           {loading ? (
             <div className="flex flex-col justify-center items-center py-20">
               <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600 mb-4"></div>
-              <p className="text-gray-600">Loading accessories...</p>
+              <p className="text-gray-600 font-medium">Loading accessories...</p>
             </div>
           ) : error ? (
             <div className="text-center py-20">
@@ -244,62 +251,97 @@ const AccessoriesPage = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                 </svg>
               </div>
-              <p className="text-gray-600 text-lg">No new accessories available at the moment.</p>
+              <p className="text-gray-600 text-lg font-medium">No new accessories available at the moment.</p>
               <p className="text-gray-500 text-sm mt-2">Check back soon for exciting new products!</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-              {accessories.map((accessory, index) => {
-                const finalPrice = calculateFinalPrice(accessory);
-                const originalPrice = accessory.base_price;
-                const specs = getAccessorySpecs(accessory);
-                
-                return (
-                  <a
-                    key={accessory.id}
-                    href={`/${accessory.type}/${accessory.id}`}
-                    className="group block bg-white rounded-xl md:rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 animate-fadeInUp"
-                    style={{ animationDelay: `${index * 50}ms` }}
-                  >
-                    <div className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
-                      <img 
-                        src={accessory.image} 
-                        alt={`${accessory.brand} ${accessory.title}`}
-                        className="w-full h-56 md:h-64 object-cover group-hover:scale-110 transition-transform duration-500 ease-out"
-                      />
-                      <div className="absolute top-3 right-3 bg-gradient-to-r from-red-500 to-pink-500 text-white px-3 py-1.5 rounded-full text-xs md:text-sm font-bold shadow-lg">
-                        {accessory.discount}% OFF
+            <>
+              {/* Scroll Navigation Buttons */}
+              <button
+                onClick={() => scrollAccessories('left')}
+                className="hidden md:flex absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white/95 hover:bg-white p-3 rounded-full shadow-xl transition-all duration-300 hover:scale-110 backdrop-blur-sm items-center justify-center"
+                aria-label="Scroll left"
+              >
+                <ChevronLeft className="w-6 h-6 text-gray-800" />
+              </button>
+              <button
+                onClick={() => scrollAccessories('right')}
+                className="hidden md:flex absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white/95 hover:bg-white p-3 rounded-full shadow-xl transition-all duration-300 hover:scale-110 backdrop-blur-sm items-center justify-center"
+                aria-label="Scroll right"
+              >
+                <ChevronRight className="w-6 h-6 text-gray-800" />
+              </button>
+
+              {/* Scrollable Container */}
+              <div 
+                id="accessories-scroll"
+                className="flex gap-4 md:gap-6 overflow-x-auto pb-4 scroll-smooth scrollbar-custom"
+                style={{ scrollbarWidth: 'thin' }}
+              >
+                {accessories.map((accessory, index) => {
+                  const finalPrice = calculateFinalPrice(accessory);
+                  const originalPrice = accessory.base_price;
+                  const specs = getAccessorySpecs(accessory);
+                  
+                  return (
+                    <Link
+                      key={accessory.id}
+                      to={`/${accessory.type}/${accessory.id}`}
+                      className="group flex-shrink-0 w-[280px] md:w-[300px] bg-white rounded-xl md:rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 animate-fadeInUp"
+                      style={{ animationDelay: `${index * 50}ms` }}
+                    >
+                      {/* Image Container with Fixed Aspect Ratio */}
+                      <div className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
+                        <div className="aspect-[4/3] w-full">
+                          <img 
+                            src={accessory.image} 
+                            alt={`${accessory.brand} ${accessory.title}`}
+                            className="w-full h-full object-contain p-4 group-hover:scale-110 transition-transform duration-500 ease-out"
+                          />
+                        </div>
+                        <div className="absolute top-3 right-3 bg-gradient-to-r from-red-500 to-pink-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg">
+                          {accessory.discount}% OFF
+                        </div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                       </div>
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    </div>
-                    
-                    <div className="p-4 md:p-5">
-                      <h3 className="text-base md:text-lg font-semibold text-gray-800 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors duration-300">
-                        {accessory.brand} {accessory.title}
-                      </h3>
                       
-                      <div className="flex items-baseline gap-2 md:gap-3 mb-3">
-                        <span className="text-xl md:text-2xl font-bold text-gray-900">
-                          ₹{finalPrice.toLocaleString('en-IN')}
-                        </span>
-                        <span className="text-xs md:text-sm text-gray-500 line-through">
-                          ₹{originalPrice.toLocaleString('en-IN')}
-                        </span>
+                      {/* Content Container */}
+                      <div className="p-4 md:p-5">
+                        <h3 className="text-base md:text-lg font-semibold text-gray-800 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors duration-300 min-h-[3rem]">
+                          {accessory.brand} {accessory.title}
+                        </h3>
+                        
+                        <div className="flex items-baseline gap-2 md:gap-3 mb-3">
+                          <span className="text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                            ₹{finalPrice.toLocaleString('en-IN')}
+                          </span>
+                          <span className="text-xs md:text-sm text-gray-500 line-through">
+                            ₹{originalPrice.toLocaleString('en-IN')}
+                          </span>
+                        </div>
+                        
+                        {specs.length > 0 && (
+                          <div className="space-y-1.5 text-xs md:text-sm text-gray-600 border-t pt-3">
+                            {specs.slice(0, 2).map((spec, idx) => (
+                              <div key={idx} className="flex justify-between items-center">
+                                <span className="font-semibold text-gray-700">{spec.label}:</span>
+                                <span className="text-right text-gray-800">{spec.value}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="mt-4 pt-3 border-t">
+                          <button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2.5 rounded-lg font-semibold text-sm hover:from-blue-700 hover:to-purple-700 transition-all duration-300 hover:shadow-lg transform hover:scale-105">
+                            View Details
+                          </button>
+                        </div>
                       </div>
-                      
-                      <div className="space-y-1 text-xs md:text-sm text-gray-600 border-t pt-3">
-                        {specs.map((spec, idx) => (
-                          <p key={idx} className="flex justify-between">
-                            <span className="font-semibold text-gray-700">{spec.label}:</span>
-                            <span className="text-right">{spec.value}</span>
-                          </p>
-                        ))}
-                      </div>
-                    </div>
-                  </a>
-                );
-              })}
-            </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </>
           )}
         </div>
       </div>
@@ -347,8 +389,34 @@ const AccessoriesPage = () => {
           -webkit-box-orient: vertical;
           overflow: hidden;
         }
+
+        /* Custom Scrollbar Styles */
+        .scrollbar-custom::-webkit-scrollbar {
+          height: 8px;
+        }
+
+        .scrollbar-custom::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.5);
+          border-radius: 10px;
+        }
+
+        .scrollbar-custom::-webkit-scrollbar-thumb {
+          background: linear-gradient(to right, #3b82f6, #9333ea);
+          border-radius: 10px;
+        }
+
+        .scrollbar-custom::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(to right, #2563eb, #7c3aed);
+        }
+
+        /* Firefox scrollbar */
+        .scrollbar-custom {
+          scrollbar-width: thin;
+          scrollbar-color: #3b82f6 rgba(255, 255, 255, 0.5);
+        }
       `}</style>
-         <Footer />
+      
+      <Footer />
     </div>
   );
 };

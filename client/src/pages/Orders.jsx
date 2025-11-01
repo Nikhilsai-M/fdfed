@@ -1,105 +1,151 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import Header from '../components/common/Header';
-import Footer from '../components/common/Footer';
+import React, { useEffect, useState, useRef } from "react";
+import { useParams, Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Download, ArrowLeft } from "lucide-react";
+
 const Orders = () => {
-  const [searchParams] = useSearchParams();
-  const [recentOrder, setRecentOrder] = useState(null);
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { orderId } = useParams();
+  const [order, setOrder] = useState(null);
+  const billRef = useRef();
 
   useEffect(() => {
-    const orderQuery = searchParams.get('order');
-    if (orderQuery) {
-      try {
-        const orderData = JSON.parse(decodeURIComponent(orderQuery));
-        setRecentOrder(orderData);
-        setOrders([orderData]); // show only this one temporarily
-      } catch (e) {
-        console.error('Invalid order param', e);
-      }
-    } else {
-      fetch('/api/myorders')
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success) setOrders(data.orders);
-        })
-        .finally(() => setLoading(false));
-    }
-  }, [searchParams]);
+    const data = localStorage.getItem(orderId);
+    if (data) setOrder(JSON.parse(data));
+  }, [orderId]);
 
-  if (loading) {
-    return <div className="text-center mt-16 text-gray-600">Loading orders...</div>;
-  }
+  // 🧾 Function to create a plain text invoice
+  const downloadTextBill = () => {
+    if (!order) return;
+
+    let text = `🧾 Order Invoice\n`;
+    text += `=====================\n`;
+    text += `Order ID: ${order.orderId}\n`;
+    text += `Date: ${new Date(order.timestamp).toLocaleString()}\n`;
+    text += `Payment Method: ${order.paymentMethod}\n`;
+    text += `---------------------\n`;
+    text += `Items:\n`;
+
+    order.items.forEach((item, idx) => {
+      const title = item.accessory?.title || "Unnamed Item";
+      const qty = item.quantity;
+      const price = (item.amount / qty).toFixed(2);
+      const total = item.amount.toFixed(2);
+      text += `${idx + 1}. ${title}\n   Qty: ${qty}, Price: ₹${price}, Total: ₹${total}\n`;
+    });
+
+    text += `---------------------\n`;
+    text += `Subtotal: ₹${order.subtotal.toFixed(2)}\n`;
+    text += `Shipping: ₹${order.shipping.toFixed(2)}\n`;
+    if (order.discountAmount > 0)
+      text += `Discount: -₹${order.discountAmount.toFixed(2)}\n`;
+    text += `TOTAL: ₹${order.totalAmount.toFixed(2)}\n`;
+    text += `=====================\n`;
+    text += `Thank you for your purchase! 🙌\n`;
+
+    // Create blob and trigger download
+    const blob = new Blob([text], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${orderId}_invoice.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  if (!order)
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[70vh] text-gray-600">
+        <p>Order not found.</p>
+        <Link
+          to="/orders"
+          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+        >
+          View All Orders
+        </Link>
+      </div>
+    );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-100 py-8">
-       <Header />
-      <div className="container mx-auto px-4 max-w-5xl">
-        {recentOrder && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-green-50 border border-green-300 text-green-700 px-6 py-4 mb-6 rounded-xl shadow-md"
-          >
-            <i className="fas fa-check-circle mr-2"></i>
-            <strong>Thank you for your purchase!</strong> Your order has been placed successfully.
-          </motion.div>
-        )}
+    <div className="min-h-screen bg-gray-50 py-10 px-4">
+      <motion.div
+        ref={billRef}
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="max-w-3xl mx-auto bg-white shadow-xl rounded-2xl p-8 border border-gray-200"
+      >
+        <div className="flex justify-between items-center mb-6 border-b pb-4">
+          <h1 className="text-2xl font-bold text-gray-800">Order Invoice</h1>
+          <span className="text-gray-600">Order ID: {order.orderId}</span>
+        </div>
 
-        <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">Your Orders</h1>
+        <div className="mb-6">
+          <p className="text-gray-700">
+            <strong>Date:</strong>{" "}
+            {new Date(order.timestamp).toLocaleString()}
+          </p>
+          <p className="text-gray-700">
+            <strong>Payment Method:</strong> {order.paymentMethod}
+          </p>
+        </div>
 
-        {orders.length === 0 ? (
-          <div className="text-center bg-white p-8 rounded-xl shadow">
-            <p className="text-gray-600 mb-4">You don’t have any orders yet.</p>
-            <Link
-              to="/"
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              Start Shopping
-            </Link>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {orders.map((order, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-white p-6 rounded-2xl shadow-md border border-gray-100"
-              >
-                <h3 className="text-xl font-semibold mb-3 text-blue-600">
-                  Order ID: {order.orderId}
-                </h3>
-                {order.items.map((item, i) => (
-                  <div
-                    key={i}
-                    className="flex justify-between items-center border-b py-2 text-gray-700"
-                  >
-                    <span>
-                      {item.accessory.title ||
-                        item.accessory.model ||
-                        item.accessory.series ||
-                        'Item'}
-                    </span>
-                    <span>₹{(item.amount || 0).toLocaleString('en-IN')}</span>
+        <table className="w-full text-left border-t border-b border-gray-300 mb-6 text-sm">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="p-3">Item</th>
+              <th className="p-3">Qty</th>
+              <th className="p-3">Price</th>
+              <th className="p-3">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {order.items.map((item, idx) => (
+              <tr key={idx} className="border-b">
+                <td className="p-3">
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={item.accessory?.image}
+                      alt={item.accessory?.title}
+                      className="w-12 h-12 rounded-md border"
+                    />
+                    <span>{item.accessory?.title}</span>
                   </div>
-                ))}
-                <div className="mt-4 flex justify-between text-gray-800 font-bold">
-                  <span>Total:</span>
-                  <span>₹{(order.totalAmount || 0).toLocaleString('en-IN')}</span>
-                </div>
-                <p className="text-sm text-gray-600 mt-1">
-                  Payment: {order.paymentMethod.toUpperCase()} |{' '}
-                  {new Date(order.timestamp).toLocaleString()}
-                </p>
-              </motion.div>
+                </td>
+                <td className="p-3">{item.quantity}</td>
+                <td className="p-3">
+                  ₹{(item.amount / item.quantity).toFixed(2)}
+                </td>
+                <td className="p-3">₹{item.amount.toFixed(2)}</td>
+              </tr>
             ))}
-          </div>
-        )}
+          </tbody>
+        </table>
+
+        <div className="text-right space-y-2 text-gray-800">
+          <p>Subtotal: ₹{order.subtotal.toFixed(2)}</p>
+          <p>Shipping: ₹{order.shipping.toFixed(2)}</p>
+          {order.discountAmount > 0 && (
+            <p>Discount: -₹{order.discountAmount.toFixed(2)}</p>
+          )}
+          <p className="text-xl font-semibold border-t pt-2">
+            Total: ₹{order.totalAmount.toFixed(2)}
+          </p>
+        </div>
+      </motion.div>
+
+      <div className="max-w-3xl mx-auto flex justify-between mt-6">
+        <Link
+          to="/myorders"
+          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition"
+        >
+          <ArrowLeft className="w-5 h-5" /> View All Orders
+        </Link>
+        <button
+          onClick={downloadTextBill}
+          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+        >
+          <Download className="w-5 h-5" /> Download Invoice
+        </button>
       </div>
-      <Footer />
     </div>
   );
 };

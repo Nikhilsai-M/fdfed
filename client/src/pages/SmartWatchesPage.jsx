@@ -287,16 +287,15 @@ const SmartWatchesPage = () => {
                     <div
                       key={smartwatch.id}
                       className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden animate-fadeInUp hover:-translate-y-2"
-                    >
+                      style={{ animationDelay: `${index * 50}ms` }}>
                       <Link to={`/smartwatch/${smartwatch.id}`} className="block">
-                        <div className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
+                        <div className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 aspect-video"> {/* ✅ Added aspect-video for consistent 16:9 ratio */}
                           <img
                             src={smartwatch.image}
                             alt={smartwatch.title}
-                            className="w-full h-56 object-cover group-hover:scale-110 transition-transform duration-500"
-                          />
+                            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 ease-out" />
                           <div className="absolute top-3 right-3 bg-gradient-to-r from-red-500 to-pink-500 text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-lg">
-                            {smartwatch.discount} OFF
+                            {smartwatch.discount}%OFF
                           </div>
                         </div>
 

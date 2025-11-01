@@ -290,14 +290,13 @@ const MousePage = () => {
                       style={{ animationDelay: `${index * 50}ms` }}
                     >
                       <Link to={`/mouse/${mouse.id}`} className="block">
-                        <div className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
+                        <div className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 aspect-video"> {/* ✅ Added aspect-video for consistent 16:9 ratio */}
                           <img
                             src={mouse.image}
                             alt={mouse.title}
-                            className="w-full h-56 object-cover group-hover:scale-110 transition-transform duration-500"
-                          />
+                            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 ease-out" />
                           <div className="absolute top-3 right-3 bg-gradient-to-r from-red-500 to-pink-500 text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-lg">
-                            {mouse.discount} OFF
+                            {mouse.discount}% OFF
                           </div>
                         </div>
 
@@ -342,8 +341,7 @@ const MousePage = () => {
                             e.preventDefault();
                             addToCart(mouse);
                           }}
-                          className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all duration-300 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
-                        >
+                          className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all duration-300 flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
                           <ShoppingCart className="w-5 h-5" />
                           Add to Cart
                         </button>
