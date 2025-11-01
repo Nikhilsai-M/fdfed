@@ -5,11 +5,12 @@ import PropTypes from 'prop-types';
 const ProductImage = ({ image, brand, title }) => {
   return (
     <div className="product-image">
-      <img
-        src={image}
-        alt={`${brand} ${title}`}
-        className="w-full h-96 object-cover rounded-xl shadow-xl hover:scale-105 transition-transform duration-300 ease-in-out"
-      />
+      <div className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 aspect-[4/3] rounded-xl shadow-xl"> {/* ✅ Added container with aspect-[4/3] for consistent ratio; adjust as needed (e.g., aspect-video for 16:9) */}
+        <img
+          src={image}
+          alt={`${brand} ${title}`}
+          className="w-full h-full object-contain hover:scale-105 transition-transform duration-300 ease-in-out" />
+      </div>
     </div>
   );
 };

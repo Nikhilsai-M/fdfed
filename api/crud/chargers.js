@@ -1,6 +1,6 @@
 import Charger from '../models/charger.model.js';
 
-const prefix = '../../client/src/assets/images/chargers/';
+const prefix = '/images/chargers/';  // ✅ Fixed: Absolute path for client/public/ serving
 
 export async function initChargers() {
   try {
@@ -11,7 +11,7 @@ export async function initChargers() {
         {
           id: 'chg001',
           title: 'Apple 20W USB-C Power Adapter',
-          image: prefix + 'apple_20w.webp',
+          image: prefix + 'apple_20w.webp',  // ✅ Corrected to /images/chargers/apple_20w.webp
           brand: 'Apple',
           wattage: '20',
           type: 'USB C',
@@ -22,7 +22,7 @@ export async function initChargers() {
         {
           id: 'chg002',
           title: 'Samsung 25W Fast Charger',
-          image: prefix + 'samsung_25.webp',
+          image: prefix + 'samsung_25.webp',  // ✅ Corrected
           brand: 'Samsung',
           wattage: '25',
           type: 'USB C',
@@ -34,7 +34,7 @@ export async function initChargers() {
           id: 'chg003',
           title:
             'RoarX 33 W SuperVOOC 6 A Wall Charger for Mobile with Detachable Cable  (White, Cable Included)',
-          image: prefix + 'roar_33v.webp',
+          image: prefix + 'roar_33v.webp',  // ✅ Corrected
           brand: 'RoarX',
           wattage: '33',
           type: 'USB C',
@@ -46,7 +46,7 @@ export async function initChargers() {
           id: 'chg004',
           title:
             'EYNK 44 W Quick Charge 5 A Wall Charger for Mobile with Detachable Cable  (Supported All Flash Charge 2.0 devices, White, Cable Included)',
-          image: prefix + 'eynk_44.webp',
+          image: prefix + 'eynk_44.webp',  // ✅ Corrected
           brand: 'EYNK',
           wattage: '44',
           type: 'USB C',
@@ -58,7 +58,7 @@ export async function initChargers() {
           id: 'chg005',
           title:
             'Pacificdeals 44 W Supercharge 4 A Wall Charger for Mobile with Detachable Cable  (White, Cable Included)',
-          image: prefix + 'PACIFIC.webp',
+          image: prefix + 'PACIFIC.webp',  // ✅ Corrected
           brand: 'Pacificdeals',
           wattage: '44',
           type: 'USB C',
@@ -70,7 +70,7 @@ export async function initChargers() {
           id: 'chg006',
           title:
             'SB 80 W SuperVOOC 7.3 A Wall Charger for Mobile with Detachable Cable  (White, Cable Included)',
-          image: prefix + 'sb80.jpg',
+          image: prefix + 'sb80.jpg',  // ✅ Corrected
           brand: 'SB',
           wattage: '80',
           type: 'USB C',
@@ -82,7 +82,7 @@ export async function initChargers() {
           id: 'chg007',
           title:
             'Apple Lightning Cable 2 m MW2R3ZM/A  (Compatible with Mobile, Tablet, White)',
-          image: prefix + 'apple_light.webp',
+          image: prefix + 'apple_light.webp',  // ✅ Corrected
           brand: 'Apple',
           wattage: '20',
           type: 'lightning',
@@ -92,11 +92,11 @@ export async function initChargers() {
         },
       ]);
 
-      console.log('✅ Test chargers added to database');
-    } else {
+    } 
+    else {
       console.log('✅ Chargers already exist in database');
-    }
-  } catch (err) {
+      
+  } }catch (err) {
     console.error('❌ Error initializing chargers:', err);
   }
 }
@@ -108,7 +108,7 @@ export async function getAllChargers() {
     return chargers.map(charger => ({
       id: charger.id,
       title: charger.title,
-      image: charger.image,
+      image: charger.image,  // Now correctly prefixed
       brand: charger.brand,
       wattage: charger.wattage,
       type: charger.type,
@@ -156,7 +156,7 @@ export async function addCharger(chargerData) {
     await Charger.create({
       id,
       title,
-      image,
+      image: image.startsWith('/') ? image : prefix + image,  // ✅ Ensure new adds use prefix
       brand,
       wattage,
       type,
@@ -181,7 +181,7 @@ export async function updateCharger(id, chargerData) {
       {
         $set: {
           title,
-          image,
+          image: image.startsWith('/') ? image : prefix + image,  // ✅ Ensure updates use prefix
           brand,
           wattage,
           type,

@@ -138,14 +138,19 @@ const Checkout = () => {
 
       if (!result.success) throw new Error(result.message || 'Failed to save order');
 
+      // ✅ Clear user's cart
       const userCartKey = `cart_user_${userId}`;
       localStorage.setItem(userCartKey, JSON.stringify([]));
       setCart([]);
 
+      // ✅ Save this order locally
+      localStorage.setItem(orderId, JSON.stringify(orderData));
+
       setMessage({ text: 'Payment successful!', type: 'success' });
+
+      // ✅ Navigate to clean URL (no long query string)
       setTimeout(() => {
-        const orderQuery = encodeURIComponent(JSON.stringify(orderData));
-        navigate(`/orders?order=${orderQuery}`);
+        navigate(`/orders/${orderId}`);
       }, 2000);
     } catch (error) {
       console.error('Payment error:', error);
@@ -164,11 +169,7 @@ const Checkout = () => {
 
   if (cart.length === 0) {
     return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8"
-      >
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold text-gray-900">Checkout</h1>
@@ -187,13 +188,8 @@ const Checkout = () => {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8"
-    >
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        {/* Header with Title and Back Button */}
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900">Checkout</h1>
           <Link
@@ -207,11 +203,7 @@ const Checkout = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* ---- ORDER SUMMARY ---- */}
-          <motion.div
-            initial={{ x: -50, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            className="bg-white rounded-2xl shadow-xl p-6"
-          >
+          <motion.div initial={{ x: -50, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="bg-white rounded-2xl shadow-xl p-6">
             <h2 className="text-2xl font-semibold text-gray-900 mb-6 flex items-center">
               <i className="fas fa-shopping-cart mr-2 text-blue-500"></i> Order Summary
             </h2>
@@ -226,21 +218,12 @@ const Checkout = () => {
                     transition={{ delay: 0.3 + index * 0.1 }}
                     className="flex items-center space-x-4 p-4 border border-gray-200 rounded-xl hover:shadow-md"
                   >
-                    <img
-                      src={item.image}
-                      alt={item.title || item.model || item.brand}
-                      className="w-16 h-16 object-cover rounded-lg"
-                    />
+                    <img src={item.image} alt={item.title || item.model || item.brand} className="w-16 h-16 object-cover rounded-lg" />
                     <div className="flex-1">
-                      <h3
-                        className="font-medium text-gray-900"
-                        dangerouslySetInnerHTML={{ __html: getItemDetails(item) }}
-                      />
+                      <h3 className="font-medium text-gray-900" dangerouslySetInnerHTML={{ __html: getItemDetails(item) }} />
                       <p className="text-sm text-gray-500 mt-1">Qty: {item.quantity || 1}</p>
                     </div>
-                    <p className="text-lg font-semibold text-gray-900">
-                      ₹{calculateItemTotal(item).toLocaleString('en-IN')}
-                    </p>
+                    <p className="text-lg font-semibold text-gray-900">₹{calculateItemTotal(item).toLocaleString('en-IN')}</p>
                   </motion.div>
                 ))}
               </AnimatePresence>
@@ -286,11 +269,7 @@ const Checkout = () => {
           </motion.div>
 
           {/* ---- PAYMENT SECTION ---- */}
-          <motion.div
-            initial={{ x: 50, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            className="bg-white rounded-2xl shadow-xl p-6"
-          >
+          <motion.div initial={{ x: 50, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="bg-white rounded-2xl shadow-xl p-6">
             <h2 className="text-2xl font-semibold text-gray-900 mb-6 flex items-center">
               <i className="fas fa-credit-card mr-2 text-blue-500"></i> Payment Details
             </h2>
@@ -313,11 +292,7 @@ const Checkout = () => {
                     <i className={`fas ${pm.icon} text-2xl text-gray-500`}></i>
                     <span className="font-medium text-gray-900">{pm.label}</span>
                     {selectedPaymentMethod === pm.method && (
-                      <motion.i
-                        className="fas fa-check ml-auto text-blue-500"
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                      />
+                      <motion.i className="fas fa-check ml-auto text-blue-500" initial={{ scale: 0 }} animate={{ scale: 1 }} />
                     )}
                   </div>
                 </motion.div>

@@ -1,6 +1,6 @@
 import Earphone from '../models/earphone.model.js';
 
-const prefix = '../../client/src/assets/images/earphones/';
+const prefix = '/images/earphones/';  // ✅ Fixed: Absolute path for static serving from public/
 
 export async function initEarphones() {
   try {
@@ -12,7 +12,7 @@ export async function initEarphones() {
           id: 'boat_airdopes_456',
           title:
             'boAt Airdopes 181 Pro w/ 100 HRS Playback, 4 Mics ENx Technology & ASAP Charge Bluetooth  (Frosted Mint, True Wireless)',
-          image: prefix + 'boat_airdopes.webp',
+          image: prefix + 'boat_airdopes.webp',  // Now: '/images/earphones/boat_airdopes.webp'
           brand: 'Boat',
           originalPrice: 4990,
           discount: 81,
@@ -150,9 +150,11 @@ export async function initEarphones() {
         },
       ]);
 
-      console.log('✅ Test earphones added to database');
+      console.log('✅ Test earphones added to database with updated image paths');
     } else {
       console.log('✅ Earphones already exist in database');
+      // ✅ Optional: If DB already has old paths, add a one-time update script here:
+      // await Earphone.updateMany({}, [{ $set: { image: { $concat: ['/images/earphones/', { $substr: ['$image', 35, -1] }] } }]); // Adjust substring to replace old prefix
     }
   } catch (err) {
     console.error('❌ Error initializing earphones:', err);
@@ -166,7 +168,7 @@ export async function getAllEarphones() {
     return earphones.map((earphone) => ({
       id: earphone.id,
       title: earphone.title,
-      image: earphone.image,
+      image: earphone.image,  // Now serves from /images/earphones/
       brand: earphone.brand,
       originalPrice: earphone.originalPrice,
       discount: earphone.discount,
@@ -213,7 +215,7 @@ export async function addEarphone(earphoneData) {
     await Earphone.create({
       id,
       title,
-      image,
+      image: image.startsWith('/') ? image : prefix + image,  // ✅ Ensure new adds use correct prefix
       brand,
       originalPrice: pricing.originalPrice,
       discount: pricing.discount,
@@ -237,7 +239,7 @@ export async function updateEarphone(id, earphoneData) {
       {
         $set: {
           title,
-          image,
+          image: image.startsWith('/') ? image : prefix + image,  // ✅ Ensure updates use correct prefix
           brand,
           originalPrice: pricing.originalPrice,
           discount: pricing.discount,

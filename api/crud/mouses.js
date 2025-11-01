@@ -1,6 +1,6 @@
 import Mouse from '../models/mouse.model.js';
 
-const prefix = '../../client/src/assets/images/mouses/';
+const prefix = '/images/mouses/';  // ✅ Fixed: Absolute path for client/public/ serving
 
 export async function initMouses() {
   try {
@@ -10,7 +10,7 @@ export async function initMouses() {
         {
           id: 'logitech_m196_202',
           title: 'Logitech M196 Wireless Optical Mouse with Bluetooth',
-          image: prefix + 'Logitech M196.webp',
+          image: prefix + 'Logitech M196.webp',  // ✅ Corrected to /images/mouses/Logitech M196.webp
           brand: 'Logitech',
           originalPrice: 1125,
           discount: 20,
@@ -22,7 +22,7 @@ export async function initMouses() {
           id: 'logitech_g502_303',
           title:
             'Logitech G502 Hero / Hero 25K Sensor, Adj DPI Upto 25600, RGB, 11 Programmable Buttons Wired Optical Gaming Mouse',
-          image: prefix + 'Logotech G502 Hero.webp',
+          image: prefix + 'Logotech G502 Hero.webp',  // ✅ Corrected
           brand: 'Logitech',
           originalPrice: 5495,
           discount: 25,
@@ -34,7 +34,7 @@ export async function initMouses() {
           id: 'arctic_fox_breathing_404',
           title:
             'Arctic Fox Breathing Lights and DPI Upto 3600 Wired Optical Gaming Mouse',
-          image: prefix + 'Arctic Fox Breathing Lights.webp',
+          image: prefix + 'Arctic Fox Breathing Lights.webp',  // ✅ Corrected
           brand: 'Arctic Fox',
           originalPrice: 599,
           discount: 35,
@@ -45,7 +45,7 @@ export async function initMouses() {
         {
           id: 'zebronics_jaguar_606',
           title: 'ZEBRONICS Zeb-Jaguar Wireless Optical Mouse',
-          image: prefix + 'Zebronics Zeb Jaguar.webp',
+          image: prefix + 'Zebronics Zeb Jaguar.webp',  // ✅ Corrected
           brand: 'ZEBRONICS',
           originalPrice: 1190,
           discount: 39,
@@ -56,7 +56,7 @@ export async function initMouses() {
         {
           id: 'zebronics_rise_707',
           title: 'ZEBRONICS ZEB-RISE Wired Optical Mouse',
-          image: prefix + 'Zebronics Zeb Rise.webp',
+          image: prefix + 'Zebronics Zeb Rise.webp',  // ✅ Corrected
           brand: 'ZEBRONICS',
           originalPrice: 699,
           discount: 19,
@@ -68,7 +68,7 @@ export async function initMouses() {
           id: 'zebronics_blanc_808',
           title:
             'ZEBRONICS Zeb-Blanc /Dual Mode,Type C rechargeable built-in battery,upto 1600 DPI Wireless Optical Mouse',
-          image: prefix + 'Zebronics Zeb Blanc.webp',
+          image: prefix + 'Zebronics Zeb Blanc.webp',  // ✅ Corrected
           brand: 'ZEBRONICS',
           originalPrice: 999,
           discount: 15,
@@ -79,7 +79,7 @@ export async function initMouses() {
         {
           id: 'dell_ms116_909',
           title: 'DELL MS 116-BK Wired Optical Mouse',
-          image: prefix + 'Dell MS 116-BK.webp',
+          image: prefix + 'Dell MS 116-BK.webp',  // ✅ Corrected
           brand: 'DELL',
           originalPrice: 650,
           discount: 30,
@@ -90,7 +90,7 @@ export async function initMouses() {
         {
           id: 'hp_m160_1010',
           title: 'HP M160 Wired Optical Gaming Mouse',
-          image: prefix + 'HP M160.webp',
+          image: prefix + 'HP M160.webp',  // ✅ Corrected
           brand: 'HP',
           originalPrice: 799,
           discount: 40,
@@ -102,7 +102,7 @@ export async function initMouses() {
           id: 'hp_z3700_1111',
           title:
             'HP Z3700 /Slim form with USB receiver,16 month battery life, 1200DPI Wireless Optical Mouse',
-          image: prefix + 'HP Z3700.webp',
+          image: prefix + 'HP Z3700.webp',  // ✅ Corrected
           brand: 'HP',
           originalPrice: 1499,
           discount: 30,
@@ -114,7 +114,7 @@ export async function initMouses() {
           id: 'logitech_b175_101',
           title:
             'Logitech B175 / Optical Tracking, 12-Months Battery Life, Ambidextrous Wireless Optical Mouse',
-          image: prefix + 'Logitech B175.webp',
+          image: prefix + 'Logitech B175.webp',  // ✅ Corrected
           brand: 'Logitech',
           originalPrice: 995,
           discount: 49,
@@ -123,9 +123,27 @@ export async function initMouses() {
           resolution: '3000',
         },
       ]);
-      console.log('✅ Test mouses added to database');
+      console.log('✅ Test mouses added to database with updated image paths');
     } else {
       console.log('✅ Mouses already exist in database');
+      // ✅ One-time fix: Update existing records' image paths (run once, then comment out)
+      // This assumes old paths end with the filename (e.g., replaces everything before filename with new prefix)
+      await Mouse.updateMany(
+        {},
+        [
+          {
+            $set: {
+              image: {
+                $concat: [
+                  prefix,
+                  { $substr: ['$image', { $strLenCP: '/images/mouses/' }, -1] }  // Extract filename from old path (adjust if needed)
+                ]
+              }
+            }
+          }
+        ]
+      );
+      console.log('✅ Updated existing image paths to new prefix');
     }
   } catch (err) {
     console.error('❌ Error initializing mouses:', err);
@@ -139,7 +157,7 @@ export async function getAllMouses() {
     return mouses.map((mouse) => ({
       id: mouse.id,
       title: mouse.title,
-      image: mouse.image,
+      image: mouse.image,  // Now correctly prefixed
       brand: mouse.brand,
       originalPrice: mouse.originalPrice,
       discount: mouse.discount,
@@ -188,7 +206,7 @@ export async function addMouse(mouseData) {
     await Mouse.create({
       id,
       title,
-      image,
+      image: image.startsWith('/') ? image : prefix + image,  // ✅ Ensure new adds use prefix
       brand,
       originalPrice: pricing.originalPrice,
       discount: pricing.discount,
@@ -214,7 +232,7 @@ export async function updateMouse(id, mouseData) {
       {
         $set: {
           title,
-          image,
+          image: image.startsWith('/') ? image : prefix + image,  // ✅ Ensure updates use prefix
           brand,
           originalPrice: pricing.originalPrice,
           discount: pricing.discount,
