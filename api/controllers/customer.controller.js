@@ -2,6 +2,8 @@ import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import { errorHandler } from "../utils/error.js";
 
+import { getPhoneApplicationsByUserId, getLaptopApplicationsByUserId } from "../crud/applications.js";
+
 // Get customer profile
 export const getCustomerProfile = async (req, res, next) => {
     try {
@@ -104,3 +106,31 @@ export const updateCustomerPassword = async (req, res, next) => {
         next(errorHandler(500, 'Error updating password'));
     }
 }
+
+export const getCustomerListings = async (req, res, next) => {
+  try {
+    console.log('User from token:', req.user); // Debug log
+    
+    // Use req.user.user_id from JWT token, not session
+    const userId = req.user.user_id;
+    if (!userId) {
+      return next(errorHandler(401, 'User ID not found in token'));
+    }
+
+    console.log('Fetching listings for user:', userId); // Debug log
+
+    const laptopApplications = await getLaptopApplicationsByUserId(userId);
+    const phoneApplications = await getPhoneApplicationsByUserId(userId);
+    const listings = [
+      ...laptopApplications.map(app => ({ ...app, type: 'laptop' })),
+      ...phoneApplications.map(app => ({ ...app, type: 'phone' })),
+    ];
+
+    console.log(`Found ${listings.length} listings total`); // Debug log
+    
+    res.json({ success: true, listings });
+  } catch (error) {
+    console.error('Error fetching customer listings:', error);
+    next(errorHandler(500, 'Error fetching listings: ' + error.message));
+  }
+};

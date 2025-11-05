@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import Header from "../components/common/Header";
 import Footer from "../components/common/Footer";
 
@@ -7,88 +8,84 @@ const Listings = () => {
   const navigate = useNavigate();
 
   const [listings, setListings] = useState([]);
-  const [filtered, setFiltered] = useState([]);
-  const [activeFilter, setActiveFilter] = useState("all");   // NEW
+  const [filteredListings, setFilteredListings] = useState([]);
+  const [activeFilter, setActiveFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedListing, setSelectedListing] = useState(null);
 
-  /* --------------------------------------------------------------
-     1. FETCH LISTINGS
-     -------------------------------------------------------------- */
+  // Fetch user's listings from the server
   useEffect(() => {
-    const fetchListings = async () => {
-      try {
-        const res = await api.get("/customer/listings");
-        if (res.data.success) {
-          setListings(res.data.listings);
-          setFiltered(res.data.listings);
-        } else {
-          alert(res.data.message || "Failed to load listings");
-        }
-      } catch (err) {
-        console.error(err);
-        alert("Error loading listings. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    };
+const fetchListings = async () => {
+  try {
+    const response = await axios.get("/api/customer/listings", {
+      withCredentials: true // Add this line
+    });
+    
+    if (response.data.success) {
+      setListings(response.data.listings);
+      setFilteredListings(response.data.listings);
+    } else {
+      alert(response.data.message || "Failed to load listings");
+    }
+  } catch (error) {
+    console.error("Error fetching listings:", error);
+    alert("Error loading listings. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
+
     fetchListings();
   }, []);
 
-  /* --------------------------------------------------------------
-     2. COUNTS (memoised – cheap & fast)
-     -------------------------------------------------------------- */
+  // Calculate counts for filter buttons
   const counts = useMemo(() => {
     const all = listings.length;
-    const pending = listings.filter(l => l.status === "pending").length;
-    const processing = listings.filter(l => l.status === "processing").length; // adjust if needed
-    const completed = listings.filter(l =>
-      ["approved", "added_to_inventory"].includes(l.status)
+    const pending = listings.filter(listing => listing.status === "pending").length;
+    const processing = listings.filter(listing => listing.status === "processing").length;
+    const completed = listings.filter(listing => 
+      ["approved", "added_to_inventory"].includes(listing.status)
     ).length;
-    const rejected = listings.filter(l => l.status === "rejected").length;
+    const rejected = listings.filter(listing => listing.status === "rejected").length;
 
     return { all, pending, processing, completed, rejected };
   }, [listings]);
 
-  /* --------------------------------------------------------------
-     3. FILTER HANDLER
-     -------------------------------------------------------------- */
+  // Filter listings based on active filter
   const handleFilter = (filter) => {
     setActiveFilter(filter);
 
     if (filter === "all") {
-      setFiltered(listings);
+      setFilteredListings(listings);
       return;
     }
 
-    const result = listings.filter((l) => {
-      if (filter === "pending") return l.status === "pending";
-      if (filter === "processing") return l.status === "processing"; // change to "on_processing" if needed
-      if (filter === "completed")
-        return ["approved", "added_to_inventory"].includes(l.status);
-      if (filter === "rejected") return l.status === "rejected";
-      return false;
+    const filtered = listings.filter((listing) => {
+      if (filter === "pending") return listing.status === "pending";
+      if (filter === "processing") return listing.status === "processing";
+      if (filter === "completed") 
+        return ["approved", "added_to_inventory"].includes(listing.status);
+      if (filter === "rejected") return listing.status === "rejected";
+      return true;
     });
 
-    setFiltered(result);
+    setFilteredListings(filtered);
   };
 
-  /* --------------------------------------------------------------
-     4. MODAL HELPERS
-     -------------------------------------------------------------- */
+  // Open modal with listing details
   const openModal = (listing) => {
     setSelectedListing(listing);
     setModalOpen(true);
   };
+
+  // Close modal
   const closeModal = () => {
     setModalOpen(false);
     setSelectedListing(null);
   };
 
-  /* --------------------------------------------------------------
-     5. FILTER BUTTON DEFINITION (label + count)
-     -------------------------------------------------------------- */
+  // Filter buttons configuration
   const filterButtons = [
     { label: "All Listings", value: "all", count: counts.all },
     { label: "Pending", value: "pending", count: counts.pending },
@@ -97,13 +94,13 @@ const Listings = () => {
     { label: "Rejected", value: "rejected", count: counts.rejected },
   ];
 
-  /* --------------------------------------------------------------
-     6. MODAL CONTENT (unchanged)
-     -------------------------------------------------------------- */
+  // Modal content component
   const ModalContent = ({ listing }) => {
     if (!listing) return null;
+    
     const isLaptop = listing.type === "laptop";
     const isRejected = listing.status === "rejected";
+    const showPrice = (listing.status === "approved" || listing.status === "added_to_inventory") && listing.price;
 
     return (
       <div className="space-y-3 text-left">
@@ -159,7 +156,7 @@ const Listings = () => {
           </span>
         </p>
 
-        {["approved", "added_to_inventory"].includes(listing.status) && listing.price && (
+        {showPrice && (
           <p><strong>Price:</strong> ₹{parseFloat(listing.price).toFixed(2)}</p>
         )}
 
@@ -180,9 +177,6 @@ const Listings = () => {
     );
   };
 
-  /* --------------------------------------------------------------
-     7. RENDER
-     -------------------------------------------------------------- */
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -190,43 +184,43 @@ const Listings = () => {
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">My Listings</h1>
 
-        {/* FILTER BUTTONS WITH COUNTS */}
+        {/* Filter Buttons */}
         <div className="flex flex-wrap gap-3 mb-8">
-          {filterButtons.map((f) => (
+          {filterButtons.map((filter) => (
             <button
-              key={f.value}
-              onClick={() => handleFilter(f.value)}
+              key={filter.value}
+              onClick={() => handleFilter(filter.value)}
               className={`px-5 py-2 rounded-full font-medium transition flex items-center gap-1.5 ${
-                activeFilter === f.value
+                activeFilter === filter.value
                   ? "bg-indigo-600 text-white hover:bg-indigo-700"
                   : "bg-white text-gray-700 border hover:bg-gray-50"
               }`}
             >
-              {f.label}
-              {/* Show count only when > 0 */}
-              {f.count > 0 && (
+              {filter.label}
+              {filter.count > 0 && (
                 <span className="bg-white/30 text-xs rounded-full px-1.5 py-0.5 min-w-[1.5rem]">
-                  {f.count}
+                  {filter.count}
                 </span>
               )}
             </button>
           ))}
         </div>
 
-        {/* LISTINGS GRID */}
+        {/* Listings Grid */}
         {loading ? (
           <p className="text-center text-gray-500">Loading listings...</p>
-        ) : filtered.length === 0 ? (
+        ) : filteredListings.length === 0 ? (
           <p className="text-center text-gray-500">No listings found.</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filtered.map((listing) => {
+            {filteredListings.map((listing) => {
               const isLaptop = listing.type === "laptop";
               const isRejected = listing.status === "rejected";
+              const showPrice = (listing.status === "approved" || listing.status === "added_to_inventory") && listing.price;
 
               return (
                 <div
-                  key={listing.id}
+                  key={listing._id || listing.id}
                   onClick={() => openModal(listing)}
                   className="bg-white rounded-xl shadow-md p-5 cursor-pointer hover:shadow-lg transition"
                 >
@@ -252,12 +246,11 @@ const Listings = () => {
                     {new Date(listing.created_at).toLocaleDateString()}
                   </p>
 
-                  {["approved", "added_to_inventory"].includes(listing.status) &&
-                    listing.price && (
-                      <p className="mt-2 text-indigo-600 font-semibold">
-                        <strong>Price:</strong> ₹{parseFloat(listing.price).toFixed(2)}
-                      </p>
-                    )}
+                  {showPrice && (
+                    <p className="mt-2 text-indigo-600 font-semibold">
+                      <strong>Price:</strong> ₹{parseFloat(listing.price).toFixed(2)}
+                    </p>
+                  )}
 
                   {isRejected && listing.rejection_reason && (
                     <p className="mt-2 text-red-600 text-sm">
@@ -271,10 +264,16 @@ const Listings = () => {
         )}
       </div>
 
-      {/* MODAL */}
+      {/* Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-screen overflow-y-auto p-6 relative">
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          onClick={closeModal}
+        >
+          <div 
+            className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-screen overflow-y-auto p-6 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
               onClick={closeModal}
               className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl"
