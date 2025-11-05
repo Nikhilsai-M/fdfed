@@ -152,10 +152,10 @@ const Footer = () => {
                 <Link to="/sell-laptop" className="footer-link text-gray-200 text-sm">Sell Laptop</Link>
               </li>
               <li className="footer-item">
-                <Link to="/buy-phone" className="footer-link text-gray-200 text-sm">Buy Phone</Link>
+                <Link to="/buyphones" className="footer-link text-gray-200 text-sm">Buy Phone</Link>
               </li>
               <li className="footer-item">
-                <Link to="/buy-laptop" className="footer-link text-gray-200 text-sm">Buy Laptop</Link>
+                <Link to="/buylaptops" className="footer-link text-gray-200 text-sm">Buy Laptop</Link>
               </li>
               <li className="footer-item">
                 <Link to="/Accessories" className="footer-link text-gray-200 text-sm">Accessories</Link>
