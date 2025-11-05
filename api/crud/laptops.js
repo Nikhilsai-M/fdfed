@@ -192,3 +192,16 @@ export async function deleteLaptop(id) {
     return { success: false, message: error.message };
   }
 }
+
+export const getLatestLaptops = async (limit = 5) => {
+  try {
+    const laptops = await Laptop.find()
+      .sort({ createdAt: -1 }) // ✅ use createdAt (timestamps enabled)
+      .limit(limit)
+      .lean()
+      .select('id brand series base_price discount image condition');
+    return laptops;
+  } catch (error) {
+    throw new Error('Error fetching latest laptops: ' + error.message);
+  }
+};
