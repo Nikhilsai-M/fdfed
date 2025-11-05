@@ -13,6 +13,8 @@ import smartwatchRouter from "./routes/smartwatch.route.js";
 import inventoryRouter from "./routes/Inventory.route.js";
 import customerRouter from "./routes/customer.route.js";
 import accessoryRouter from "./routes/latestaccessories.js";
+import phoneRouter from './routes/phone.route.js';
+import laptopRouter from './routes/laptop.route.js';
 // Import initialization functions from the consolidated inventory.js
 import { initChargers } from './crud/chargers.js';
 import { initEarphones } from "./crud/earphones.js";
@@ -69,6 +71,8 @@ app.use("/api/Accessories/chargers", chargerRouter);
 app.use("/api/Accessories/earphones", earphoneRouter);
 app.use("/api/Accessories/mouses", mouseRouter);
 app.use("/api/Accessories/smartwatches", smartwatchRouter);
+app.use("/api/phones", phoneRouter);
+app.use("/api/laptops", laptopRouter);
 app.use("/api",orderRouter);
 app.use("/api",accessoryRouter);
 // Error handling middleware

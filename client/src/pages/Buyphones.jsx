@@ -631,9 +631,6 @@ const BuyPhones = () => {
         </div>
       </div>
 
-     
-    
-
       <Footer />
     </div>
   );

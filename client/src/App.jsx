@@ -25,7 +25,8 @@ import Orders from './pages/Orders';
 import MyOrders from './pages/MyOrders';
 import BuyPhones from './pages/Buyphones';  
 import BuyLaptops from './pages/Buylaptops';
-
+import FilterPhones from './pages/filter-phones';
+import FilterLaptops from './pages/FilterLaptops';
 import SellPhoneForm from './pages/SellPhone';
 function App() {
   return (
@@ -50,15 +51,14 @@ function App() {
             <Route path="/orders/:orderId" element={<Orders />} />
             <Route path="/sell-phone" element={<SellPhoneForm />}/>
             <Route path="/sell-laptop" element={<SellLaptop />} />
-            <Route path="/buy-phone" element={<div>Buy Phone Page</div>} />
-            <Route path="/buy-laptop" element={<div>Buy Laptop Page</div>} />
-            <Route path="/profile" element={<div>Profile Page</div>} />
             <Route path="/sign-in" element={<SignIn />} />
             <Route path="/sign-up" element={<SignUp />} />
             <Route path="/cart" element={<CartPage/>} />
             <Route path="/checkout" element={<Checkout/>} />
             <Route path="/buyphones" element={<BuyPhones/>} />
             <Route path="/buylaptops" element={<BuyLaptops/>} />
+            <Route path="/filter-buy-phone" element={<FilterPhones/>}/>
+            <Route path="/filter-buy-laptop" element={<FilterLaptops />} />
             {/* Supervisor Routes */}
             <Route path="/supervisor-dashboard" element={<SupervisorDashboard />} />
             <Route path="/supervisor/verify-listings" element={<VerifyListings />} />
