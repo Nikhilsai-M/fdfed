@@ -10,7 +10,7 @@ import CartMessage from '../components/CartMessage';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
 
-import { useCart } from '../context/CartContent';  // ✅ Import Context Hook
+import { useCart } from '../context/CartContent';
 
 const AccessoryDetails = ({ type }) => {
   const { id } = useParams();
@@ -21,7 +21,7 @@ const AccessoryDetails = ({ type }) => {
   const [error, setError] = useState(null);
   const [cartMessage, setCartMessage] = useState(null);
 
-  const { updateCart, fetchCartCount } = useCart(); // ✅ from context
+  const { updateCart } = useCart();
 
   // Dynamic API endpoint based on type
   const getApiEndpoint = () => {
@@ -30,16 +30,6 @@ const AccessoryDetails = ({ type }) => {
       case 'mouse': return `/api/Accessories/mouses/${id}`;
       case 'smartwatch': return `/api/Accessories/smartwatches/${id}`;
       case 'earphone': return `/api/Accessories/earphones/${id}`;
-      default: return '';
-    }
-  };
-
-  const getBuyRoute = () => {
-    switch (type) {
-      case 'charger': return `/buy/charger/${id}`;
-      case 'mouse': return `/buy/mouse/${id}`;
-      case 'smartwatch': return `/buy/smartwatch/${id}`;
-      case 'earphone': return `/buy/earphone/${id}`;
       default: return '';
     }
   };
@@ -90,7 +80,7 @@ const AccessoryDetails = ({ type }) => {
     if (id && type) fetchProduct();
   }, [id, type]);
 
-  // ✅ Add to Cart using Context
+  // Add to Cart using Context
   const addToCart = async () => {
     try {
       const response = await fetch('/api/user/profile', { method: 'GET', credentials: 'include' });
@@ -118,7 +108,6 @@ const AccessoryDetails = ({ type }) => {
         updatedCart = [...existingCart, getCartItemFields(product)];
       }
 
-      // ✅ Update via Context (auto updates Header)
       updateCart(updatedCart, userId);
 
       setCartMessage(`${product.title} added to cart!`);
@@ -136,8 +125,33 @@ const AccessoryDetails = ({ type }) => {
         navigate('/sign-in');
         return;
       }
-      setTimeout(() => navigate(getBuyRoute()), 500);
+
+      const userData = await response.json();
+      const userId = userData?.user?.user_id;
+      
+      if (!userId) {
+        navigate('/sign-in');
+        return;
+      }
+
+      // Calculate price locally
+      const basePrice = product.pricing.originalPrice || product.pricing.basePrice;
+      const finalPrice = parseFloat(basePrice) - parseFloat(basePrice) * (parseFloat(product.pricing.discount) / 100);
+
+      const paymentData = {
+        price: finalPrice,
+        type: type,
+        id: id,
+        accessory: product,
+        userId: userId,
+      };
+
+      // Navigate to frontend payment page
+      navigate('/payment', { 
+        state: paymentData 
+      });
     } catch (error) {
+      console.error('Buy now error:', error);
       navigate('/sign-in');
     }
   };

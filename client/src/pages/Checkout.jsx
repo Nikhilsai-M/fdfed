@@ -80,12 +80,29 @@ const Checkout = () => {
   }, [cart, discountPercent]);
 
   const handleApplyCoupon = () => {
+    if (!userId) {
+      setMessage({ text: 'User ID not found. Please refresh the page.', type: 'error' });
+      return;
+    }
+
+    const couponUsedKey = `coupon_used_${userId}`;
+    const hasUsedCoupon = localStorage.getItem(couponUsedKey) === 'true';
+
     if (couponCode.trim().toUpperCase() === 'SMART10') {
-      setDiscountPercent(10);
-      setMessage({ text: 'Coupon applied successfully! 10% discount added.', type: 'success' });
+      if (hasUsedCoupon) {
+        setDiscountPercent(0);
+        setMessage({ text: 'Coupon can be used only 1 time.', type: 'error' });
+        setCouponCode(''); // Clear the input
+      } else {
+        setDiscountPercent(10);
+        localStorage.setItem(couponUsedKey, 'true');
+        setMessage({ text: 'Coupon applied successfully! 10% discount added.', type: 'success' });
+        setCouponCode(''); // Clear the input after success
+      }
     } else {
       setDiscountPercent(0);
       setMessage({ text: 'Invalid coupon code.', type: 'error' });
+      setCouponCode(''); // Clear the input
     }
   };
 
