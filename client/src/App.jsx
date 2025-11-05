@@ -24,6 +24,7 @@ import Checkout from './pages/Checkout';
 import Orders from './pages/Orders';
 import MyOrders from './pages/MyOrders';
 import BuyPhones from './pages/Buyphones';  
+import BuyLaptops from './pages/Buylaptops';
 
 import SellPhoneForm from './pages/SellPhone';
 import PaymentPage from './pages/Payment';
