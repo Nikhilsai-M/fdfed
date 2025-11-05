@@ -14,6 +14,7 @@ import inventoryRouter from "./routes/Inventory.route.js";
 import customerRouter from "./routes/customer.route.js";
 import accessoryRouter from "./routes/latestaccessories.js";
 import laptopApplicationRouter from "./routes/laptopApplication.route.js"; // ADD THIS
+import phoneApplicationRouter from "./routes/phoneApplication.route.js";
 // Import initialization functions from the consolidated inventory.js
 import { initChargers } from './crud/chargers.js';
 import { initEarphones } from "./crud/earphones.js";
@@ -74,6 +75,7 @@ app.use("/api/Accessories/earphones", earphoneRouter);
 app.use("/api/Accessories/mouses", mouseRouter);
 app.use("/api/Accessories/smartwatches", smartwatchRouter);
 app.use("/api/laptop-applications", laptopApplicationRouter); // ADD THIS
+app.use("/api/phone-applications", phoneApplicationRouter);
 app.use("/api",orderRouter);
 app.use("/api",accessoryRouter);
 
