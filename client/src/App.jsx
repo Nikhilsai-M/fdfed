@@ -25,7 +25,7 @@ import Orders from './pages/Orders';
 import MyOrders from './pages/MyOrders';
 import BuyPhones from './pages/Buyphones';  
 import BuyLaptops from './pages/Buylaptops';
-
+import Listings from './pages/listings';
 import SellPhoneForm from './pages/SellPhone';
 function App() {
   return (
@@ -59,6 +59,7 @@ function App() {
             <Route path="/checkout" element={<Checkout/>} />
             <Route path="/buyphones" element={<BuyPhones/>} />
             <Route path="/buylaptops" element={<BuyLaptops/>} />
+            <Route path="/listings" element={<Listings/>} />
             {/* Supervisor Routes */}
             <Route path="/supervisor-dashboard" element={<SupervisorDashboard />} />
             <Route path="/supervisor/verify-listings" element={<VerifyListings />} />
