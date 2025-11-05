@@ -24,6 +24,8 @@ import { initializeApplications } from './crud/applications.js';
 import { initPhones } from './crud/phones.js';
 import { initLaptops } from './crud/laptops.js';
 import orderRouter from "./routes/orders.route.js";
+import phoneRouter from './routes/phone.route.js';
+import laptopRouter from "./routes/laptop.route.js";
 dotenv.config({ path: '../.env' });
 
 mongoose.connect(process.env.MONGO).then(async() => {
@@ -75,6 +77,8 @@ app.use("/api/laptop-applications", laptopApplicationRouter); // ADD THIS
 app.use("/api",orderRouter);
 app.use("/api",accessoryRouter);
 
+app.use('/api', phoneRouter);
+app.use("/api", laptopRouter); 
 // Error handling middleware
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
