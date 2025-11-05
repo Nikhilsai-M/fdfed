@@ -1,7 +1,6 @@
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import { errorHandler } from "../utils/error.js";
-
 import { getPhoneApplicationsByUserId, getLaptopApplicationsByUserId } from "../crud/applications.js";
 
 // Get customer profile
@@ -107,30 +106,63 @@ export const updateCustomerPassword = async (req, res, next) => {
     }
 }
 
+// Get customer listings (phones and laptops)
 export const getCustomerListings = async (req, res, next) => {
   try {
-    console.log('User from token:', req.user); // Debug log
+    console.log('\n=== 📋 GET CUSTOMER LISTINGS START ===');
+    console.log('👤 User from token:', req.user);
     
-    // Use req.user.user_id from JWT token, not session
-    const userId = req.user.user_id;
+    const userId = req.user?.user_id;
+    
     if (!userId) {
+      console.error('❌ User ID not found in token');
       return next(errorHandler(401, 'User ID not found in token'));
     }
 
-    console.log('Fetching listings for user:', userId); // Debug log
+    console.log('🔍 Fetching listings for user_id:', userId);
 
-    const laptopApplications = await getLaptopApplicationsByUserId(userId);
-    const phoneApplications = await getPhoneApplicationsByUserId(userId);
+    // Fetch both laptop and phone applications in parallel
+    const [laptopApplications, phoneApplications] = await Promise.all([
+      getLaptopApplicationsByUserId(userId),
+      getPhoneApplicationsByUserId(userId)
+    ]);
+
+    console.log('💻 Laptop applications found:', laptopApplications.length);
+    console.log('📱 Phone applications found:', phoneApplications.length);
+
+    // Combine and add type field
     const listings = [
-      ...laptopApplications.map(app => ({ ...app, type: 'laptop' })),
-      ...phoneApplications.map(app => ({ ...app, type: 'phone' })),
+      ...laptopApplications.map(app => {
+        const plainApp = app.toObject ? app.toObject() : app;
+        return {
+          ...plainApp,
+          type: 'laptop',
+          _id: plainApp._id.toString()
+        };
+      }),
+      ...phoneApplications.map(app => {
+        const plainApp = app.toObject ? app.toObject() : app;
+        return {
+          ...plainApp,
+          type: 'phone',
+          _id: plainApp._id.toString()
+        };
+      })
     ];
 
-    console.log(`Found ${listings.length} listings total`); // Debug log
+    // Sort by creation date (newest first)
+    listings.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    console.log('✅ Total listings returned:', listings.length);
+    console.log('=== GET CUSTOMER LISTINGS END ===\n');
     
-    res.json({ success: true, listings });
+    res.status(200).json({ 
+      success: true, 
+      listings,
+      count: listings.length
+    });
   } catch (error) {
-    console.error('Error fetching customer listings:', error);
+    console.error('❌ Error fetching customer listings:', error);
     next(errorHandler(500, 'Error fetching listings: ' + error.message));
   }
 };
