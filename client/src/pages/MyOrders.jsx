@@ -180,12 +180,7 @@ const MyOrders = () => {
                       <span className="font-semibold text-gray-800">{order.timestamp ? new Date(order.timestamp).toLocaleString() : new Date().toLocaleString()}</span>
                     </div>
                     <div className="md:col-span-1 lg:col-span-1 flex justify-center md:justify-end">
-                      <button
-                        onClick={() => window.location.href = `/orders?orderId=${order.orderId}`}
-                        className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-pink-600 shadow-md transform hover:scale-105 transition-all duration-200"
-                      >
-                        View Details
-                      </button>
+                     
                     </div>
                   </div>
                 </motion.div>

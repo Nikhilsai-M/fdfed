@@ -27,6 +27,12 @@ import BuyPhones from './pages/Buyphones';
 import BuyLaptops from './pages/Buylaptops';
 import Listings from './pages/listings';
 import SellPhoneForm from './pages/SellPhone';
+import AboutUs from './pages/AboutUS';
+import Blog from './pages/Blog';
+import ContactUs from './pages/ContactUs';
+import PrivacyPolicy from './pages/PrivayPolicy';
+import TermsAndConditions from './pages/TermsAndConditions';  
+import PaymentPage from './pages/Payment';
 function App() {
   return (
     <CartProvider>
@@ -59,6 +65,12 @@ function App() {
             <Route path="/checkout" element={<Checkout/>} />
             <Route path="/buyphones" element={<BuyPhones/>} />
             <Route path="/buylaptops" element={<BuyLaptops/>} />
+            <Route path="/about_us" element={<AboutUs/>} />
+            <Route path="/blog" element={<Blog/>} />
+            <Route path="/contact_us" element={<ContactUs/>} />
+            <Route path="/privacypolicy" element={<PrivacyPolicy/>} />
+            <Route path="/terms" element={<TermsAndConditions/>} />
+            <Route path="/payment" element={<PaymentPage/>} />
             <Route path="/listings" element={<Listings/>} />
             {/* Supervisor Routes */}
             <Route path="/supervisor-dashboard" element={<SupervisorDashboard />} />
