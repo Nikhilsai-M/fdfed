@@ -68,7 +68,7 @@ const BuyLaptops = () => {
   const fetchLatestProducts = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:3000/api/latest-laptops', {
+      const response = await fetch('http://localhost:3000/api/laptops/latest-laptops', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });

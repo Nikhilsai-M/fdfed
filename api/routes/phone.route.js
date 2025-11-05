@@ -3,14 +3,13 @@ import { getAllPhones, getPhoneById ,getLatestPhones} from '../crud/phones.js';
 
 const router = express.Router();
 
-// Get all phones
-router.get('/', async (req, res) => {
+router.get('/latest-phones', async (req, res) => {
   try {
-    const phones = await getAllPhones();
+    const phones = await getLatestPhones();
     res.json(phones);
   } catch (error) {
-    console.error('Error fetching phones:', error);
-    res.status(500).json({ error: 'Failed to fetch phones' });
+    console.error('Error fetching latest phones:', error);
+    res.status(500).json({ error: 'Failed to fetch latest phones' });
   }
 });
 
@@ -28,14 +27,17 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-router.get('/latest-phones', async (req, res) => {
+// Get all phones
+router.get('/', async (req, res) => {
   try {
-    const phones = await getLatestPhones();
+    const phones = await getAllPhones();
     res.json(phones);
   } catch (error) {
-    console.error('Error fetching latest phones:', error);
-    res.status(500).json({ error: 'Failed to fetch latest phones' });
+    console.error('Error fetching phones:', error);
+    res.status(500).json({ error: 'Failed to fetch phones' });
   }
 });
+
+
 
 export default router;

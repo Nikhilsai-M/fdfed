@@ -2,14 +2,14 @@ import express from 'express';
 import { getAllLaptops, getLaptopById,getLatestLaptops } from '../crud/laptops.js';
 
 const router = express.Router();
-// Get all laptops
-router.get('/', async (req, res) => {
+
+router.get('/latest-laptops', async (req, res) => {
   try {
-    const laptops = await getAllLaptops();
+    const laptops = await getLatestLaptops(5);
     res.json(laptops);
   } catch (error) {
-    console.error('Error fetching laptops:', error);
-    res.status(500).json({ error: 'Failed to fetch laptops' });
+    console.error('Error fetching latest laptops:', error);
+    res.status(500).json({ error: 'Failed to fetch latest laptops' });
   }
 });
 
@@ -27,13 +27,14 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-router.get('/latest-laptops', async (req, res) => {
+// Get all laptops
+router.get('/', async (req, res) => {
   try {
-    const laptops = await getLatestLaptops(5);
+    const laptops = await getAllLaptops();
     res.json(laptops);
   } catch (error) {
-    console.error('Error fetching latest laptops:', error);
-    res.status(500).json({ error: 'Failed to fetch latest laptops' });
+    console.error('Error fetching laptops:', error);
+    res.status(500).json({ error: 'Failed to fetch laptops' });
   }
 });
 
