@@ -6,20 +6,32 @@ const AboutUs = () => {
     const teamMembers = [
         {
             id: 1,
-            name: "Member1",
-            role: "Founder",
+            name: "NIKHIL",
+    
             image: "https://via.placeholder.com/150"
         },
         {
             id: 2,
-            name: "Member2",
-            role: "Co-Founder",
+            name: "ABHINAV",
+       
             image: "https://via.placeholder.com/150"
         },
         {
             id: 3,
-            name: "Member3",
-            role: "Customer Experience",
+            name: "VENKATESH",
+       
+            image: "https://via.placeholder.com/150"
+        },
+        {
+            id: 4,
+            name: "BHANU PRAKASH",
+         
+            image: "https://via.placeholder.com/150"
+        },
+        {
+            id: 5,
+            name: "VIVEK",
+          
             image: "https://via.placeholder.com/150"
         }
     ];
@@ -112,6 +124,7 @@ const AboutUs = () => {
                                     <p className="text-gray-500 text-base lg:text-lg">
                                         {member.role}
                                     </p>
+                                    
                                 </div>
                             ))}
                         </div>

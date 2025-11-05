@@ -30,6 +30,9 @@ import BuyLaptops from './pages/Buylaptops';
 import SellPhoneForm from './pages/SellPhone';
 import AboutUs from './pages/AboutUS';
 import Blog from './pages/Blog';
+import ContactUs from './pages/ContactUs';
+import PrivacyPolicy from './pages/PrivayPolicy';
+import TermsAndConditions from './pages/TermsAndConditions';  
 function App() {
   return (
     <CartProvider>
@@ -64,6 +67,9 @@ function App() {
             <Route path="/buylaptops" element={<BuyLaptops/>} />
             <Route path="/about_us" element={<AboutUs/>} />
             <Route path="/blog" element={<Blog/>} />
+            <Route path="/contact_us" element={<ContactUs/>} />
+            <Route path="/privacypolicy" element={<PrivacyPolicy/>} />
+            <Route path="/terms" element={<TermsAndConditions/>} />
             {/* Supervisor Routes */}
             <Route path="/supervisor-dashboard" element={<SupervisorDashboard />} />
             <Route path="/supervisor/verify-listings" element={<VerifyListings />} />
