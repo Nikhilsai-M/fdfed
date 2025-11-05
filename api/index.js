@@ -13,6 +13,7 @@ import smartwatchRouter from "./routes/smartwatch.route.js";
 import inventoryRouter from "./routes/Inventory.route.js";
 import customerRouter from "./routes/customer.route.js";
 import accessoryRouter from "./routes/latestaccessories.js";
+import laptopApplicationRouter from "./routes/laptopApplication.route.js"; // ADD THIS
 // Import initialization functions from the consolidated inventory.js
 import { initChargers } from './crud/chargers.js';
 import { initEarphones } from "./crud/earphones.js";
@@ -44,6 +45,7 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
+app.use('/uploads', express.static('uploads')); // ADD THIS for file serving
 
 // CORS configuration
 app.use((req, res, next) => {
@@ -69,8 +71,10 @@ app.use("/api/Accessories/chargers", chargerRouter);
 app.use("/api/Accessories/earphones", earphoneRouter);
 app.use("/api/Accessories/mouses", mouseRouter);
 app.use("/api/Accessories/smartwatches", smartwatchRouter);
+app.use("/api/laptop-applications", laptopApplicationRouter); // ADD THIS
 app.use("/api",orderRouter);
 app.use("/api",accessoryRouter);
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;

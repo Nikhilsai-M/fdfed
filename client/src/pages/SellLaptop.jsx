@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
+import axios from 'axios';
 
 const FormRow = ({ children }) => (
     <div className="flex flex-col gap-4 md:flex-row mb-2">
@@ -18,15 +19,10 @@ const FormGroup = ({ label, required, children, className = '' }) => (
     </div>
 );
 
-
 const inputClasses = "w-full p-3 border border-gray-200 rounded-xl shadow-sm bg-gray-50 text-gray-700 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200 ease-in-out placeholder-gray-400 focus:bg-white";
 const selectClasses = `${inputClasses} appearance-none pr-8 bg-white cursor-pointer`;
 
-
-
-
 const SellLaptopForm = () => {
-
     const [formData, setFormData] = useState({
         brand: '',
         model: '',
@@ -34,18 +30,16 @@ const SellLaptopForm = () => {
         storage: '',
         processor: '',
         generation: '',
-        displaySize: '',
+        display_size: '',
         weight: '',
         os: '',
-        deviceAge: '',
-        batteryIssues: 'None', 
-        defectsDescription: '',
+        device_age: '',
+        battery_issues: 'None',
         location: '',
         name: '',
         email: '',
         phone: '',
     });
-
 
     const [deviceImage, setDeviceImage] = useState(null);
     const [fileName, setFileName] = useState('No file chosen');
@@ -80,35 +74,65 @@ const SellLaptopForm = () => {
         }
     }, []);
 
-  
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
 
         const formPayload = new FormData();
 
+        // Append all form data
         Object.keys(formData).forEach(key => {
             formPayload.append(key, formData[key]);
         });
 
         if (deviceImage) {
-            formPayload.append('device-image', deviceImage); 
+            formPayload.append('image_path', deviceImage); // Match the backend field name
         }
 
         try {
-           
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            const success = true; 
+            const response = await axios.post(
+                'http://localhost:3000/api/laptop-applications/submit',
+                formPayload,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                }
+            );
 
-            if (success) {
-                alert('Laptop successfully listed! Redirecting to listings.');
-          
-            } else {
+            if (response.data.success) {
+                alert('Laptop application submitted successfully! We will review your application.');
+                // Reset form
+                setFormData({
+                    brand: '',
+                    model: '',
+                    ram: '',
+                    storage: '',
+                    processor: '',
+                    generation: '',
+                    display_size: '',
+                    weight: '',
+                    os: '',
+                    device_age: '',
+                    battery_issues: 'None',
+                    location: '',
+                    name: '',
+                    email: '',
+                    phone: '',
+                });
+                setDeviceImage(null);
+                setFileName('No file chosen');
+                setPreviewUrl('');
                 
+                navigate('/');
             }
         } catch (error) {
             console.error('Error submitting form:', error);
-            alert('An error occurred. Please try again later.');
+            if (error.response && error.response.data.message) {
+                alert(`Error: ${error.response.data.message}`);
+            } else {
+                alert('An error occurred. Please try again later.');
+            }
         } finally {
             setIsSubmitting(false);
         }
@@ -119,15 +143,13 @@ const SellLaptopForm = () => {
             <Header />
 
             <header className="flex justify-between items-center max-w-4xl mx-auto mb-8 py-3 border-b border-gray-200">
-                
-                
+                {/* Header content if any */}
             </header>
             
             <div className="max-w-4xl mx-auto bg-white shadow-2xl rounded-2xl p-6 sm:p-12 border border-gray-100">
                 <h1 className="text-3xl font-bold text-gray-900 mb-8">Sell Your Laptop </h1>
                 
                 <form onSubmit={handleSubmit} className="space-y-10">
-            
                     <section className="p-6 bg-indigo-50/50 rounded-xl border border-indigo-100 space-y-6">
                         <h2 className="text-2xl font-bold text-indigo-800 border-b pb-3 mb-4">💻 Laptop Details</h2>
                         
@@ -191,7 +213,7 @@ const SellLaptopForm = () => {
 
                         <FormRow>
                             <FormGroup label="Approximate Display Size (inches)">
-                                <select name="displaySize" value={formData.displaySize} onChange={handleInputChange} className={selectClasses}>
+                                <select name="display_size" value={formData.display_size} onChange={handleInputChange} className={selectClasses}>
                                     <option value="" disabled>Select Size</option>
                                     <option value="11-12">11-12 inches</option>
                                     <option value="13-14">13-14 inches</option>
@@ -226,7 +248,7 @@ const SellLaptopForm = () => {
                             </FormGroup>
                             
                             <FormGroup label="Device Age (Years)">
-                                <select name="deviceAge" value={formData.deviceAge} onChange={handleInputChange} className={selectClasses}>
+                                <select name="device_age" value={formData.device_age} onChange={handleInputChange} className={selectClasses}>
                                     <option value="" disabled>Select Age</option>
                                     <option value="<1">Less than 1 year</option>
                                     <option value="1-2">1-2 years</option>
@@ -237,26 +259,11 @@ const SellLaptopForm = () => {
                         </FormRow>
 
                         <FormGroup label="Battery Issues">
-                            <select name="batteryIssues" value={formData.batteryIssues} onChange={handleInputChange} className={selectClasses}>
+                            <select name="battery_issues" value={formData.battery_issues} onChange={handleInputChange} className={selectClasses}>
                                 <option value="None">No issues</option>
                                 <option value="Minor">Minor issues (quick discharge)</option>
                                 <option value="Major">Major issues (needs replacement)</option>
                             </select>
-                        </FormGroup>
-                        
-                        <FormGroup label="Defects/Faults  (Max 500 words)">
-                            <textarea
-                                name="defectsDescription"
-                                value={formData.defectsDescription}
-                                onChange={handleInputChange}
-                                maxLength={500 * 5} 
-                                rows="4"
-                                placeholder="Describe any physical damage, display issues, non-functional ports, or other faults."
-                                className={inputClasses}
-                            />
-                            <p className="text-xs text-gray-500 mt-1">
-                                Max 500 words. Characters: {formData.defectsDescription.length} / {500 * 5} (Approximate)
-                            </p>
                         </FormGroup>
 
                         <FormGroup label="Your Location" required>
@@ -264,7 +271,6 @@ const SellLaptopForm = () => {
                         </FormGroup>
                     </section>
                     
-    
                     <section className="p-6 bg-blue-50/50 rounded-xl border border-blue-100 space-y-6">
                         <h2 className="text-2xl font-bold text-blue-800 border-b pb-3 mb-4">📞 Contact Information</h2>
                         
@@ -322,7 +328,6 @@ const SellLaptopForm = () => {
                         </FormGroup>
                     </section>
 
-                 
                     <div className="pt-4">
                         <button 
                             type="submit" 
@@ -335,9 +340,8 @@ const SellLaptopForm = () => {
                 </form>
             </div>
             
-          
             <footer className="mt-10 text-center text-gray-400 text-sm">
-                
+                {/* Footer content if any */}
             </footer>
             <Footer />
         </div>
