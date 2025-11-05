@@ -4,7 +4,7 @@ import { useCart } from '../context/CartContent';
 import './FilterPhones.css';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
-import { Check, X, ShoppingCart } from 'lucide-react';
+import { Check, X, ShoppingCart, Zap } from 'lucide-react';
 
 // PhoneFilter Component (now integrated)
 const PhoneFilter = ({ filters, onFilterChange, onClearFilters }) => {
@@ -236,11 +236,11 @@ const PhoneFilter = ({ filters, onFilterChange, onClearFilters }) => {
 };
 
 // ProductCard Component (now integrated)
-const ProductCard = ({ product, onAddToCart }) => {
-  const handleAddToCart = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onAddToCart(product);
+const ProductCard = ({ product, onAddToCart, onBuyNow }) => {
+  const navigate = useNavigate();
+  
+  const handleCardClick = () => {
+    navigate(`/product/${product.id}`);
   };
 
   const calculateDiscountedPrice = (price, discount) => {
@@ -252,10 +252,22 @@ const ProductCard = ({ product, onAddToCart }) => {
     return numericPrice - (numericPrice * numericDiscount / 100);
   };
 
+  const handleAddToCart = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onAddToCart(product);
+  };
+
+  const handleBuyNow = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onBuyNow(product);
+  };
+
   const discountedPrice = calculateDiscountedPrice(product.pricing.basePrice, product.pricing.discount);
 
   return (
-    <div className="product">
+    <div className="product" onClick={handleCardClick} style={{ cursor: 'pointer' }}>
       <div className="product-container">
         <div className="product-image">
           <img src={product.image} alt={`${product.brand} ${product.model}`} />
@@ -272,13 +284,22 @@ const ProductCard = ({ product, onAddToCart }) => {
             <li>{product.specs.battery}mAh Battery</li>
             <li>Condition: {product.condition}</li>
           </ul>
-          <button 
-            className="add-to-cart-btn"
-            onClick={handleAddToCart}
-          >
-            <ShoppingCart className="w-4 h-4 mr-2" />
-            Add to Cart
-          </button>
+          <div className="product-actions">
+            <button 
+              className="add-to-cart-btn"
+              onClick={handleAddToCart}
+            >
+              <ShoppingCart className="w-4 h-4 mr-2" />
+              Add to Cart
+            </button>
+            <button 
+              className="buy-now-btn"
+              onClick={handleBuyNow}
+            >
+              <Zap className="w-4 h-4 mr-2" />
+              Buy Now
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -541,6 +562,54 @@ const FilterPhones = () => {
     }
   };
 
+  // ✅ NEW: Buy Now functionality (same as AccessoryDetails.jsx)
+  const buyNow = async (phone) => {
+    try {
+      // Verify user session via API
+      const response = await fetch('/api/user/profile', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        navigate('/sign-in');
+        return;
+      }
+
+      const userData = await response.json();
+      if (!userData.success || !userData.user) {
+        navigate('/sign-in');
+        return;
+      }
+
+      const userId = userData.user.user_id;
+
+      if (!phone || !phone.id) {
+        console.error('Phone data not available');
+        return;
+      }
+
+      // Calculate price locally
+      const discountedPrice = calculateDiscountedPrice(phone.pricing.basePrice, phone.pricing.discount);
+
+      const paymentData = {
+        price: discountedPrice,
+        type: 'phone',
+        id: phone.id,
+        phone: phone,
+        userId: userId,
+      };
+
+      // Navigate to frontend payment page (same as AccessoryDetails)
+      navigate('/payment', { 
+        state: paymentData 
+      });
+    } catch (error) {
+      console.error('Buy now error:', error);
+      navigate('/sign-in');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -608,6 +677,7 @@ const FilterPhones = () => {
                   key={phone.id} 
                   product={phone}
                   onAddToCart={addToCart}
+                  onBuyNow={buyNow}
                 />
               ))
             )}
