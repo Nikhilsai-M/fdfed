@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
-
+import axios from 'axios'; // ADD THIS IMPORT
 
 const FormRow = ({ children }) => (
   <div className="flex flex-col gap-4 md:flex-row mb-2">{children}</div>
@@ -31,16 +31,16 @@ const SellPhoneForm = () => {
     network: '',
     size: '',
     weight: '',
-    deviceAge: '',
+    device_age: '', // Changed to match backend
     battery: '',
     camera: '',
     os: '',
-    switchingOn: '',
-    phoneCalls: '',
-    camerasWorking: '',
-    batteryIssues: '',
-    physicallyDamaged: '',
-    soundIssues: '',
+    switching_on: '', // Changed to match backend
+    phone_calls: '', // Changed to match backend
+    cameras_working: '', // Changed to match backend
+    battery_issues: '', // Changed to match backend
+    physically_damaged: '', // Changed to match backend
+    sound_issues: '', // Changed to match backend
     location: '',
     email: '',
     phone: '',
@@ -86,16 +86,17 @@ const SellPhoneForm = () => {
     });
 
     if (deviceImage) {
-      formPayload.append('device-image', deviceImage);
+      formPayload.append('image_path', deviceImage); // Changed to match backend
     }
 
     try {
-      const response = await axios.post('/api/sell-phone', formPayload, {
+      const response = await axios.post('http://localhost:3000/api/phone-applications/submit', formPayload, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
       if (response.data.success) {
         alert('Phone application submitted successfully!');
+        // Reset form
         setFormData({
           brand: '',
           model: '',
@@ -105,16 +106,16 @@ const SellPhoneForm = () => {
           network: '',
           size: '',
           weight: '',
-          deviceAge: '',
+          device_age: '',
           battery: '',
           camera: '',
           os: '',
-          switchingOn: '',
-          phoneCalls: '',
-          camerasWorking: '',
-          batteryIssues: '',
-          physicallyDamaged: '',
-          soundIssues: '',
+          switching_on: '',
+          phone_calls: '',
+          cameras_working: '',
+          battery_issues: '',
+          physically_damaged: '',
+          sound_issues: '',
           location: '',
           email: '',
           phone: '',
@@ -266,8 +267,8 @@ const SellPhoneForm = () => {
             <FormRow>
               <FormGroup label="Device Age" required>
                 <select
-                  name="deviceAge"
-                  value={formData.deviceAge}
+                  name="device_age"
+                  value={formData.device_age}
                   onChange={handleInputChange}
                   className={selectClasses}
                   required
@@ -332,16 +333,16 @@ const SellPhoneForm = () => {
             </h2>
 
             {[
-              ['switchingOn', 'Is the device switching on?'],
-              ['phoneCalls', 'Can make/receive phone calls?'],
-              ['camerasWorking', 'Are cameras working?'],
-              ['batteryIssues', 'Any battery issues?'],
-              ['physicallyDamaged', 'Is the device physically damaged?'],
-              ['soundIssues', 'Any sound issues?'],
+              ['switching_on', 'Is the device switching on?'],
+              ['phone_calls', 'Can make/receive phone calls?'],
+              ['cameras_working', 'Are cameras working?'],
+              ['battery_issues', 'Any battery issues?'],
+              ['physically_damaged', 'Is the device physically damaged?'],
+              ['sound_issues', 'Any sound issues?'],
             ].map(([key, label]) => (
               <FormGroup key={key} label={label} required>
                 <div className="flex gap-6">
-                  <label>
+                  <label className="flex items-center">
                     <input
                       type="radio"
                       name={key}
@@ -349,17 +350,19 @@ const SellPhoneForm = () => {
                       checked={formData[key] === 'yes'}
                       onChange={handleInputChange}
                       required
-                    />{' '}
+                      className="mr-2"
+                    />
                     Yes
                   </label>
-                  <label>
+                  <label className="flex items-center">
                     <input
                       type="radio"
                       name={key}
                       value="no"
                       checked={formData[key] === 'no'}
                       onChange={handleInputChange}
-                    />{' '}
+                      className="mr-2"
+                    />
                     No
                   </label>
                 </div>
