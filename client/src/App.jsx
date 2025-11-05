@@ -25,8 +25,7 @@ import Orders from './pages/Orders';
 import MyOrders from './pages/MyOrders';
 import BuyPhones from './pages/Buyphones';  
 import BuyLaptops from './pages/Buylaptops';
-
-
+import Listings from './pages/listings';
 import SellPhoneForm from './pages/SellPhone';
 import AboutUs from './pages/AboutUS';
 import Blog from './pages/Blog';
@@ -72,6 +71,7 @@ function App() {
             <Route path="/privacypolicy" element={<PrivacyPolicy/>} />
             <Route path="/terms" element={<TermsAndConditions/>} />
             <Route path="/payment" element={<PaymentPage/>} />
+            <Route path="/listings" element={<Listings/>} />
             {/* Supervisor Routes */}
             <Route path="/supervisor-dashboard" element={<SupervisorDashboard />} />
             <Route path="/supervisor/verify-listings" element={<VerifyListings />} />
