@@ -1,15 +1,32 @@
-// src/components/SellLaptopForm.js (Styled version)
 import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
 
-/**
- * SellLaptopForm Component
- * A form for users to submit information about a laptop they want to sell, with enhanced Tailwind styling.
- */
+const FormRow = ({ children }) => (
+    <div className="flex flex-col gap-4 md:flex-row mb-2">
+        {children}
+    </div>
+);
+
+const FormGroup = ({ label, required, children, className = '' }) => (
+    <div className={`flex-1 flex flex-col ${className}`}>
+        <label className="text-sm font-semibold text-gray-800 mb-2">
+            {label} {required && <span className="text-red-500">*</span>}
+        </label>
+        {children}
+    </div>
+);
+
+
+const inputClasses = "w-full p-3 border border-gray-200 rounded-xl shadow-sm bg-gray-50 text-gray-700 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200 ease-in-out placeholder-gray-400 focus:bg-white";
+const selectClasses = `${inputClasses} appearance-none pr-8 bg-white cursor-pointer`;
+
+
+
+
 const SellLaptopForm = () => {
-    // State to manage form data
+
     const [formData, setFormData] = useState({
         brand: '',
         model: '',
@@ -29,7 +46,7 @@ const SellLaptopForm = () => {
         phone: '',
     });
 
-    // State for the device image file and preview
+
     const [deviceImage, setDeviceImage] = useState(null);
     const [fileName, setFileName] = useState('No file chosen');
     const [previewUrl, setPreviewUrl] = useState('');
@@ -37,16 +54,15 @@ const SellLaptopForm = () => {
 
     const navigate = useNavigate();
 
-    // Handler for general input changes (text, select)
     const handleInputChange = useCallback((e) => {
         const { name, value } = e.target;
+  
         setFormData(prevData => ({
             ...prevData,
             [name]: name === 'brand' ? value.toUpperCase() : value,
         }));
-    }, []);
+    }, []); 
 
-    // Handler for image file change
     const handleImageChange = useCallback((e) => {
         const file = e.target.files[0];
         setDeviceImage(file);
@@ -64,7 +80,7 @@ const SellLaptopForm = () => {
         }
     }, []);
 
-    // Placeholder for API submission (not functional here, but shows structure)
+  
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
@@ -80,19 +96,15 @@ const SellLaptopForm = () => {
         }
 
         try {
-            // Mock submission for demonstration
-            // const response = await fetch('/api/sell-laptop', { method: 'POST', body: formPayload });
-            // const result = await response.json();
-
-            // Simulate a successful response
+           
             await new Promise(resolve => setTimeout(resolve, 1500));
             const success = true; 
 
             if (success) {
                 alert('Laptop successfully listed! Redirecting to listings.');
-                // navigate('/listings'); 
+          
             } else {
-                 // alert(`Error: ${result.message || 'Submission failed on server.'}`);
+                
             }
         } catch (error) {
             console.error('Error submitting form:', error);
@@ -102,33 +114,12 @@ const SellLaptopForm = () => {
         }
     };
 
-    // Helper component for dual-column layout (used for form-row)
-    const FormRow = ({ children }) => (
-        <div className="flex flex-col gap-4 md:flex-row mb-2">
-            {children}
-        </div>
-    );
-
-    // Helper component for an individual form group
-    const FormGroup = ({ label, required, children, className = '' }) => (
-        <div className={`flex-1 flex flex-col ${className}`}>
-            <label className="text-sm font-semibold text-gray-800 mb-2">
-                {label} {required && <span className="text-red-500">*</span>}
-            </label>
-            {children}
-        </div>
-    );
-
-    // Reusable Tailwind classes - ENHANCED
-    const inputClasses = "w-full p-3 border border-gray-200 rounded-xl shadow-sm bg-gray-50 text-gray-700 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200 ease-in-out placeholder-gray-400 focus:bg-white";
-    const selectClasses = `${inputClasses} appearance-none pr-8 bg-white cursor-pointer`;
-
     return (
         <div className="min-h-screen bg-gray-50 p-4 sm:p-8 font-sans">
             <Header />
-            {/* Header/Navigation Placeholder */}
+
             <header className="flex justify-between items-center max-w-4xl mx-auto mb-8 py-3 border-b border-gray-200">
-               
+                
                 
             </header>
             
@@ -136,7 +127,7 @@ const SellLaptopForm = () => {
                 <h1 className="text-3xl font-bold text-gray-900 mb-8">Sell Your Laptop </h1>
                 
                 <form onSubmit={handleSubmit} className="space-y-10">
-                    {/* LAPTOP INFORMATION SECTION */}
+            
                     <section className="p-6 bg-indigo-50/50 rounded-xl border border-indigo-100 space-y-6">
                         <h2 className="text-2xl font-bold text-indigo-800 border-b pb-3 mb-4">💻 Laptop Details</h2>
                         
@@ -253,7 +244,7 @@ const SellLaptopForm = () => {
                             </select>
                         </FormGroup>
                         
-                        <FormGroup label="Defects/Faults  (Max 500 words)">
+                        <FormGroup label="Defects/Faults  (Max 500 words)">
                             <textarea
                                 name="defectsDescription"
                                 value={formData.defectsDescription}
@@ -273,7 +264,7 @@ const SellLaptopForm = () => {
                         </FormGroup>
                     </section>
                     
-                    {/* CONTACT INFORMATION SECTION */}
+    
                     <section className="p-6 bg-blue-50/50 rounded-xl border border-blue-100 space-y-6">
                         <h2 className="text-2xl font-bold text-blue-800 border-b pb-3 mb-4">📞 Contact Information</h2>
                         
@@ -292,7 +283,6 @@ const SellLaptopForm = () => {
                         </FormGroup>
                     </section>
 
-                    {/* DEVICE IMAGE SECTION */}
                     <section className="p-6 bg-gray-50 rounded-xl border border-gray-200 space-y-6">
                         <h2 className="text-2xl font-bold text-gray-800 border-b pb-3 mb-4">📸 Device Image</h2>
 
@@ -332,7 +322,7 @@ const SellLaptopForm = () => {
                         </FormGroup>
                     </section>
 
-                    {/* SUBMIT BUTTON */}
+                 
                     <div className="pt-4">
                         <button 
                             type="submit" 
@@ -345,9 +335,9 @@ const SellLaptopForm = () => {
                 </form>
             </div>
             
-            {/* Footer Placeholder */}
+          
             <footer className="mt-10 text-center text-gray-400 text-sm">
-               
+                
             </footer>
             <Footer />
         </div>
