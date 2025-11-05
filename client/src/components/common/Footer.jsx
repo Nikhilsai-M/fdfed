@@ -171,13 +171,13 @@ const Footer = () => {
                 <Link to="/about_us" className="footer-link text-gray-200 text-sm">About Us</Link>
               </li>
               <li className="footer-item">
-                <Link to="/contact_us" className="footer-link text-gray-200 text-sm">Contact</Link>
+                <Link to="/contact_us" className="footer-link text-gray-200 text-sm">ContactUs</Link>
               </li>
               <li className="footer-item">
                 <Link to="/blog" className="footer-link text-gray-200 text-sm">Blog</Link>
               </li>
               <li className="footer-item">
-                <Link to="/privacy" className="footer-link text-gray-200 text-sm">Privacy Policy</Link>
+                <Link to="/privacypolicy" className="footer-link text-gray-200 text-sm">Privacy Policy</Link>
               </li>
               <li className="footer-item">
                 <Link to="/terms" className="footer-link text-gray-200 text-sm">Terms & Conditions</Link>
