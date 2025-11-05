@@ -200,10 +200,8 @@ const LaptopFilter = ({ filters, onFilterChange, onClearFilters }) => {
                   <input
                     type="checkbox"
                     value={capacity}
-                    checked={filters.storageCapacities.includes(capacity)}
-                    onChange={() => handleCheckboxChange('storageCapacities', capacity)}
-                  />
-                  <span className="chip-label">{capacity}</span>
+                    checked={filters.storageCapacities.includes(capacity)}></input>
+                  <span className="checkbox-label">{capacity}</span>
                 </label>
               ))}
             </div>
@@ -306,14 +304,18 @@ const LaptopFilter = ({ filters, onFilterChange, onClearFilters }) => {
   );
 };
 
-// ProductCard Component (simplified - notification handled in parent)
+// ProductCard Component (updated for real laptop data)
 const ProductCard = ({ product, onAddToCart }) => {
-  const calculateDiscount = () => {
-    if (product.originalPrice && product.discountedPrice) {
-      const discount = ((product.originalPrice - product.discountedPrice) / product.originalPrice) * 100;
-      return Math.round(discount);
-    }
-    return 0;
+  const navigate = useNavigate();
+  
+  const handleCardClick = () => {
+    navigate(`/laptop/${product.id}`);
+  };
+
+  const calculateFinalPrice = (laptop) => {
+    const price = parseFloat(laptop.pricing.basePrice || 0);
+    const discount = parseFloat(laptop.pricing.discount || 0);
+    return Number((price - (price * discount / 100)).toFixed(2));
   };
 
   const handleAddToCart = (e) => {
@@ -322,37 +324,37 @@ const ProductCard = ({ product, onAddToCart }) => {
     onAddToCart(product);
   };
 
-  const discount = calculateDiscount();
+  const finalPrice = calculateFinalPrice(product);
+  const originalPrice = product.pricing.basePrice;
 
   return (
-    <div className="product">
+    <div className="product" onClick={handleCardClick} style={{ cursor: 'pointer' }}>
       <div className="product-container">
         <div className="product-image">
           <img 
-            src={product.imageUrl || '/api/placeholder/300/300'} 
-            alt={product.name}
+            src={product.image} 
+            alt={`${product.brand} ${product.series}`}
             loading="lazy"
           />
-          {discount > 0 && (
-            <div className="discount-badge">{discount}% OFF</div>
+          {product.pricing.discount > 0 && (
+            <div className="discount-badge">{product.pricing.discount}% OFF</div>
           )}
+          <div className="condition-badge">{product.condition}</div>
         </div>
         
         <div className="product-details">
-          <h4>{product.name}</h4>
+          <h4>{product.brand} {product.series}</h4>
           
           <div className="price-section">
-            {product.originalPrice && (
-              <span className="original-price">₹{product.originalPrice.toLocaleString()}</span>
-            )}
-            <h3 className="discounted-price">₹{product.discountedPrice.toLocaleString()}</h3>
+            <span className="original-price">₹{originalPrice.toLocaleString()}</span>
+            <h3 className="discounted-price">₹{finalPrice.toLocaleString()}</h3>
           </div>
 
           <ul className="specs-list">
-            <li><strong>Processor:</strong> {product.processor}</li>
-            <li><strong>RAM:</strong> {product.ram}</li>
-            <li><strong>Storage:</strong> {product.storage}</li>
-            <li><strong>Display:</strong> {product.display}</li>
+            <li><strong>Processor:</strong> {product.processor.name} {product.processor.generation}</li>
+            <li><strong>RAM:</strong> {product.memory.ram}</li>
+            <li><strong>Storage:</strong> {product.memory.storage.type} {product.memory.storage.capacity}</li>
+            <li><strong>Display:</strong> {product.displaysize}"</li>
             <li><strong>OS:</strong> {product.os}</li>
           </ul>
 
@@ -372,13 +374,11 @@ const ProductCard = ({ product, onAddToCart }) => {
 // Main FilterLaptops Component
 const FilterLaptops = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [products, setProducts] = useState([]);
-  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [laptops, setLaptops] = useState([]);
+  const [filteredLaptops, setFilteredLaptops] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({
+  const [selectedFilters, setSelectedFilters] = useState({
     brands: [],
-    minPrice: '',
-    maxPrice: '',
     processors: [],
     generations: [],
     rams: [],
@@ -388,201 +388,95 @@ const FilterLaptops = () => {
     oses: [],
     weights: [],
     conditions: [],
-    discounts: []
+    discounts: [],
+    minPrice: 0,
+    maxPrice: 200000
   });
   
   const [cartItem, setCartItem] = useState(null);
   const navigate = useNavigate();
   const { updateCart } = useCart();
 
-  // Load filters from URL on component mount
+  // Get URL parameters
+  const brandFromUrl = searchParams.get('brand');
+  const maxPriceFromUrl = searchParams.get('maxPrice');
+
   useEffect(() => {
-    const urlFilters = {};
-    const filterKeys = [
-      'brands', 'processors', 'generations', 'rams', 'storageTypes', 
-      'storageCapacities', 'displays', 'oses', 'weights', 'conditions', 'discounts'
-    ];
-    
-    filterKeys.forEach(key => {
-      const value = searchParams.get(key);
-      if (value) {
-        urlFilters[key] = value.split(',');
-      } else {
-        urlFilters[key] = [];
-      }
-    });
-
-    // Handle price filters
-    urlFilters.minPrice = searchParams.get('minPrice') || '';
-    urlFilters.maxPrice = searchParams.get('maxPrice') || '';
-
-    setFilters(urlFilters);
-  }, [searchParams]);
-
-  // Update URL when filters change
-  useEffect(() => {
-    const params = new URLSearchParams();
-    
-    Object.entries(filters).forEach(([key, value]) => {
-      if (Array.isArray(value) && value.length > 0) {
-        params.set(key, value.join(','));
-      } else if (value && !Array.isArray(value)) {
-        params.set(key, value.toString());
-      }
-    });
-
-    setSearchParams(params, { replace: true });
-  }, [filters, setSearchParams]);
-
-  // Fetch products (simulated)
-  useEffect(() => {
-    const fetchProducts = async () => {
-      setLoading(true);
-      try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Mock data - replace with actual API call
-        const mockProducts = [
-          {
-            id: 1,
-            name: 'Dell XPS 13 Laptop',
-            processor: 'Intel Core i7',
-            ram: '16GB',
-            storage: '512GB SSD',
-            display: '13.4" FHD+',
-            os: 'Windows 11',
-            originalPrice: 129999,
-            discountedPrice: 109999,
-            imageUrl: '/api/placeholder/300/300',
-            brand: 'DELL',
-            generation: '13th',
-            storageType: 'SSD',
-            storageCapacity: '512GB',
-            weight: 'Ultra-light (<1.5kg)',
-            condition: 'New'
-          },
-          {
-            id: 2,
-            name: 'MacBook Air M2',
-            processor: 'Apple M2',
-            ram: '8GB',
-            storage: '256GB SSD',
-            display: '13.6" Liquid Retina',
-            os: 'macOS',
-            originalPrice: 114999,
-            discountedPrice: 99999,
-            imageUrl: '/api/placeholder/300/300',
-            brand: 'APPLE',
-            generation: 'Latest',
-            storageType: 'SSD',
-            storageCapacity: '256GB',
-            weight: 'Ultra-light (<1.5kg)',
-            condition: 'New'
-          },
-          {
-            id: 3,
-            name: 'HP Spectre x360',
-            processor: 'Intel Core i5',
-            ram: '8GB',
-            storage: '512GB SSD',
-            display: '13.5" OLED',
-            os: 'Windows 11',
-            originalPrice: 89999,
-            discountedPrice: 74999,
-            imageUrl: '/api/placeholder/300/300',
-            brand: 'HP',
-            generation: '12th',
-            storageType: 'SSD',
-            storageCapacity: '512GB',
-            weight: 'Light (1.5-2kg)',
-            condition: 'Refurbished'
-          },
-        ];
-        
-        setProducts(mockProducts);
-        setFilteredProducts(mockProducts);
-      } catch (error) {
-        console.error('Error fetching products:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProducts();
+    fetchLaptops();
   }, []);
 
-  // Apply filters to products
   useEffect(() => {
-    if (products.length === 0) return;
+    // Apply URL parameters to filters when component mounts
+    if (brandFromUrl || maxPriceFromUrl) {
+      applyUrlFilters();
+    } else {
+      loadFiltersFromStorage();
+    }
+  }, [brandFromUrl, maxPriceFromUrl, laptops]);
 
-    const filtered = products.filter(product => {
-      // Brand filter
-      if (filters.brands.length > 0 && !filters.brands.includes(product.brand)) {
-        return false;
+  useEffect(() => {
+    filterProducts();
+    storeFiltersToStorage();
+  }, [selectedFilters, laptops]);
+
+  const applyUrlFilters = () => {
+    const newFilters = { ...selectedFilters };
+    
+    if (brandFromUrl) {
+      newFilters.brands = [brandFromUrl];
+    }
+    
+    if (maxPriceFromUrl) {
+      newFilters.maxPrice = parseInt(maxPriceFromUrl);
+    }
+    
+    setSelectedFilters(newFilters);
+    
+    // Clear URL parameters after applying to avoid reapplying on refresh
+    window.history.replaceState({}, '', '/filter-buy-laptop');
+  };
+
+  // Fetch laptops from database (similar to phones)
+  const fetchLaptops = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/laptops');
+      if (!response.ok) {
+        throw new Error('Failed to fetch laptops');
       }
-
-      // Price filter
-      if (filters.minPrice && product.discountedPrice < parseInt(filters.minPrice)) {
-        return false;
-      }
-      if (filters.maxPrice && product.discountedPrice > parseInt(filters.maxPrice)) {
-        return false;
-      }
-
-      // Processor filter
-      if (filters.processors.length > 0 && !filters.processors.some(proc => 
-        product.processor.toLowerCase().includes(proc.toLowerCase()))) {
-        return false;
-      }
-
-      // RAM filter
-      if (filters.rams.length > 0 && !filters.rams.includes(product.ram)) {
-        return false;
-      }
-
-      // Storage type filter
-      if (filters.storageTypes.length > 0 && !filters.storageTypes.includes(product.storageType)) {
-        return false;
-      }
-
-      // Storage capacity filter
-      if (filters.storageCapacities.length > 0 && !filters.storageCapacities.includes(product.storageCapacity)) {
-        return false;
-      }
-
-      // Condition filter
-      if (filters.conditions.length > 0 && !filters.conditions.includes(product.condition)) {
-        return false;
-      }
-
-      return true;
-    });
-
-    setFilteredProducts(filtered);
-  }, [products, filters]);
+      const data = await response.json();
+      setLaptops(data);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching laptops:', error);
+      setLoading(false);
+    }
+  };
 
   const handleFilterChange = (filterType, value) => {
-    setFilters(prev => {
-      const currentValues = prev[filterType];
-      
-      if (Array.isArray(currentValues)) {
-        const updatedValues = currentValues.includes(value)
-          ? currentValues.filter(item => item !== value)
-          : [...currentValues, value];
-        
-        return { ...prev, [filterType]: updatedValues };
+    setSelectedFilters(prev => {
+      if (['minPrice', 'maxPrice'].includes(filterType)) {
+        return { ...prev, [filterType]: value };
       }
       
-      return { ...prev, [filterType]: value };
+      const currentValues = prev[filterType];
+      if (currentValues.includes(value)) {
+        return {
+          ...prev,
+          [filterType]: currentValues.filter(item => item !== value)
+        };
+      } else {
+        return {
+          ...prev,
+          [filterType]: [...currentValues, value]
+        };
+      }
     });
   };
 
   const handleClearFilters = () => {
-    setFilters({
+    setSelectedFilters({
       brands: [],
-      minPrice: '',
-      maxPrice: '',
       processors: [],
       generations: [],
       rams: [],
@@ -592,11 +486,124 @@ const FilterLaptops = () => {
       oses: [],
       weights: [],
       conditions: [],
-      discounts: []
+      discounts: [],
+      minPrice: 0,
+      maxPrice: 200000
     });
+    localStorage.removeItem('selectedLaptopFilters');
   };
 
-  // ✅ Updated addToCart with proper authentication and cart functionality (same as phones page)
+  const filterProducts = () => {
+    const mainBrands = ["ACER", "DELL", "HP", "LENOVO", "APPLE", "ASUS", "MICROSOFT", "MSI"];
+    
+    const filtered = laptops.filter(laptop => {
+      if (!laptop || !laptop.pricing) return false;
+
+      const finalPrice = calculateFinalPrice(laptop);
+      
+      // Brand filter
+      if (selectedFilters.brands.length > 0) {
+        const includesOthers = selectedFilters.brands.includes("Others");
+        const includesSpecificBrand = selectedFilters.brands.some(brand => 
+          laptop.brand && brand.toUpperCase() === laptop.brand.toUpperCase()
+        );
+        const isOtherBrand = laptop.brand && !mainBrands.some(mainBrand => 
+          mainBrand.toUpperCase() === laptop.brand.toUpperCase()
+        );
+        if (!includesSpecificBrand && !(includesOthers && isOtherBrand)) {
+          return false;
+        }
+      }
+
+      // Price filter
+      if (finalPrice < selectedFilters.minPrice || finalPrice > selectedFilters.maxPrice) return false;
+
+      // Processor filter
+      if (selectedFilters.processors.length > 0 && 
+          !selectedFilters.processors.some(proc => 
+            laptop.processor.name.toLowerCase().includes(proc.toLowerCase())
+          )) {
+        return false;
+      }
+
+      // Generation filter
+      if (selectedFilters.generations.length > 0 && 
+          !selectedFilters.generations.includes(laptop.processor.generation)) {
+        return false;
+      }
+
+      // RAM filter
+      if (selectedFilters.rams.length > 0 && 
+          !selectedFilters.rams.some(ram => laptop.memory.ram.includes(ram))) {
+        return false;
+      }
+
+      // Storage type filter
+      if (selectedFilters.storageTypes.length > 0 && 
+          !selectedFilters.storageTypes.includes(laptop.memory.storage.type)) {
+        return false;
+      }
+
+      // Storage capacity filter
+      if (selectedFilters.storageCapacities.length > 0 && 
+          !selectedFilters.storageCapacities.some(capacity => 
+            laptop.memory.storage.capacity.includes(capacity.replace('GB', '').replace('TB', ''))
+          )) {
+        return false;
+      }
+
+      // Display filter
+      if (selectedFilters.displays.length > 0 && 
+          !selectedFilters.displays.some(display => 
+            laptop.displaysize && laptop.displaysize.toString().includes(display.replace('"', ''))
+          )) {
+        return false;
+      }
+
+      // OS filter
+      if (selectedFilters.oses.length > 0 && 
+          !selectedFilters.oses.includes(laptop.os)) {
+        return false;
+      }
+
+      // Condition filter
+      if (selectedFilters.conditions.length > 0 && 
+          !selectedFilters.conditions.includes(laptop.condition)) {
+        return false;
+      }
+
+      // Discount filter
+      if (selectedFilters.discounts.length > 0 && 
+          !selectedFilters.discounts.some(discount => 
+            laptop.pricing.discount >= parseInt(discount)
+          )) {
+        return false;
+      }
+
+      return true;
+    });
+
+    setFilteredLaptops(filtered);
+  };
+
+  const calculateFinalPrice = (laptop) => {
+    const price = parseFloat(laptop.pricing.basePrice || 0);
+    const discount = parseFloat(laptop.pricing.discount || 0);
+    return Number((price - (price * discount / 100)).toFixed(2));
+  };
+
+  const storeFiltersToStorage = () => {
+    localStorage.setItem('selectedLaptopFilters', JSON.stringify(selectedFilters));
+  };
+
+  const loadFiltersFromStorage = () => {
+    const storedFilters = localStorage.getItem('selectedLaptopFilters');
+    if (storedFilters) {
+      setSelectedFilters(JSON.parse(storedFilters));
+    }
+  };
+
+  // Add to cart function (same as phones page)
   const addToCart = async (laptop) => {
     try {
       // Verify user session via API
@@ -633,67 +640,57 @@ const FilterLaptops = () => {
         updatedCart = [...currentCart];
         updatedCart[existingProductIndex].quantity += 1;
       } else {
+        const finalPrice = calculateFinalPrice(laptop);
         updatedCart = [...currentCart, {
           id: laptop.id,
-          name: laptop.name,
+          name: `${laptop.brand} ${laptop.series}`,
           brand: laptop.brand,
-          processor: laptop.processor,
-          ram: laptop.ram,
-          storage: laptop.storage,
-          display: laptop.display,
+          processor: `${laptop.processor.name} ${laptop.processor.generation}`,
+          ram: laptop.memory.ram,
+          storage: `${laptop.memory.storage.type} ${laptop.memory.storage.capacity}`,
+          display: `${laptop.displaysize}"`,
           os: laptop.os,
-          image: laptop.imageUrl,
-          price: laptop.discountedPrice,
-          originalPrice: laptop.originalPrice,
-          discount: calculateDiscount(laptop),
+          image: laptop.image,
+          price: finalPrice,
+          originalPrice: laptop.pricing.basePrice,
+          discount: laptop.pricing.discount,
           quantity: 1,
           type: 'laptop'
         }];
       }
 
-      // ✅ Save to localStorage immediately after updating the cart
+      // Save to localStorage
       localStorage.setItem(userCartKey, JSON.stringify(updatedCart));
 
       // Update the context
       updateCart(updatedCart, userId);
 
-      // Keep the UI feedback (same as phones page)
-      setCartItem(`${laptop.name} added to cart!`);
+      // Show success message
+      setCartItem(`${laptop.brand} ${laptop.series} added to cart!`);
       setTimeout(() => setCartItem(null), 3000);
 
     } catch (error) {
       console.error('Error adding to cart:', error);
-      
-      // Fallback: Add to cart without authentication but prompt login
       navigate('/sign-in');
-      setCartItem(`${laptop.name} added to cart! (Please log in to sync)`);
-      setTimeout(() => setCartItem(null), 3000);
     }
-  };
-
-  const calculateDiscount = (laptop) => {
-    if (laptop.originalPrice && laptop.discountedPrice) {
-      const discount = ((laptop.originalPrice - laptop.discountedPrice) / laptop.originalPrice) * 100;
-      return Math.round(discount);
-    }
-    return 0;
   };
 
   if (loading) {
     return (
-      <>
+      <div className="min-h-screen bg-gray-50">
         <Header />
-        <div className="container">
-          <div className="loading">Loading laptops...</div>
+        <div className="flex flex-col justify-center items-center py-20">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600 mb-4"></div>
+          <p className="text-gray-600">Loading laptops...</p>
         </div>
         <Footer />
-      </>
+      </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
-      {/* Cart Message - Same as phones page */}
+      {/* Cart Message */}
       <Header />
       {cartItem && (
         <div className="fixed bottom-6 right-6 bg-green-500 text-white px-6 py-4 rounded-lg shadow-2xl z-50 animate-slideIn flex items-center gap-3">
@@ -715,48 +712,43 @@ const FilterLaptops = () => {
       <div className="container mx-auto px-4 pt-24 pb-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Find Your Perfect Laptop
+            {brandFromUrl ? `${brandFromUrl} Laptops` : 'Find Your Perfect Laptop'}
           </h1>
           <p className="text-gray-600">
-            Filter through our collection of premium laptops
+            {brandFromUrl 
+              ? `Browse all ${brandFromUrl} laptops` 
+              : 'Filter through our collection of premium laptops'
+            }
+            {maxPriceFromUrl && ` under ₹${parseInt(maxPriceFromUrl).toLocaleString()}`}
           </p>
         </div>
 
         <div className="page-container">
-          <LaptopFilter 
-            filters={filters}
+          <LaptopFilter
+            filters={selectedFilters}
             onFilterChange={handleFilterChange}
             onClearFilters={handleClearFilters}
           />
           
-          <div className="products-section">
-            {filteredProducts.length > 0 ? (
-              <div className="products">
-                {filteredProducts.map(product => (
-                  <ProductCard 
-                    key={product.id} 
-                    product={product}
-                    onAddToCart={addToCart}
-                  />
-                ))}
+          <div className="products" id="product-list">
+            {filteredLaptops.length === 0 ? (
+              <div className="no-products">
+                <h3>No products match your filters</h3>
+                <p>Try adjusting your filter criteria or <button className="clear-all-inline" onClick={handleClearFilters}>clear all filters</button></p>
               </div>
             ) : (
-              <div className="no-products">
-                <h3>No laptops found</h3>
-                <p>
-                  Try adjusting your filters or{' '}
-                  <button 
-                    className="clear-all-inline"
-                    onClick={handleClearFilters}
-                  >
-                    clear all filters
-                  </button>
-                </p>
-              </div>
+              filteredLaptops.map(laptop => (
+                <ProductCard 
+                  key={laptop.id} 
+                  product={laptop}
+                  onAddToCart={addToCart}
+                />
+              ))
             )}
           </div>
         </div>
       </div>
+
       <Footer />
     </div>
   );

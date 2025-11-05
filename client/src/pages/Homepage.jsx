@@ -12,7 +12,7 @@ const HomePage = () => {
   useEffect(() => {
     const fetchLatestProducts = async () => {
       try {
-        const response = await fetch('/api/latest-phones');
+        const response = await fetch('/api/phones/latest-phones');
         if (!response.ok) throw new Error('Failed to fetch');
         const data = await response.json();
         setProducts(data);

@@ -5,7 +5,7 @@ import { verifyToken } from '../middleware/auth.middleware.js';
 const router = express.Router();
 
 // Use multer middleware for file upload on submit route
-router.post('/submit', upload.single('image_path'), submitLaptopApplication);
+router.post('/submit', verifyToken, upload.single('image_path'), submitLaptopApplication);
 router.get('/', getLaptopApplications);
 router.put('/:id/status', updateLaptopApplicationStatus);
 

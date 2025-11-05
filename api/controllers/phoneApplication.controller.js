@@ -78,7 +78,7 @@ export const submitPhoneApplication = async (req, res) => {
     // Create new application
     const newApplication = new PhoneApplication({
       id: nextId,
-      user_id: req.userId || uuidv4(),
+      user_id: req.user.user_id ,
       brand: brand.toUpperCase(),
       model,
       ram,

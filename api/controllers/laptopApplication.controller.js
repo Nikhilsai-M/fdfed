@@ -71,7 +71,7 @@ export const submitLaptopApplication = async (req, res) => {
     // Create new application
     const newApplication = new LaptopApplication({
       id: nextId,
-      user_id: req.userId || uuidv4(), // Use actual user ID if authenticated
+      user_id: req.user.user_id, // Use actual user ID if authenticated
       brand: brand.toUpperCase(),
       model,
       ram,

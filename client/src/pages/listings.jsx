@@ -1,8 +1,12 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import Header from "../components/common/Header";
-import Footer from "../components/common/Footer";
+import Header from "../components/common/Header"; // Adjust path as needed
+import Footer from "../components/common/Footer"; // Adjust path as needed
+
+// Configure axios defaults
+axios.defaults.baseURL = 'http://localhost:3000';
+axios.defaults.withCredentials = true;
 
 const Listings = () => {
   const navigate = useNavigate();
@@ -11,33 +15,52 @@ const Listings = () => {
   const [filteredListings, setFilteredListings] = useState([]);
   const [activeFilter, setActiveFilter] = useState("all");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedListing, setSelectedListing] = useState(null);
 
   // Fetch user's listings from the server
   useEffect(() => {
-const fetchListings = async () => {
-  try {
-    const response = await axios.get("/api/customer/listings", {
-      withCredentials: true // Add this line
-    });
-    
-    if (response.data.success) {
-      setListings(response.data.listings);
-      setFilteredListings(response.data.listings);
-    } else {
-      alert(response.data.message || "Failed to load listings");
-    }
-  } catch (error) {
-    console.error("Error fetching listings:", error);
-    alert("Error loading listings. Please try again.");
-  } finally {
-    setLoading(false);
-  }
-};
+    const fetchListings = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        console.log('🔄 Fetching listings...');
+        
+        const response = await axios.get("/api/customer/listings", {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        console.log('📦 Response:', response.data);
+
+        if (response.data.success) {
+          setListings(response.data.listings);
+          setFilteredListings(response.data.listings);
+          console.log('✅ Listings loaded:', response.data.listings.length);
+        } else {
+          setError(response.data.message || "Failed to load listings");
+        }
+      } catch (error) {
+        console.error("❌ Error fetching listings:", error);
+        
+        if (error.response?.status === 401) {
+          setError("Please login to view your listings");
+          // Redirect to login after 2 seconds
+          setTimeout(() => navigate('/signin'), 2000);
+        } else {
+          setError(error.response?.data?.message || "Error loading listings. Please try again.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
 
     fetchListings();
-  }, []);
+  }, [navigate]);
 
   // Calculate counts for filter buttons
   const counts = useMemo(() => {
@@ -168,9 +191,13 @@ const fetchListings = async () => {
 
         {listing.image_path && (
           <img
-            src={listing.image_path}
+            src={`http://localhost:3000/${listing.image_path.replace(/\\/g, '/')}`}
             alt="Device"
             className="mt-4 w-full max-h-80 object-contain rounded-lg border"
+            onError={(e) => {
+              console.log('Image failed to load:', listing.image_path);
+              e.target.style.display = 'none';
+            }}
           />
         )}
       </div>
@@ -178,91 +205,111 @@ const fetchListings = async () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <>
       <Header />
+      <div className="min-h-screen bg-gray-50">
+        <div className="container mx-auto px-4 py-8 max-w-6xl">
+          <h1 className="text-3xl font-bold text-gray-900 mb-8">My Listings</h1>
 
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">My Listings</h1>
-
-        {/* Filter Buttons */}
-        <div className="flex flex-wrap gap-3 mb-8">
-          {filterButtons.map((filter) => (
-            <button
-              key={filter.value}
-              onClick={() => handleFilter(filter.value)}
-              className={`px-5 py-2 rounded-full font-medium transition flex items-center gap-1.5 ${
-                activeFilter === filter.value
-                  ? "bg-indigo-600 text-white hover:bg-indigo-700"
-                  : "bg-white text-gray-700 border hover:bg-gray-50"
-              }`}
-            >
-              {filter.label}
-              {filter.count > 0 && (
-                <span className="bg-white/30 text-xs rounded-full px-1.5 py-0.5 min-w-[1.5rem]">
-                  {filter.count}
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
-
-        {/* Listings Grid */}
-        {loading ? (
-          <p className="text-center text-gray-500">Loading listings...</p>
-        ) : filteredListings.length === 0 ? (
-          <p className="text-center text-gray-500">No listings found.</p>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredListings.map((listing) => {
-              const isLaptop = listing.type === "laptop";
-              const isRejected = listing.status === "rejected";
-              const showPrice = (listing.status === "approved" || listing.status === "added_to_inventory") && listing.price;
-
-              return (
-                <div
-                  key={listing._id || listing.id}
-                  onClick={() => openModal(listing)}
-                  className="bg-white rounded-xl shadow-md p-5 cursor-pointer hover:shadow-lg transition"
-                >
-                  <h3 className="text-lg font-bold text-gray-800">
-                    {isLaptop ? "Laptop" : "Phone"}: {listing.brand} {listing.model}
-                  </h3>
-
-                  <p className="mt-2">
-                    <strong>Status:</strong>{" "}
-                    <span
-                      className={`inline-block px-2 py-1 rounded text-xs font-semibold ${
-                        isRejected
-                          ? "bg-red-100 text-red-700"
-                          : "bg-green-100 text-green-700"
-                      }`}
-                    >
-                      {listing.status}
-                    </span>
-                  </p>
-
-                  <p className="text-sm text-gray-600">
-                    <strong>Submitted:</strong>{" "}
-                    {new Date(listing.created_at).toLocaleDateString()}
-                  </p>
-
-                  {showPrice && (
-                    <p className="mt-2 text-indigo-600 font-semibold">
-                      <strong>Price:</strong> ₹{parseFloat(listing.price).toFixed(2)}
-                    </p>
-                  )}
-
-                  {isRejected && listing.rejection_reason && (
-                    <p className="mt-2 text-red-600 text-sm">
-                      <strong>Rejection:</strong> {listing.rejection_reason}
-                    </p>
-                  )}
-                </div>
-              );
-            })}
+          {/* Filter Buttons */}
+          <div className="flex flex-wrap gap-3 mb-8">
+            {filterButtons.map((filter) => (
+              <button
+                key={filter.value}
+                onClick={() => handleFilter(filter.value)}
+                className={`px-5 py-2 rounded-full font-medium transition flex items-center gap-1.5 ${
+                  activeFilter === filter.value
+                    ? "bg-indigo-600 text-white hover:bg-indigo-700"
+                    : "bg-white text-gray-700 border hover:bg-gray-50"
+                }`}
+              >
+                {filter.label}
+                {filter.count > 0 && (
+                  <span className="bg-white/30 text-xs rounded-full px-1.5 py-0.5 min-w-[1.5rem]">
+                    {filter.count}
+                  </span>
+                )}
+              </button>
+            ))}
           </div>
-        )}
+
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+              {error}
+            </div>
+          )}
+
+          {/* Listings Grid */}
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+              <p className="mt-4 text-gray-500">Loading listings...</p>
+            </div>
+          ) : filteredListings.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-xl shadow-md">
+              <p className="text-gray-500 text-lg">No listings found.</p>
+              <button
+                onClick={() => navigate('/sell-phone')}
+                className="mt-4 px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+              >
+                Create New Listing
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredListings.map((listing) => {
+                const isLaptop = listing.type === "laptop";
+                const isRejected = listing.status === "rejected";
+                const showPrice = (listing.status === "approved" || listing.status === "added_to_inventory") && listing.price;
+
+                return (
+                  <div
+                    key={listing._id || listing.id}
+                    onClick={() => openModal(listing)}
+                    className="bg-white rounded-xl shadow-md p-5 cursor-pointer hover:shadow-lg transition"
+                  >
+                    <h3 className="text-lg font-bold text-gray-800">
+                      {isLaptop ? "Laptop" : "Phone"}: {listing.brand} {listing.model}
+                    </h3>
+
+                    <p className="mt-2">
+                      <strong>Status:</strong>{" "}
+                      <span
+                        className={`inline-block px-2 py-1 rounded text-xs font-semibold ${
+                          isRejected
+                            ? "bg-red-100 text-red-700"
+                            : "bg-green-100 text-green-700"
+                        }`}
+                      >
+                        {listing.status}
+                      </span>
+                    </p>
+
+                    <p className="text-sm text-gray-600">
+                      <strong>Submitted:</strong>{" "}
+                      {new Date(listing.created_at).toLocaleDateString()}
+                    </p>
+
+                    {showPrice && (
+                      <p className="mt-2 text-indigo-600 font-semibold">
+                        <strong>Price:</strong> ₹{parseFloat(listing.price).toFixed(2)}
+                      </p>
+                    )}
+
+                    {isRejected && listing.rejection_reason && (
+                      <p className="mt-2 text-red-600 text-sm">
+                        <strong>Rejection:</strong> {listing.rejection_reason}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
+      <Footer />
 
       {/* Modal */}
       {modalOpen && (
@@ -287,9 +334,7 @@ const fetchListings = async () => {
           </div>
         </div>
       )}
-
-      <Footer />
-    </div>
+    </>
   );
 };
 

@@ -197,18 +197,18 @@ export async function deletePhone(id) {
   }
 }
 
-
-
-
-export const getLatestPhones = async (limit = 5) => {
+export const getLatestPhones = async (limit = 8) => {
   try {
     const phones = await Phone.find()
-      .sort({ created_at: -1 })
+      .sort({ _id: -1 }) // Use _id instead of created_at for reliable sorting
       .limit(limit)
-      .lean()
-      .select('id brand model base_price condition discount image');
+      .select('id brand model base_price discount condition image')
+      .lean();
+    
+    console.log(`Found ${phones.length} latest phones`);
     return phones;
   } catch (error) {
-    throw new Error('Error fetching latest phones: ' + error.message);
+    console.error('Error in getLatestPhones:', error);
+    throw error;
   }
 };

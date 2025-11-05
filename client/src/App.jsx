@@ -34,6 +34,8 @@ import ContactUs from './pages/ContactUs';
 import PrivacyPolicy from './pages/PrivayPolicy';
 import TermsAndConditions from './pages/TermsAndConditions';  
 import PaymentPage from './pages/Payment';
+import LaptopDetails from './pages/LaptopDetails';
+import PhoneDetails from './pages/PhoneDetails';
 function App() {
   return (
     <CartProvider>
@@ -65,6 +67,8 @@ function App() {
             <Route path="/buylaptops" element={<BuyLaptops/>} />
             <Route path="/filter-buy-phone" element={<FilterPhones/>}/>
             <Route path="/filter-buy-laptop" element={<FilterLaptops />} />
+            <Route path="/product/:id" element={<PhoneDetails />} />
+            <Route path="/laptop/:id" element={<LaptopDetails />} />
             <Route path="/about_us" element={<AboutUs/>} />
             <Route path="/blog" element={<Blog/>} />
             <Route path="/contact_us" element={<ContactUs/>} />
