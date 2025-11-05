@@ -73,18 +73,19 @@ const BuyPhones = () => {
   const fetchLatestProducts = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/latest-phones');
-      if (!response.ok) throw new Error('Failed to fetch latest products');
+      const response = await fetch('http://localhost:3000/api/latest-phones');
+      if (!response.ok) throw new Error('Failed to fetch latest phones');
       const products = await response.json();
       setLatestProducts(products);
       setError(null);
     } catch (err) {
-      setError('Error loading products. Please try again later.');
-      console.error('Error fetching latest products:', err);
+      setError('Error loading phones. Please try again later.');
+      console.error('Error fetching latest phones:', err);
     } finally {
       setLoading(false);
     }
   };
+  
 
   const calculateFinalPrice = (product) => {
     const price = parseFloat(product.base_price || 0);

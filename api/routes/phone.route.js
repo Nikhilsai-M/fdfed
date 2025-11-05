@@ -1,5 +1,5 @@
 import express from 'express';
-import { getAllPhones, getPhoneById } from '../crud/phones.js';
+import { getAllPhones, getPhoneById ,getLatestPhones} from '../crud/phones.js';
 
 const router = express.Router();
 
@@ -25,6 +25,16 @@ router.get('/:id', async (req, res) => {
   } catch (error) {
     console.error('Error fetching phone:', error);
     res.status(500).json({ error: 'Failed to fetch phone' });
+  }
+});
+
+router.get('/latest-phones', async (req, res) => {
+  try {
+    const phones = await getLatestPhones();
+    res.json(phones);
+  } catch (error) {
+    console.error('Error fetching latest phones:', error);
+    res.status(500).json({ error: 'Failed to fetch latest phones' });
   }
 });
 

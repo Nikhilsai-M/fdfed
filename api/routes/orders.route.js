@@ -68,4 +68,58 @@ router.get('/orders/:orderId', verifyToken, async (req, res) => {
   }
 });
 
+router.get('/buy/:type/:id', verifyToken, async (req, res) => {
+  try {
+    const accessoryType = req.params.type.toLowerCase();
+    const accessoryId = req.params.id;
+    const userId = req.user.userId;
+
+    const fetchFunctions = {
+      earphone: getEarphonesById,
+      charger: getChargerById,
+      mouse: getMouseById,
+      smartwatch: getSmartwatchById,
+      product: getPhoneById,
+      laptop: getLaptopById,
+    };
+
+    if (!fetchFunctions[accessoryType]) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Invalid accessory type' 
+      });
+    }
+    
+    const fetchFunction = fetchFunctions[accessoryType];
+    const accessory = await fetchFunction(accessoryId);
+    
+    if (!accessory) {
+      return res.status(404).json({ 
+        success: false,
+        error: `${accessoryType} not found` 
+      });
+    }
+
+    const basePrice = accessory.pricing.originalPrice || accessory.pricing.basePrice;
+    const finalPrice = parseFloat(basePrice) - parseFloat(basePrice) * (parseFloat(accessory.pricing.discount) / 100);
+
+    res.json({
+      success: true,
+      paymentData: {
+        price: finalPrice,
+        type: accessoryType,
+        id: accessoryId,
+        accessory: accessory,
+        userId: userId,
+      }
+    });
+  } catch (error) {
+    console.error(`Error processing buy request for ${req.params.type}:`, error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to process payment request' 
+    });
+  }
+});
+
 export default router;

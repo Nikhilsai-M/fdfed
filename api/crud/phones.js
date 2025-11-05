@@ -196,3 +196,19 @@ export async function deletePhone(id) {
     return { success: false, message: error.message };
   }
 }
+
+
+
+
+export const getLatestPhones = async (limit = 5) => {
+  try {
+    const phones = await Phone.find()
+      .sort({ created_at: -1 })
+      .limit(limit)
+      .lean()
+      .select('id brand model base_price condition discount image');
+    return phones;
+  } catch (error) {
+    throw new Error('Error fetching latest phones: ' + error.message);
+  }
+};
