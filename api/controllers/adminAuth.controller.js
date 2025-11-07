@@ -83,7 +83,6 @@ export const adminSignin = async (req, res, next) => {
 export const adminSignout = async (req, res, next) => {
     try {
         console.log('\n=== 🚪 ADMIN SIGNOUT REQUEST ===');
-        console.log('Admin signing out:', req.admin?.admin_id);
 
         res.clearCookie('admin_access_token', {
             httpOnly: true,

@@ -8,14 +8,14 @@ export default function SupervisorLayout({ children }) {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const userData = JSON.parse(localStorage.getItem('user'));
-        if (!userData || userData.role !== 'supervisor') {
-            navigate('/sign-in');
-            return;
-        }
-        setSupervisor(userData);
-    }, [navigate]);
-
+    const userData = JSON.parse(localStorage.getItem('user'));
+    console.log('Supervisor data from localStorage:', userData); // Debug line
+    if (!userData || userData.role !== 'supervisor') {
+        navigate('/sign-in');
+        return;
+    }
+    setSupervisor(userData);
+}, [navigate]);
     const handleLogout = async () => {
         try {
             const res = await fetch('http://localhost:3000/api/supervisor/logout', {

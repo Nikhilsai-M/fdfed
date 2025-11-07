@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom"; // Added useNavigate
 import { User, Lock, Shield, AlertCircle, Eye, EyeOff, LogIn } from "lucide-react";
 
 const API_BASE_URL = 'http://localhost:3000';
@@ -14,6 +15,7 @@ export default function SignIn() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showToken, setShowToken] = useState(false);
+  const navigate = useNavigate(); // Added navigate hook
 
   const detectUserType = (username) => {
     const supervisorPattern = /^supervisor\d*@se\.com$/i;
@@ -40,12 +42,20 @@ export default function SignIn() {
 
     try {
       setLoading(true);
-      const endpoint =
-        userType === 'supervisor'
-          ? `${API_BASE_URL}/api/supervisor-auth/signin`
-          : userType === 'admin'
-          ? `${API_BASE_URL}/api/admin-auth/admin-signin`
-          : `${API_BASE_URL}/api/auth/signin`;
+      setError(null);
+
+      let endpoint, userKey;
+      
+      if (userType === 'supervisor') {
+        endpoint = `${API_BASE_URL}/api/supervisor-auth/signin`;
+        userKey = 'supervisor';
+      } else if (userType === 'admin') {
+        endpoint = `${API_BASE_URL}/api/admin-auth/admin-signin`;
+        userKey = 'admin';
+      } else {
+        endpoint = `${API_BASE_URL}/api/auth/signin`;
+        userKey = 'user';
+      }
 
       const res = await fetch(endpoint, {
         method: "POST",
@@ -53,23 +63,34 @@ export default function SignIn() {
         credentials: "include",
         body: JSON.stringify(formData),
       });
+      
       const data = await res.json();
 
-      if (!res.ok || data.success === false)
-        return setError(data.message || "Invalid credentials");
+      if (!res.ok || data.success === false) {
+        setError(data.message || "Invalid credentials");
+        setLoading(false);
+        return;
+      }
 
-      localStorage.setItem("user", JSON.stringify({ ...data.user, role: userType }));
+      // Store user data with role - FIXED: Use the correct response structure
+      const userData = {
+        ...data[userKey],
+        role: userType
+      };
+      localStorage.setItem("user", JSON.stringify(userData));
+      
       setLoading(false);
 
-      // Navigate based on user type (replace with your navigate logic)
-      window.location.href = userType === "supervisor"
-        ? "/supervisor-dashboard"
-        : userType === "admin"
-        ? "/admin-dashboard"
-        : "/";
+      // Navigate based on user type using React Router
+      if (userType === "supervisor") {
+        navigate("/supervisor-dashboard");
+      } else if (userType === "admin") {
+        navigate("/admin-dashboard");
+      } else {
+        navigate("/");
+      }
     } catch (err) {
       setError("Error during sign in");
-    } finally {
       setLoading(false);
     }
   };
@@ -138,7 +159,7 @@ export default function SignIn() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-4">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4"> {/* Added form tag */}
             <div className="relative group">
               <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 transition-colors group-focus-within:text-blue-500" />
               <input
@@ -148,6 +169,7 @@ export default function SignIn() {
                 className="border-2 border-gray-200 p-3 pl-12 rounded-xl w-full focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-300 outline-none hover:border-gray-300"
                 value={formData.username}
                 onChange={handleChange}
+                required
               />
             </div>
 
@@ -160,6 +182,7 @@ export default function SignIn() {
                 className="border-2 border-gray-200 p-3 pl-12 pr-12 rounded-xl w-full focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-300 outline-none hover:border-gray-300"
                 value={formData.password}
                 onChange={handleChange}
+                required
               />
               <button
                 type="button"
@@ -188,6 +211,7 @@ export default function SignIn() {
                   className="border-2 border-red-300 p-3 pl-12 pr-12 rounded-xl w-full bg-red-50 focus:border-red-500 focus:ring-4 focus:ring-red-100 transition-all duration-300 outline-none"
                   value={formData.securityToken}
                   onChange={handleChange}
+                  required={userType === 'admin'}
                 />
                 <button
                   type="button"
@@ -200,8 +224,8 @@ export default function SignIn() {
             )}
 
             <button
+              type="submit" // Changed to type="submit"
               disabled={loading}
-              onClick={handleSubmit}
               className={`bg-gradient-to-r ${config.gradient} text-white p-4 rounded-xl font-semibold uppercase hover:shadow-xl transform transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2`}
             >
               {loading ? (
@@ -215,7 +239,7 @@ export default function SignIn() {
                 </>
               )}
             </button>
-          </div>
+          </form>
 
           {error && (
             <div className="bg-red-50 border-2 border-red-300 text-red-700 px-4 py-3 rounded-xl mt-4 animate-slideIn flex items-start gap-3">
@@ -226,9 +250,9 @@ export default function SignIn() {
 
           <div className="flex gap-2 mt-6 justify-center text-gray-600">
             <p>Don't have an account?</p>
-            <a href="/sign-up" className="text-blue-600 font-semibold hover:text-blue-700 hover:underline transition-all duration-200">
+            <Link to="/sign-up" className="text-blue-600 font-semibold hover:text-blue-700 hover:underline transition-all duration-200">
               Sign Up
-            </a>
+            </Link>
           </div>
         </div>
       </div>
