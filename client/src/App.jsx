@@ -38,7 +38,7 @@ import TermsAndConditions from './pages/TermsAndConditions';
 import PaymentPage from './pages/Payment';
 import LaptopDetails from './pages/LaptopDetails';
 import PhoneDetails from './pages/PhoneDetails';
-
+import ForgotPassword from './pages/ForgotPassword';
 
 function App() {
   return (
@@ -80,7 +80,8 @@ function App() {
             <Route path="/terms" element={<TermsAndConditions/>} />
             <Route path="/payment" element={<PaymentPage/>} />
             <Route path="/listings" element={<Listings/>} />
-            
+             <Route path="/forgot-password" element={<ForgotPassword />} />
+
             {/* Supervisor Routes */}
             <Route path="/supervisor-dashboard" element={<SupervisorDashboard />} />
             <Route path="/supervisor/verify-listings" element={<VerifyListings />} />
