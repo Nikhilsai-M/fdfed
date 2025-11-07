@@ -13,6 +13,7 @@ import SmartWatchesPage from './pages/SmartWatchesPage';
 import AccessoriesPage from './pages/Accessories';
 import AccessoryDetails from './pages/AccessoryDetails';
 import SupervisorDashboard from './pages/supervisor/SupervisorDashboard';
+import AdminDashboard from './pages/admin/AdminDashboard'; // UPDATED PATH
 import VerifyListings from './pages/supervisor/VerifyListings';
 import ManageInventory from './pages/supervisor/ManageInventory';
 import Statistics from './pages/supervisor/Statistics';
@@ -26,7 +27,8 @@ import MyOrders from './pages/MyOrders';
 import BuyPhones from './pages/Buyphones';  
 import BuyLaptops from './pages/Buylaptops';
 import FilterPhones from './pages/filter-phones';
-import FilterLaptops from './pages/FilterLaptops';import Listings from './pages/listings';
+import FilterLaptops from './pages/FilterLaptops';
+import Listings from './pages/listings';
 import SellPhoneForm from './pages/SellPhone';
 import AboutUs from './pages/AboutUS';
 import Blog from './pages/Blog';
@@ -36,6 +38,8 @@ import TermsAndConditions from './pages/TermsAndConditions';
 import PaymentPage from './pages/Payment';
 import LaptopDetails from './pages/LaptopDetails';
 import PhoneDetails from './pages/PhoneDetails';
+
+
 function App() {
   return (
     <CartProvider>
@@ -76,12 +80,16 @@ function App() {
             <Route path="/terms" element={<TermsAndConditions/>} />
             <Route path="/payment" element={<PaymentPage/>} />
             <Route path="/listings" element={<Listings/>} />
+            
             {/* Supervisor Routes */}
             <Route path="/supervisor-dashboard" element={<SupervisorDashboard />} />
             <Route path="/supervisor/verify-listings" element={<VerifyListings />} />
             <Route path="/supervisor/manage-inventory" element={<ManageInventory />} />
             <Route path="/supervisor/statistics" element={<Statistics />} />
             <Route path="/supervisor/profile" element={<Profile />} />
+            
+            {/* Admin Routes */}
+            <Route path="/admin-dashboard" element={<AdminDashboard />} />
           </Routes>
         </main>
       
