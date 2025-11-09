@@ -17,6 +17,7 @@ const laptopSchema = new mongoose.Schema({
   os: { type: String, required: true },
   image: { type: String, required: true },
   created_at: { type: Date, default: Date.now },
+  
 });
 
 const Laptop = mongoose.model("Laptop", laptopSchema);

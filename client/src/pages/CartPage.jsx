@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from 'react-router-dom';
 import Header from "../components/common/Header";
 import Footer from "../components/common/Footer";
-import { useCart } from "../context/CartContent"; // ✅ Import context
+import { useCart } from "../context/CartContent"; 
 
 const Cart = () => {
   const [cartItems, setCartItems] = useState([]);
@@ -10,9 +10,9 @@ const Cart = () => {
   const [shipping, setShipping] = useState(0);
   const [total, setTotal] = useState(0);
 
-  const { fetchCartCount } = useCart(); // ✅ Get from context
+  const { fetchCartCount } = useCart(); 
 
-  // Load cart from localStorage
+ 
   useEffect(() => {
     const allKeys = Object.keys(localStorage);
     const cartKey = allKeys.find((key) => key.startsWith("cart_user"));
@@ -30,7 +30,7 @@ const Cart = () => {
     updateTotals(items);
   }, []);
 
-  // Function to update subtotal, shipping, and total
+  
   const updateTotals = (items) => {
     const sub = items.reduce(
       (acc, item) => acc + (item.price || 0) * (item.quantity || 1),
@@ -42,7 +42,6 @@ const Cart = () => {
     setTotal(sub + ship);
   };
 
-  // Update quantity handler
   const handleQuantityChange = (index, newQty) => {
     if (newQty < 1) return;
 
@@ -57,10 +56,10 @@ const Cart = () => {
       localStorage.setItem(cartKey, JSON.stringify(updatedItems));
     }
 
-    fetchCartCount(); // ✅ Immediately update global cart count
+    fetchCartCount(); 
   };
 
-  // Remove item from cart
+  
   const handleRemove = (index) => {
     const updatedItems = cartItems.filter((_, i) => i !== index);
     setCartItems(updatedItems);
@@ -72,21 +71,21 @@ const Cart = () => {
       localStorage.setItem(cartKey, JSON.stringify(updatedItems));
     }
 
-    fetchCartCount(); // ✅ Immediately update global cart count
+    fetchCartCount(); 
   };
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800">
       <Header />
 
-      {/* Cart Container */}
+    
       <div className="max-w-6xl mx-auto p-6">
         <h2 className="text-3xl font-bold text-center text-blue-900 mb-8">
           Your Shopping Cart
         </h2>
 
         <div className="grid md:grid-cols-3 gap-6">
-          {/* Cart Items */}
+          
           <div className="md:col-span-2 bg-white p-6 rounded-2xl shadow-sm">
             {cartItems.length === 0 ? (
               <p className="text-gray-500 text-center">Your cart is empty.</p>
@@ -96,7 +95,7 @@ const Cart = () => {
                   key={index}
                   className="flex items-center justify-between border-b border-gray-200 py-4"
                 >
-                  {/* Product Info */}
+              
                   <div className="flex items-center space-x-4">
                     <img
                       src={item.image || "/default-product.png"}

@@ -12,24 +12,36 @@ const HomePage = () => {
   useEffect(() => {
     const fetchLatestProducts = async () => {
       try {
-        const response = await fetch('/api/phones/latest-phones');
-        if (!response.ok) throw new Error('Failed to fetch');
+        const response = await fetch('http://localhost:3000/api/latest-products', {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        });
+  
+        if (!response.ok) {
+          throw new Error(`Failed to fetch latest products: ${response.status}`);
+        }
+  
         const data = await response.json();
+        if (!Array.isArray(data)) throw new Error('Invalid response format');
         setProducts(data);
       } catch (error) {
-        console.error(error);
+        console.error('❌ Error fetching latest products:', error);
+        setProducts([]); // fallback empty
       }
     };
+  
     fetchLatestProducts();
     const interval = setInterval(fetchLatestProducts, 30000);
     const slideInterval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % 4);
     }, 4000);
+  
     return () => {
       clearInterval(interval);
       clearInterval(slideInterval);
     };
   }, []);
+  
 
   useEffect(() => {
     const observer = new IntersectionObserver(

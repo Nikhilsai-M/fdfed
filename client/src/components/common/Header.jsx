@@ -43,8 +43,25 @@ const Header = () => {
               type="text"
               placeholder="Search for mobiles, laptops & more"
               className="bg-transparent outline-none w-full text-gray-700"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const query = e.target.value.trim();
+                  if (query) {
+                    navigate(`/search?q=${encodeURIComponent(query)}`);
+                  }
+                }
+              }}
             />
           </div>
+
+          {/* Mobile Search Button */}
+          <button
+            onClick={() => navigate('/search')}
+            className="md:hidden flex items-center justify-center w-10 h-10 text-gray-700 hover:text-blue-600 transition"
+            aria-label="Search"
+          >
+            <i className="fa-solid fa-magnifying-glass text-xl"></i>
+          </button>
 
           {/* Right Section */}
           <div className="flex items-center gap-4">

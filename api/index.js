@@ -29,7 +29,9 @@ import { initializeAdmins } from './crud/admins.js';
 import { initializeApplications } from './crud/applications.js';
 import { initPhones } from './crud/phones.js';
 import { initLaptops } from './crud/laptops.js';
+import productRouter from "./routes/product.route.js";
 import orderRouter from "./routes/orders.route.js";
+import searchRouter from "./routes/search.route.js";
 
 dotenv.config({ path: '../.env' });
 
@@ -97,8 +99,10 @@ app.use("/api/phones", phoneRouter);
 app.use("/api/laptops", laptopRouter);
 app.use("/api/laptop-applications", laptopApplicationRouter);
 app.use("/api/phone-applications", phoneApplicationRouter);
-app.use("/api", orderRouter);
-app.use("/api", accessoryRouter);
+app.use("/api",orderRouter);
+app.use("/api",accessoryRouter);
+app.use("/api", productRouter);
+app.use("/api/search", searchRouter);
  
 // Error handling middleware
 app.use((err, req, res, next) => {

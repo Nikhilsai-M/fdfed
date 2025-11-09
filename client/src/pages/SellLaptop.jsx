@@ -36,6 +36,7 @@ const SellLaptopForm = () => {
         device_age: '',
         battery_issues: 'None',
         location: '',
+        description: '',
         name: '',
         email: '',
         phone: '',
@@ -80,13 +81,12 @@ const SellLaptopForm = () => {
 
         const formPayload = new FormData();
 
-        // Append all form data
         Object.keys(formData).forEach(key => {
             formPayload.append(key, formData[key]);
         });
 
         if (deviceImage) {
-            formPayload.append('image_path', deviceImage); // Match the backend field name
+            formPayload.append('image_path', deviceImage); 
         }
 
         try {
@@ -102,7 +102,7 @@ const SellLaptopForm = () => {
 
             if (response.data.success) {
                 alert('Laptop application submitted successfully! We will review your application.');
-                // Reset form
+             
                 setFormData({
                     brand: '',
                     model: '',
@@ -116,6 +116,7 @@ const SellLaptopForm = () => {
                     device_age: '',
                     battery_issues: 'None',
                     location: '',
+                    description: '',
                     name: '',
                     email: '',
                     phone: '',
@@ -124,7 +125,7 @@ const SellLaptopForm = () => {
                 setFileName('No file chosen');
                 setPreviewUrl('');
                 
-                navigate('/');
+                navigate('/listings');
             }
         } catch (error) {
             console.error('Error submitting form:', error);
@@ -143,7 +144,7 @@ const SellLaptopForm = () => {
             <Header />
 
             <header className="flex justify-between items-center max-w-4xl mx-auto mb-8 py-3 border-b border-gray-200">
-                {/* Header content if any */}
+            
             </header>
             
             <div className="max-w-4xl mx-auto bg-white shadow-2xl rounded-2xl p-6 sm:p-12 border border-gray-100">
@@ -270,6 +271,25 @@ const SellLaptopForm = () => {
                             <input type="text" name="location" value={formData.location} onChange={handleInputChange} required placeholder="City, State" className={inputClasses}/>
                         </FormGroup>
                     </section>
+                    <section className="p-6 bg-yellow-50/50 rounded-xl border border-yellow-100 space-y-6">
+  <h2 className="text-2xl font-bold text-yellow-800 border-b pb-3 mb-4">📝 Laptop Defects</h2>
+
+  <FormGroup label="Describe Your Laptop Defects (Max 300 words)" required>
+    <textarea
+      name="description"
+      value={formData.description}
+      onChange={handleInputChange}
+      required
+      placeholder="Mention physical condition, performance issues, scratches, keyboard/touchpad condition, etc."
+      rows="6"
+      maxLength={2000} 
+      className={`${inputClasses} resize-none`}
+    />
+    <span className="text-sm text-gray-500 mt-1">
+      {formData.description.split(/\s+/).filter(Boolean).length} / 300 words
+    </span>
+  </FormGroup>
+</section>
                     
                     <section className="p-6 bg-blue-50/50 rounded-xl border border-blue-100 space-y-6">
                         <h2 className="text-2xl font-bold text-blue-800 border-b pb-3 mb-4">📞 Contact Information</h2>
@@ -341,7 +361,7 @@ const SellLaptopForm = () => {
             </div>
             
             <footer className="mt-10 text-center text-gray-400 text-sm">
-                {/* Footer content if any */}
+               
             </footer>
             <Footer />
         </div>
