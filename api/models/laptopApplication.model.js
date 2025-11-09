@@ -23,6 +23,12 @@ const laptopApplicationSchema = new mongoose.Schema({
   rejection_reason: { type: String },
   price: { type: Number },
   created_at: { type: Date, default: Date.now },
+  description: {
+    type: String,
+    required: true,
+    trim: true,
+    maxlength: 2000 
+  },
 });
 
 const LaptopApplication = mongoose.model("LaptopApplication", laptopApplicationSchema);

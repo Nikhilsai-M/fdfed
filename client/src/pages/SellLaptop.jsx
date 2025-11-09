@@ -125,7 +125,7 @@ const SellLaptopForm = () => {
                 setFileName('No file chosen');
                 setPreviewUrl('');
                 
-                navigate('/');
+                navigate('/listings');
             }
         } catch (error) {
             console.error('Error submitting form:', error);
