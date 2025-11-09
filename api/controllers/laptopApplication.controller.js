@@ -4,11 +4,11 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 
-// Configure multer for file uploads
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const uploadDir = 'uploads/laptops/';
-    // Create directory if it doesn't exist
+    
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
@@ -23,7 +23,7 @@ const storage = multer.diskStorage({
 const upload = multer({ 
   storage: storage,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
+    fileSize: 5 * 1024 * 1024, 
   }
 });
 
@@ -32,7 +32,7 @@ export const submitLaptopApplication = async (req, res) => {
     console.log('Request body:', req.body);
     console.log('Request file:', req.file);
 
-    // Handle both multipart form data and JSON
+    
     const {
       brand,
       model,
@@ -46,20 +46,21 @@ export const submitLaptopApplication = async (req, res) => {
       device_age,
       battery_issues,
       location,
+      description,
       name,
       email,
       phone
     } = req.body;
 
-    // Validate required fields
-    if (!brand || !model || !ram || !storage || !processor || !location || !name || !email || !phone) {
+    
+    if (!brand || !model || !ram || !storage || !processor || !location ||!description || !name || !email || !phone) {
       return res.status(400).json({
         success: false,
         message: 'Missing required fields'
       });
     }
 
-    // Generate unique ID
+    
     const lastApplication = await LaptopApplication.findOne().sort({ id: -1 });
     const nextId = lastApplication ? lastApplication.id + 1 : 1;
 
@@ -68,10 +69,10 @@ export const submitLaptopApplication = async (req, res) => {
       image_path = req.file.path;
     }
 
-    // Create new application
+    
     const newApplication = new LaptopApplication({
       id: nextId,
-      user_id: req.user.user_id, // Use actual user ID if authenticated
+      user_id: req.user.user_id, 
       brand: brand.toUpperCase(),
       model,
       ram,
@@ -84,6 +85,7 @@ export const submitLaptopApplication = async (req, res) => {
       device_age: device_age || '',
       battery_issues: battery_issues || 'None',
       location,
+      description,
       name,
       email,
       phone,
