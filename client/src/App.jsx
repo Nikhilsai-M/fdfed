@@ -40,6 +40,8 @@ import LaptopDetails from './pages/LaptopDetails';
 import PhoneDetails from './pages/PhoneDetails';
 import ForgotPassword from './pages/ForgotPassword';
 import SearchResults from './pages/SearchResults';
+import Analytics from './pages/admin/AdminAnalytics';
+
 
 function App() {
   return (
@@ -93,6 +95,9 @@ function App() {
             
             {/* Admin Routes */}
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/analytics" element={<Analytics />} />
+
+  
           </Routes>
         </main>
       
