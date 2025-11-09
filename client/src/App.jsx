@@ -39,6 +39,7 @@ import PaymentPage from './pages/Payment';
 import LaptopDetails from './pages/LaptopDetails';
 import PhoneDetails from './pages/PhoneDetails';
 import ForgotPassword from './pages/ForgotPassword';
+import SearchResults from './pages/SearchResults';
 
 function App() {
   return (
@@ -81,6 +82,7 @@ function App() {
             <Route path="/payment" element={<PaymentPage/>} />
             <Route path="/listings" element={<Listings/>} />
              <Route path="/forgot-password" element={<ForgotPassword />} />
+             <Route path="/search" element={<SearchResults />} />
 
             {/* Supervisor Routes */}
             <Route path="/supervisor-dashboard" element={<SupervisorDashboard />} />
