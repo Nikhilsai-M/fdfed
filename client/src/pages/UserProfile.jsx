@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { User, Mail, Phone, MapPin, Lock, Edit2, X, Check, ShoppingBag, Package } from 'lucide-react';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
@@ -13,6 +13,8 @@ export default function UserProfile() {
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState('');
+  const chartRef = useRef(null);
+  const chartInstance = useRef(null);
   
   const [formData, setFormData] = useState({
     first_name: '',
@@ -37,6 +39,12 @@ export default function UserProfile() {
   useEffect(() => {
     fetchUserProfile();
   }, []);
+
+  useEffect(() => {
+    if (user && chartRef.current) {
+      renderPieChart();
+    }
+  }, [user]);
 
   const fetchUserProfile = async () => {
     try {
@@ -76,6 +84,81 @@ export default function UserProfile() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const renderPieChart = () => {
+    if (!user || !chartRef.current) return;
+
+    // Destroy existing chart instance
+    if (chartInstance.current) {
+      chartInstance.current.destroy();
+    }
+
+    const orders = user.orders_count || 0;
+    const itemsSold = user.items_sold_count || 0;
+
+    // Import Chart.js dynamically to avoid SSR issues
+    import('chart.js/auto').then(({ default: Chart }) => {
+      const ctx = chartRef.current.getContext('2d');
+      
+      chartInstance.current = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: ['Orders', 'Items Sold'],
+          datasets: [{
+            data: [orders, itemsSold],
+            backgroundColor: ['#36A2EB', '#FF6384'],
+            hoverOffset: 4,
+            borderWidth: 2,
+            borderColor: '#ffffff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                padding: 20,
+                usePointStyle: true,
+                font: {
+                  size: 12,
+                  family: "'Inter', sans-serif"
+                }
+              }
+            },
+            title: {
+              display: true,
+              text: 'Orders vs Items Sold',
+              font: {
+                size: 16,
+                weight: 'bold',
+                family: "'Inter', sans-serif"
+              },
+              padding: 20
+            },
+            tooltip: {
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              titleFont: {
+                size: 12,
+                family: "'Inter', sans-serif"
+              },
+              bodyFont: {
+                size: 12,
+                family: "'Inter', sans-serif"
+              },
+              padding: 10,
+              cornerRadius: 8
+            }
+          },
+          animation: {
+            animateScale: true,
+            animateRotate: true
+          }
+        }
+      });
+    });
   };
 
   const validatePersonalInfo = () => {
@@ -564,6 +647,26 @@ export default function UserProfile() {
                   </div>
                 </form>
               )}
+            </div>
+
+            {/* Statistics Section */}
+            <div className="bg-white rounded-2xl shadow-xl p-6 border border-slate-200">
+              <div className="flex items-center gap-2 mb-6">
+                <Package className="w-5 h-5 text-blue-600" />
+                <h3 className="text-xl font-bold text-slate-800">Statistics</h3>
+              </div>
+              
+              <div className="flex justify-center">
+                <div className="w-full max-w-md">
+                  <div className="h-80"> {/* Fixed height for chart container */}
+                    <canvas 
+                      ref={chartRef}
+                      aria-label="Orders vs Items Sold chart"
+                      role="img"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Account Security */}
