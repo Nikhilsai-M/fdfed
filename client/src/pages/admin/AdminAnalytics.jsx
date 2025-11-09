@@ -1,226 +1,313 @@
-
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Chart, registerables } from "chart.js";
 import AdminSidebar from "../../components/admin/AdminSidebar";
-
 Chart.register(...registerables);
 
-const AdminAnalytics = () => {
+const fmtINR = (n) => new Intl.NumberFormat("en-IN").format(Math.round(n || 0));
+
+export default function AdminAnalytics() {
   const [stats, setStats] = useState(null);
   const [lastUpdated, setLastUpdated] = useState("Never");
+  const [range, setRange] = useState(7);
+  const [autoRefresh, setAutoRefresh] = useState(false);
+  const [error, setError] = useState("");
 
-  const [categoryChart, setCategoryChart] = useState(null);
-  const [statusChart, setStatusChart] = useState(null);
-
+  const categoryRef = useRef(null);
+  const statusRef = useRef(null);
+  const categoryChart = useRef(null);
+  const statusChart = useRef(null);
+  const timerRef = useRef(null);
 
   const fetchStatistics = async () => {
     try {
-      const response = await fetch("/api/admin/statistics", {
+      setError("");
+      const res = await fetch(`/api/admin/statistics?range=${range}`, {
         credentials: "include",
         headers: { "Content-Type": "application/json" },
       });
-      const data = await response.json();
+      const data = await res.json();
+      if (!res.ok || !data.success)
+        throw new Error(data.message || `HTTP ${res.status}`);
 
-      if (data.success) {
-        setStats(data.statistics);
-        setLastUpdated(new Date().toLocaleString());
-        renderCharts(data.statistics);
-      } else {
-        alert("Failed: " + (data.message || "Unknown error"));
-      }
-    } catch (error) {
-      console.error("Error fetching statistics:", error);
-      alert("Failed to load statistics");
+      setStats(data.statistics);
+      setLastUpdated(new Date().toLocaleString());
+      renderCharts(data.statistics);
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Failed to load statistics");
     }
   };
 
-  const renderCharts = (stats) => {
-    const categoryData = stats.salesByCategory || {};
-    const statusData = stats.applicationStatus || { phone: {}, laptop: {} };
+  const renderCharts = (s) => {
+    
+    categoryChart.current?.destroy();
+    statusChart.current?.destroy();
 
 
-    const categoryCtx = document.getElementById("categoryChart")?.getContext("2d");
-    if (categoryChart) categoryChart.destroy();
-    const newCategoryChart = new Chart(categoryCtx, {
+    categoryChart.current = new Chart(categoryRef.current, {
       type: "bar",
       data: {
-        labels: ["Phones", "Laptops", "Chargers", "Earphones", "Mouses", "Smartwatches"],
+        labels: [
+          "Phones",
+          "Laptops",
+          "Chargers",
+          "Earphones",
+          "Mouses",
+          "Smartwatches",
+        ],
         datasets: [
           {
             label: "Inventory Count",
             data: [
-              categoryData.phones || 0,
-              categoryData.laptops || 0,
-              categoryData.chargers || 0,
-              categoryData.earphones || 0,
-              categoryData.mouses || 0,
-              categoryData.smartwatches || 0,
+              s.salesByCategory?.phones || 0,
+              s.salesByCategory?.laptops || 0,
+              s.salesByCategory?.chargers || 0,
+              s.salesByCategory?.earphones || 0,
+              s.salesByCategory?.mouses || 0,
+              s.salesByCategory?.smartwatches || 0,
             ],
-            backgroundColor: "rgba(16, 185, 129, 0.6)",
-            borderColor: "rgba(16, 185, 129, 1)",
+            backgroundColor: "rgba(99, 102, 241, 0.25)",
+            borderColor: "rgba(99, 102, 241, 1)",
             borderWidth: 1,
+            hoverBackgroundColor: "rgba(99, 102, 241, 0.5)",
           },
         ],
       },
       options: {
         responsive: true,
+        animation: { duration: 650, easing: "easeOutQuart" },
         scales: {
           y: { beginAtZero: true, title: { display: true, text: "Count" } },
+          x: { title: { display: true, text: "Category" } },
         },
         plugins: { legend: { display: false } },
       },
     });
-    setCategoryChart(newCategoryChart);
 
-    const statusCtx = document.getElementById("statusChart")?.getContext("2d");
-    if (statusChart) statusChart.destroy();
-    const newStatusChart = new Chart(statusCtx, {
+    
+    const statusData = s.applicationStatus || {
+      phone: { pending: 0, approved: 0, rejected: 0 },
+      laptop: { pending: 0, approved: 0, rejected: 0 },
+    };
+
+    const doughnutData = {
+      labels: [
+        "Phone Pending",
+        "Phone Approved",
+        "Phone Rejected",
+        "Laptop Pending",
+        "Laptop Approved",
+        "Laptop Rejected",
+      ],
+      datasets: [
+        {
+          data: [
+            statusData.phone.pending,
+            statusData.phone.approved,
+            statusData.phone.rejected,
+            statusData.laptop.pending,
+            statusData.laptop.approved,
+            statusData.laptop.rejected,
+          ],
+          backgroundColor: [
+            "#ef4444",
+            "#22c55e",
+            "#eab308",
+            "#3b82f6",
+            "#a855f7",
+            "#f97316",
+          ],
+          borderWidth: 2,
+          hoverOffset: 15,
+        },
+      ],
+    };
+
+    statusChart.current = new Chart(statusRef.current, {
       type: "doughnut",
-      data: {
-        labels: [
-          "Phone Pending",
-          "Phone Approved",
-          "Phone Rejected",
-          "Laptop Pending",
-          "Laptop Approved",
-          "Laptop Rejected",
-        ],
-        datasets: [
-          {
-            data: [
-              statusData.phone.pending || 0,
-              statusData.phone.approved || 0,
-              statusData.phone.rejected || 0,
-              statusData.laptop.pending || 0,
-              statusData.laptop.approved || 0,
-              statusData.laptop.rejected || 0,
-            ],
-            backgroundColor: [
-              "rgba(255, 99, 132, 0.6)",
-              "rgba(54, 162, 235, 0.6)",
-              "rgba(255, 206, 86, 0.6)",
-              "rgba(75, 192, 192, 0.6)",
-              "rgba(153, 102, 255, 0.6)",
-              "rgba(255, 159, 64, 0.6)",
-            ],
-          },
-        ],
-      },
+      data: doughnutData,
       options: {
         responsive: true,
-        plugins: { legend: { position: "right" } },
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: "right", labels: { boxWidth: 20 } },
+          title: { display: false },
+        },
       },
     });
-    setStatusChart(newStatusChart);
   };
 
+  
   useEffect(() => {
     fetchStatistics();
+    if (autoRefresh) {
+      timerRef.current = setInterval(fetchStatistics, 15000);
+    }
+    return () => clearInterval(timerRef.current);
+  }, [range, autoRefresh]);
+
+ 
+  useEffect(() => {
+    return () => {
+      categoryChart.current?.destroy();
+      statusChart.current?.destroy();
+    };
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      const res = await fetch("/api/admin/logout", {
-        method: "GET",
-        credentials: "include",
-      });
-      const data = await res.json();
-      if (data.success) {
-        window.location.href = "/admin/login";
-      } else {
-        alert("Logout failed");
-      }
-    } catch (err) {
-      alert("Error during logout");
-    }
+  const exportCSV = () => {
+    if (!stats) return;
+    const rows = [
+      ["Metric", "Value"],
+      ["Total Sales (orders)", stats.totalSales],
+      ["Total Listings", stats.totalListings],
+      ["Approved Listings", stats.approvedListings],
+      ["Sales Revenue (INR)", stats.totalSalesRevenue],
+      ["Phones", stats.salesByCategory?.phones || 0],
+      ["Laptops", stats.salesByCategory?.laptops || 0],
+      ["Chargers", stats.salesByCategory?.chargers || 0],
+      ["Earphones", stats.salesByCategory?.earphones || 0],
+      ["Mouses", stats.salesByCategory?.mouses || 0],
+      ["Smartwatches", stats.salesByCategory?.smartwatches || 0],
+    ];
+    const csv = rows.map((r) => r.join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `analytics-${Date.now()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
-  const updateTrendIndicator = (trend) => {
-    if (trend > 0) return `+${trend}% ↑`;
-    if (trend < 0) return `${trend}% ↓`;
-    return "No Change";
-  };
+  const Card = ({ title, value, trend }) => (
+    <div className="bg-white rounded-xl p-6 shadow hover:shadow-xl transition-shadow duration-200 border border-gray-100 hover:scale-[1.01] transform">
+      <div className="text-xs tracking-wider text-gray-500 font-semibold">
+        {title}
+      </div>
+      <div className="text-3xl font-extrabold text-gray-900 mt-2">
+        {typeof value === "number" ? fmtINR(value) : value}
+      </div>
+      <div
+        className={`mt-2 text-sm font-medium ${
+          trend > 0
+            ? "text-emerald-600"
+            : trend < 0
+            ? "text-rose-600"
+            : "text-gray-400"
+        }`}
+      >
+        {trend > 0
+          ? `+${trend}% ↑`
+          : trend < 0
+          ? `${trend}% ↓`
+          : "No Change"}
+      </div>
+    </div>
+  );
 
   return (
-   <div className="min-h-screen flex bg-gray-100 text-gray-800">
-  
-  <div className="min-h-screen flex bg-gray-100 text-gray-800">
-  <AdminSidebar /> 
+    <div className="flex min-h-screen bg-gray-100">
+      <AdminSidebar />
 
-  {/* Main Content */}
-  <main className="flex-1 p-8 overflow-y-auto">
-    ...
-  </main>
-</div>
+      <main className="flex-1 p-6 sm:p-8">
+        <header className="flex flex-wrap justify-between items-center gap-4 mb-6">
+          <h1 className="text-3xl font-extrabold text-gray-800 flex items-center gap-3">
+            📈 Admin Analytics Dashboard
+          </h1>
+          <div className="flex items-center gap-3">
+            <select
+              value={range}
+              onChange={(e) => setRange(Number(e.target.value))}
+              className="px-3 py-2 rounded-lg border bg-white text-sm shadow hover:shadow-md transition"
+              title="Time range"
+            >
+              <option value={7}>Last 7 days</option>
+              <option value={30}>Last 30 days</option>
+              <option value={90}>Last 90 days</option>
+            </select>
 
+            <button
+              onClick={fetchStatistics}
+              className="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold shadow hover:bg-indigo-700 active:scale-95 transition"
+            >
+              Refresh
+            </button>
 
-   
-      <main className="flex-1 p-8 overflow-y-auto">
-        <header className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">📊 Admin Analytics Dashboard</h1>
+            <button
+              onClick={exportCSV}
+              className="px-4 py-2 rounded-lg bg-white border text-sm shadow hover:shadow-md transition"
+            >
+              Export CSV
+            </button>
+
+            <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={autoRefresh}
+                onChange={(e) => setAutoRefresh(e.target.checked)}
+                className="accent-indigo-600"
+              />
+              Auto-refresh
+            </label>
+          </div>
         </header>
 
+        {error && (
+          <div className="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-rose-700">
+            {error}
+          </div>
+        )}
+
      
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats ? (
-            <>
-              <StatsCard title="INVENTORY ITEMS COUNT" value={stats.totalSales || 0} trend={stats.trends?.totalSales} />
-              <StatsCard title="TOTAL LISTINGS" value={stats.totalListings || 0} trend={stats.trends?.totalListings} />
-              <StatsCard title="APPROVED LISTINGS" value={stats.approvedListings || 0} trend={stats.trends?.approvedListings} />
-              <StatsCard
-                title="SALES REVENUE"
-                value={`₹ ${Number(stats.totalSalesRevenue || 0).toLocaleString("en-IN")}`}
-                trend={stats.trends?.totalSalesRevenue}
-              />
-            </>
-          ) : (
-            <p>Loading stats...</p>
-          )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+          <Card
+            title="INVENTORY ITEMS COUNT"
+            value={
+              (stats?.salesByCategory?.phones || 0) +
+              (stats?.salesByCategory?.laptops || 0) +
+              (stats?.salesByCategory?.chargers || 0) +
+              (stats?.salesByCategory?.earphones || 0) +
+              (stats?.salesByCategory?.mouses || 0) +
+              (stats?.salesByCategory?.smartwatches || 0)
+            }
+            trend={stats?.trends?.totalListings ?? 0}
+          />
+          <Card
+            title="TOTAL LISTINGS"
+            value={stats?.totalListings ?? 0}
+            trend={stats?.trends?.totalListings ?? 0}
+          />
+          <Card
+            title="APPROVED LISTINGS"
+            value={stats?.approvedListings ?? 0}
+            trend={stats?.trends?.approvedListings ?? 0}
+          />
+          <Card
+            title="SALES REVENUE"
+            value={`₹ ${fmtINR(stats?.totalSalesRevenue || 0)}`}
+            trend={stats?.trends?.totalSalesRevenue ?? 0}
+          />
         </div>
 
-   
-        <section className="bg-white rounded-xl shadow-lg p-6 mb-8">
-          <h2 className="text-2xl font-semibold mb-4 text-indigo-700">Analytics Overview</h2>
-          <div className="flex flex-wrap gap-8 justify-between">
-            <div className="flex-1 min-w-[300px] h-[300px]">
-              <canvas id="categoryChart"></canvas>
+     
+        <section className="bg-white rounded-2xl p-6 shadow border border-gray-100 mb-8">
+          <h2 className="text-2xl font-semibold text-indigo-700 mb-4">
+            Analytics Overview
+          </h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="h-[340px] rounded-xl border p-4 shadow-sm hover:shadow-md transition">
+              <canvas ref={categoryRef} />
             </div>
-            <div className="flex-1 min-w-[300px] h-[300px]">
-              <canvas id="statusChart"></canvas>
+            <div className="h-[340px] rounded-xl border p-4 shadow-sm hover:shadow-md transition">
+              <canvas ref={statusRef} />
             </div>
           </div>
         </section>
 
-
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-          <button
-            onClick={fetchStatistics}
-            className="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition"
-          >
-            Refresh Statistics
-          </button>
-          <p className="text-gray-600 text-sm">
-            Last Updated: <span className="font-medium">{lastUpdated}</span>
-          </p>
+        <div className="text-right text-gray-500 text-sm">
+          Last Updated: <span className="font-medium">{lastUpdated}</span>
         </div>
       </main>
     </div>
   );
-};
-
-
-const StatsCard = ({ title, value, trend }) => (
-  <div className="bg-white rounded-lg p-6 shadow hover:scale-[1.02] transition-transform duration-200">
-    <div className="text-gray-500 text-sm font-semibold">{title}</div>
-    <div className="text-2xl font-bold text-gray-900 my-2">{value}</div>
-    <div
-      className={`text-sm font-medium ${
-        trend > 0 ? "text-green-600" : trend < 0 ? "text-red-600" : "text-gray-400"
-      }`}
-    >
-      {trend > 0 ? `+${trend}% ↑` : trend < 0 ? `${trend}% ↓` : "No Change"}
-    </div>
-  </div>
-);
-
-export default AdminAnalytics;
+}

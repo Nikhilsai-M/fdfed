@@ -32,6 +32,7 @@ import { initLaptops } from './crud/laptops.js';
 import productRouter from "./routes/product.route.js";
 import orderRouter from "./routes/orders.route.js";
 import searchRouter from "./routes/search.route.js";
+import adminStatisticsRouter from "./routes/adminStatistics.route.js";
 
 dotenv.config({ path: '../.env' });
 
@@ -103,6 +104,7 @@ app.use("/api",orderRouter);
 app.use("/api",accessoryRouter);
 app.use("/api", productRouter);
 app.use("/api/search", searchRouter);
+app.use("/api/admin", adminStatisticsRouter);
  
 // Error handling middleware
 app.use((err, req, res, next) => {
