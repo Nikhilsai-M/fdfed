@@ -11,12 +11,45 @@ export default function AdminAnalytics() {
   const [range, setRange] = useState(7);
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [error, setError] = useState("");
+  const [supervisorListings, setSupervisorListings] = useState(null);
 
   const categoryRef = useRef(null);
   const statusRef = useRef(null);
   const categoryChart = useRef(null);
   const statusChart = useRef(null);
   const timerRef = useRef(null);
+
+  const fetchSupervisorListings = async (rangeDays = 7) => {
+    try {
+      const res = await fetch(`/api/admin/supervisor-listings?range=${rangeDays}`, {
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        console.warn("Failed to fetch supervisor listings:", data.message || `HTTP ${res.status}`);
+        return null;
+      }
+
+      
+      const statusCounts = data.statusCounts || {
+        phone: { pending: 0, approved: 0, addedToInventory: 0, rejected: 0 },
+        laptop: { pending: 0, approved: 0, addedToInventory: 0, rejected: 0 },
+      };
+
+      const result = {
+        statusCounts,
+        totalAddedToInventory: data.totalAddedToInventory || 0,
+        trendAddedToInventory: data.trendAddedToInventory ?? 0
+      };
+      
+      setSupervisorListings(result);
+      return result;
+    } catch (err) {
+      console.error("Error fetching supervisor listings:", err);
+      return null;
+    }
+  };
 
   const fetchStatistics = async () => {
     try {
@@ -31,14 +64,24 @@ export default function AdminAnalytics() {
 
       setStats(data.statistics);
       setLastUpdated(new Date().toLocaleString());
-      renderCharts(data.statistics);
+      
+      
+      console.log("📊 Admin Statistics Data:", {
+        salesByCategory: data.statistics.salesByCategory,
+        phones: data.statistics.salesByCategory?.phones,
+        laptops: data.statistics.salesByCategory?.laptops
+      });
+      
+    
+      const supervisorData = await fetchSupervisorListings(range);
+      renderCharts(data.statistics, supervisorData?.statusCounts || null);
     } catch (err) {
       console.error(err);
       setError(err.message || "Failed to load statistics");
     }
   };
 
-  const renderCharts = (s) => {
+  const renderCharts = (s, supervisorData = null) => {
     
     categoryChart.current?.destroy();
     statusChart.current?.destroy();
@@ -85,37 +128,44 @@ export default function AdminAnalytics() {
     });
 
     
-    const statusData = s.applicationStatus || {
-      phone: { pending: 0, approved: 0, rejected: 0 },
-      laptop: { pending: 0, approved: 0, rejected: 0 },
+    
+    const statusData = supervisorData || {
+      phone: { pending: 0, approved: 0, addedToInventory: 0, rejected: 0 },
+      laptop: { pending: 0, approved: 0, addedToInventory: 0, rejected: 0 },
     };
 
     const doughnutData = {
       labels: [
         "Phone Pending",
         "Phone Approved",
+        "Phone Added to Inventory",
         "Phone Rejected",
         "Laptop Pending",
         "Laptop Approved",
+        "Laptop Added to Inventory",
         "Laptop Rejected",
       ],
       datasets: [
         {
           data: [
-            statusData.phone.pending,
-            statusData.phone.approved,
-            statusData.phone.rejected,
-            statusData.laptop.pending,
-            statusData.laptop.approved,
-            statusData.laptop.rejected,
+            statusData.phone.pending || 0,
+            statusData.phone.approved || 0,
+            statusData.phone.addedToInventory || 0,
+            statusData.phone.rejected || 0,
+            statusData.laptop.pending || 0,
+            statusData.laptop.approved || 0,
+            statusData.laptop.addedToInventory || 0,
+            statusData.laptop.rejected || 0,
           ],
           backgroundColor: [
-            "#ef4444",
-            "#22c55e",
-            "#eab308",
+            "#ef4444", 
+            "#22c55e", 
+            "#10b981", 
+            "#eab308", 
             "#3b82f6",
-            "#a855f7",
-            "#f97316",
+            "#a855f7", 
+            "#06b6d4", 
+            "#f97316", 
           ],
           borderWidth: 2,
           hoverOffset: 15,
@@ -259,7 +309,7 @@ export default function AdminAnalytics() {
         )}
 
      
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-6 mb-8">
           <Card
             title="INVENTORY ITEMS COUNT"
             value={
@@ -281,6 +331,11 @@ export default function AdminAnalytics() {
             title="APPROVED LISTINGS"
             value={stats?.approvedListings ?? 0}
             trend={stats?.trends?.approvedListings ?? 0}
+          />
+          <Card
+            title="ITEMS ADDED TO INVENTORY"
+            value={supervisorListings?.totalAddedToInventory ?? 0}
+            trend={supervisorListings?.trendAddedToInventory ?? 0}
           />
           <Card
             title="SALES REVENUE"
