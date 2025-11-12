@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom"; // Added useNavigate
+import { Link, useNavigate } from "react-router-dom";
 import { User, Lock, Shield, AlertCircle, Eye, EyeOff, LogIn } from "lucide-react";
-
-const API_BASE_URL = 'http://localhost:3000';
+import { useAppDispatch, useAppSelector } from "/src/hooks/redux";
+import { loginUser, checkSupervisorExists, setUserType, clearError } from "/src/store/slices/authSlice";
 
 export default function SignIn() {
   const [formData, setFormData] = useState({
@@ -10,76 +10,79 @@ export default function SignIn() {
     password: '',
     securityToken: ''
   });
-  const [userType, setUserType] = useState('customer');
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showToken, setShowToken] = useState(false);
-  const navigate = useNavigate(); // Added navigate hook
+  
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const debounceTimer = useRef(null);
 
-  const detectUserType = async (username) => {
-    if (!username || username.trim() === '') return 'customer';
-    
-    // Check admin pattern first (fastest)
-    const adminPattern = /^ADMIN\d+$/i;
-    if (adminPattern.test(username)) return 'admin';
-    
-    // Check supervisor pattern
-    const supervisorPattern = /^supervisor\d*@se\.com$/i;
-    if (supervisorPattern.test(username)) return 'supervisor';
-    
-    // For other usernames, check if they exist as supervisor in database
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/supervisor-auth/check?username=${encodeURIComponent(username)}`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include'
-      });
-      const data = await response.json();
-      if (data.exists) {
-        return 'supervisor';
-      }
-    } catch (err) {
-      console.error('Error checking supervisor:', err);
-    }
-    
-    return 'customer';
-  };
+  const { 
+    userType, 
+    loading, 
+    error, 
+    supervisorExists 
+  } = useAppSelector((state) => state.auth);
 
-  const handleChange = (e) => {
-    const { id, value } = e.target;
-    setFormData({ ...formData, [id]: value });
-    
-    if (id === 'username') {
-      // Clear previous debounce timer
-      if (debounceTimer.current) {
-        clearTimeout(debounceTimer.current);
+  // Auto-detect user type based on username patterns
+  useEffect(() => {
+    const detectUserType = async (username) => {
+      if (!username || username.trim() === '') {
+        dispatch(setUserType('customer'));
+        return;
       }
       
-      // Quick pattern-based detection (instant)
+      // Check admin pattern first
       const adminPattern = /^ADMIN\d+$/i;
-      const supervisorPattern = /^supervisor\d*@se\.com$/i;
-      
-      if (adminPattern.test(value)) {
-        setUserType('admin');
-      } else if (supervisorPattern.test(value)) {
-        setUserType('supervisor');
-      } else if (value.trim() === '') {
-        setUserType('customer');
-      } else {
-        // Debounce database check for other usernames
-        debounceTimer.current = setTimeout(async () => {
-          const detectedType = await detectUserType(value);
-          setUserType(detectedType);
-        }, 500); // Wait 500ms after user stops typing
+      if (adminPattern.test(username)) {
+        dispatch(setUserType('admin'));
+        return;
       }
+      
+      // Check supervisor pattern
+      const supervisorPattern = /^supervisor\d*@se\.com$/i;
+      if (supervisorPattern.test(username)) {
+        dispatch(setUserType('supervisor'));
+        return;
+      }
+      
+      // For other usernames, check supervisor existence
+      dispatch(checkSupervisorExists(username));
+    };
+
+    const username = formData.username;
+    
+    // Clear previous debounce timer
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
     }
     
-    if (error) setError(null);
-  };
+    // Quick pattern-based detection
+    const adminPattern = /^ADMIN\d+$/i;
+    const supervisorPattern = /^supervisor\d*@se\.com$/i;
+    
+    if (adminPattern.test(username)) {
+      dispatch(setUserType('admin'));
+    } else if (supervisorPattern.test(username)) {
+      dispatch(setUserType('supervisor'));
+    } else if (username.trim() === '') {
+      dispatch(setUserType('customer'));
+    } else {
+      // Debounce database check
+      debounceTimer.current = setTimeout(() => {
+        detectUserType(username);
+      }, 500);
+    }
+  }, [formData.username, dispatch]);
 
-  // Cleanup debounce timer on unmount
+  // Update userType based on supervisorExists
+  useEffect(() => {
+    if (supervisorExists && userType === 'customer') {
+      dispatch(setUserType('supervisor'));
+    }
+  }, [supervisorExists, userType, dispatch]);
+
+  // Cleanup debounce timer
   useEffect(() => {
     return () => {
       if (debounceTimer.current) {
@@ -88,86 +91,48 @@ export default function SignIn() {
     };
   }, []);
 
+  const handleChange = (e) => {
+    const { id, value } = e.target;
+    setFormData({ ...formData, [id]: value });
+    
+    // Clear error when user types
+    if (error) {
+      dispatch(clearError());
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.username || !formData.password)
-      return setError("Please fill in all fields");
+    
+    if (!formData.username || !formData.password) {
+      dispatch(setError("Please fill in all fields"));
+      return;
+    }
 
-    if (userType === 'admin' && !formData.securityToken)
-      return setError("Security token required for admin login");
+    if (userType === 'admin' && !formData.securityToken) {
+      dispatch(setError("Security token required for admin login"));
+      return;
+    }
 
     try {
-      setLoading(true);
-      setError(null);
+      const result = await dispatch(loginUser({
+        username: formData.username,
+        password: formData.password,
+        securityToken: formData.securityToken,
+        userType
+      })).unwrap();
 
-      let endpoint, userKey, detectedType = userType;
-      
-      // Try login based on detected type first
-      if (userType === 'supervisor') {
-        endpoint = `${API_BASE_URL}/api/supervisor-auth/signin`;
-        userKey = 'supervisor';
-      } else if (userType === 'admin') {
-        endpoint = `${API_BASE_URL}/api/admin-auth/admin-signin`;
-        userKey = 'admin';
-      } else {
-        // For customer, try customer login first, then supervisor if it fails
-        endpoint = `${API_BASE_URL}/api/auth/signin`;
-        userKey = 'user';
-      }
-
-      let res = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(formData),
-      });
-      
-      let data = await res.json();
-
-      // If customer login failed, try supervisor login
-      if ((!res.ok || data.success === false) && userType === 'customer') {
-        console.log('Customer login failed, trying supervisor login...');
-        res = await fetch(`${API_BASE_URL}/api/supervisor-auth/signin`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify(formData),
-        });
-        data = await res.json();
-        
-        if (res.ok && data.success) {
-          detectedType = 'supervisor';
-          userKey = 'supervisor';
-        }
-      }
-
-      if (!res.ok || data.success === false) {
-        setError(data.message || "Invalid credentials");
-        setLoading(false);
-        return;
-      }
-
-      // Store user data with role
-      const userData = {
-        ...data[userKey],
-        role: detectedType
-      };
-      localStorage.setItem("user", JSON.stringify(userData));
-      
-      setLoading(false);
-
-      // Navigate based on detected user type
-      if (detectedType === "supervisor") {
+      // Navigation based on user role
+      if (result.role === "supervisor") {
         navigate("/supervisor-dashboard");
-      } else if (detectedType === "admin") {
+      } else if (result.role === "admin") {
         navigate("/admin-dashboard");
       } else {
         navigate("/");
       }
-    } catch (err) {
-      console.error('Login error:', err);
-      setError("Error during sign in");
-      setLoading(false);
+    } catch (error) {
+      // Error is already handled in the slice
+      console.error('Login error:', error);
     }
   };
 
@@ -235,7 +200,7 @@ export default function SignIn() {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4"> {/* Added form tag */}
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="relative group">
               <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 transition-colors group-focus-within:text-blue-500" />
               <input
@@ -300,7 +265,7 @@ export default function SignIn() {
             )}
 
             <button
-              type="submit" // Changed to type="submit"
+              type="submit"
               disabled={loading}
               className={`bg-gradient-to-r ${config.gradient} text-white p-4 rounded-xl font-semibold uppercase hover:shadow-xl transform transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2`}
             >
@@ -310,9 +275,7 @@ export default function SignIn() {
                   Signing In...
                 </>
               ) : (
-                <>
-                  Sign In
-                </>
+                <>Sign In</>
               )}
             </button>
           </form>

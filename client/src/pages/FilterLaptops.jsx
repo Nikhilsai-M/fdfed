@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContent';
-import { ShoppingCart, X, Check } from 'lucide-react';
+import { ShoppingCart, X, Check, Zap } from 'lucide-react';
 import './FilterLaptops.css';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
@@ -37,21 +37,21 @@ const LaptopFilter = ({ filters, onFilterChange, onClearFilters }) => {
   const activeCount = getActiveFilterCount();
 
   return (
-    <div className="filter-container">
-      <div className="filter-header">
-        <h3 className="filter-title">Filters</h3>
+    <div className="laptop-filter-container">
+      <div className="laptop-filter-header">
+        <h3 className="laptop-filter-title">Filters</h3>
         {activeCount > 0 && (
-          <span className="filter-count">{activeCount}</span>
+          <span className="laptop-filter-count">{activeCount}</span>
         )}
       </div>
 
       {/* Active Filters Display */}
       {activeCount > 0 && (
-        <div className="active-filters-section">
-          <div className="active-filters-header">
-            <h4 className="section-title-sm">Active Filters</h4>
+        <div className="laptop-active-filters-section">
+          <div className="laptop-active-filters-header">
+            <h4 className="laptop-section-title-sm">Active Filters</h4>
             <button 
-              className="btn-clear-all" 
+              className="laptop-btn-clear-all" 
               onClick={onClearFilters}
               aria-label="Clear all filters"
             >
@@ -61,51 +61,51 @@ const LaptopFilter = ({ filters, onFilterChange, onClearFilters }) => {
         </div>
       )}
 
-      <div className="filter-sections">
+      <div className="laptop-filter-sections">
         {/* Brand Filter */}
-        <div className="filter-section">
-          <h4 className="section-title">Brand</h4>
-          <div className="filter-options">
+        <div className="laptop-filter-section">
+          <h4 className="laptop-section-title">Brand</h4>
+          <div className="laptop-filter-options">
             {['ACER', 'DELL', 'HP', 'LENOVO', 'APPLE', 'ASUS', 'MICROSOFT', 'MSI', 'Others'].map(brand => (
-              <label key={brand} className="filter-checkbox">
+              <label key={brand} className="laptop-filter-checkbox">
                 <input
                   type="checkbox"
                   value={brand}
                   checked={filters.brands.includes(brand)}
                   onChange={() => handleCheckboxChange('brands', brand)}
                 />
-                <span className="checkbox-label">{brand}</span>
+                <span className="laptop-checkbox-label">{brand}</span>
               </label>
             ))}
           </div>
         </div>
 
         {/* Price Range Filter */}
-        <div className="filter-section">
-          <h4 className="section-title">Price Range</h4>
-          <div className="price-filter">
-            <div className="price-inputs">
-              <div className="price-input-group">
-                <label className="price-label">Min</label>
-                <div className="price-input-wrapper">
-                  <span className="currency-symbol">₹</span>
+        <div className="laptop-filter-section">
+          <h4 className="laptop-section-title">Price Range</h4>
+          <div className="laptop-price-filter">
+            <div className="laptop-price-inputs">
+              <div className="laptop-price-input-group">
+                <label className="laptop-price-label">Min</label>
+                <div className="laptop-price-input-wrapper">
+                  <span className="laptop-currency-symbol">₹</span>
                   <input
                     type="number"
-                    className="price-input"
+                    className="laptop-price-input"
                     placeholder="0"
                     value={filters.minPrice || ''}
                     onChange={(e) => handlePriceChange('minPrice', e.target.value)}
                   />
                 </div>
               </div>
-              <div className="price-separator">-</div>
-              <div className="price-input-group">
-                <label className="price-label">Max</label>
-                <div className="price-input-wrapper">
-                  <span className="currency-symbol">₹</span>
+              <div className="laptop-price-separator">-</div>
+              <div className="laptop-price-input-group">
+                <label className="laptop-price-label">Max</label>
+                <div className="laptop-price-input-wrapper">
+                  <span className="laptop-currency-symbol">₹</span>
                   <input
                     type="number"
-                    className="price-input"
+                    className="laptop-price-input"
                     placeholder="200000"
                     value={filters.maxPrice || ''}
                     onChange={(e) => handlePriceChange('maxPrice', e.target.value)}
@@ -117,55 +117,55 @@ const LaptopFilter = ({ filters, onFilterChange, onClearFilters }) => {
         </div>
 
         {/* Processor Filter */}
-        <div className="filter-section">
-          <h4 className="section-title">Processor</h4>
-          <div className="filter-options">
+        <div className="laptop-filter-section">
+          <h4 className="laptop-section-title">Processor</h4>
+          <div className="laptop-filter-options">
             {['Intel Core i3', 'Intel Core i5', 'Intel Core i7', 'Intel Core i9', 'AMD Ryzen 3', 'AMD Ryzen 5', 'AMD Ryzen 7', 'AMD Ryzen 9', 'Apple M1', 'Apple M2', 'Apple M3'].map(processor => (
-              <label key={processor} className="filter-checkbox">
+              <label key={processor} className="laptop-filter-checkbox">
                 <input
                   type="checkbox"
                   value={processor}
                   checked={filters.processors.includes(processor)}
                   onChange={() => handleCheckboxChange('processors', processor)}
                 />
-                <span className="checkbox-label">{processor}</span>
+                <span className="laptop-checkbox-label">{processor}</span>
               </label>
             ))}
           </div>
         </div>
 
         {/* Generation Filter */}
-        <div className="filter-section">
-          <h4 className="section-title">Generation</h4>
-          <div className="filter-options">
+        <div className="laptop-filter-section">
+          <h4 className="laptop-section-title">Generation</h4>
+          <div className="laptop-filter-options">
             {['10th', '11th', '12th', '13th', '14th', 'Latest'].map(gen => (
-              <label key={gen} className="filter-checkbox">
+              <label key={gen} className="laptop-filter-checkbox">
                 <input
                   type="checkbox"
                   value={gen}
                   checked={filters.generations.includes(gen)}
                   onChange={() => handleCheckboxChange('generations', gen)}
                 />
-                <span className="checkbox-label">{gen}</span>
+                <span className="laptop-checkbox-label">{gen}</span>
               </label>
             ))}
           </div>
         </div>
 
         {/* RAM Filter */}
-        <div className="filter-section">
-          <h4 className="section-title">RAM</h4>
-          <div className="filter-options">
-            <div className="filter-grid">
+        <div className="laptop-filter-section">
+          <h4 className="laptop-section-title">RAM</h4>
+          <div className="laptop-filter-options">
+            <div className="laptop-filter-grid">
               {['4GB', '8GB', '16GB', '32GB', '64GB'].map(ram => (
-                <label key={ram} className="filter-chip">
+                <label key={ram} className="laptop-filter-chip">
                   <input
                     type="checkbox"
                     value={ram}
                     checked={filters.rams.includes(ram)}
                     onChange={() => handleCheckboxChange('rams', ram)}
                   />
-                  <span className="chip-label">{ram}</span>
+                  <span className="laptop-chip-label">{ram}</span>
                 </label>
               ))}
             </div>
@@ -173,35 +173,35 @@ const LaptopFilter = ({ filters, onFilterChange, onClearFilters }) => {
         </div>
 
         {/* Storage Type Filter */}
-        <div className="filter-section">
-          <h4 className="section-title">Storage Type</h4>
-          <div className="filter-options">
+        <div className="laptop-filter-section">
+          <h4 className="laptop-section-title">Storage Type</h4>
+          <div className="laptop-filter-options">
             {['SSD', 'HDD', 'NVMe SSD', 'eMMC'].map(type => (
-              <label key={type} className="filter-checkbox">
+              <label key={type} className="laptop-filter-checkbox">
                 <input
                   type="checkbox"
                   value={type}
                   checked={filters.storageTypes.includes(type)}
                   onChange={() => handleCheckboxChange('storageTypes', type)}
                 />
-                <span className="checkbox-label">{type}</span>
+                <span className="laptop-checkbox-label">{type}</span>
               </label>
             ))}
           </div>
         </div>
 
         {/* Storage Capacity Filter */}
-        <div className="filter-section">
-          <h4 className="section-title">Storage Capacity</h4>
-          <div className="filter-options">
-            <div className="filter-grid">
+        <div className="laptop-filter-section">
+          <h4 className="laptop-section-title">Storage Capacity</h4>
+          <div className="laptop-filter-options">
+            <div className="laptop-filter-grid">
               {['128GB', '256GB', '512GB', '1TB', '2TB', '4TB+'].map(capacity => (
-                <label key={capacity} className="filter-chip">
+                <label key={capacity} className="laptop-filter-chip">
                   <input
                     type="checkbox"
                     value={capacity}
                     checked={filters.storageCapacities.includes(capacity)}></input>
-                  <span className="checkbox-label">{capacity}</span>
+                  <span className="laptop-checkbox-label">{capacity}</span>
                 </label>
               ))}
             </div>
@@ -209,73 +209,73 @@ const LaptopFilter = ({ filters, onFilterChange, onClearFilters }) => {
         </div>
 
         {/* Display Filter */}
-        <div className="filter-section">
-          <h4 className="section-title">Display</h4>
-          <div className="filter-options">
+        <div className="laptop-filter-section">
+          <h4 className="laptop-section-title">Display</h4>
+          <div className="laptop-filter-options">
             {['13.3"', '14"', '15.6"', '16"', '17.3"', 'Touchscreen', '2K', '4K', 'OLED'].map(display => (
-              <label key={display} className="filter-checkbox">
+              <label key={display} className="laptop-filter-checkbox">
                 <input
                   type="checkbox"
                   value={display}
                   checked={filters.displays.includes(display)}
                   onChange={() => handleCheckboxChange('displays', display)}
                 />
-                <span className="checkbox-label">{display}</span>
+                <span className="laptop-checkbox-label">{display}</span>
               </label>
             ))}
           </div>
         </div>
 
         {/* OS Filter */}
-        <div className="filter-section">
-          <h4 className="section-title">Operating System</h4>
-          <div className="filter-options">
+        <div className="laptop-filter-section">
+          <h4 className="laptop-section-title">Operating System</h4>
+          <div className="laptop-filter-options">
             {['Windows 11', 'Windows 10', 'macOS', 'Chrome OS', 'Ubuntu', 'DOS'].map(os => (
-              <label key={os} className="filter-checkbox">
+              <label key={os} className="laptop-filter-checkbox">
                 <input
                   type="checkbox"
                   value={os}
                   checked={filters.oses.includes(os)}
                   onChange={() => handleCheckboxChange('oses', os)}
                 />
-                <span className="checkbox-label">{os}</span>
+                <span className="laptop-checkbox-label">{os}</span>
               </label>
             ))}
           </div>
         </div>
 
         {/* Weight Filter */}
-        <div className="filter-section">
-          <h4 className="section-title">Weight</h4>
-          <div className="filter-options">
+        <div className="laptop-filter-section">
+          <h4 className="laptop-section-title">Weight</h4>
+          <div className="laptop-filter-options">
             {['Ultra-light (<1.5kg)', 'Light (1.5-2kg)', 'Standard (2-2.5kg)', 'Heavy (>2.5kg)'].map(weight => (
-              <label key={weight} className="filter-checkbox">
+              <label key={weight} className="laptop-filter-checkbox">
                 <input
                   type="checkbox"
                   value={weight}
                   checked={filters.weights.includes(weight)}
                   onChange={() => handleCheckboxChange('weights', weight)}
                 />
-                <span className="checkbox-label">{weight}</span>
+                <span className="laptop-checkbox-label">{weight}</span>
               </label>
             ))}
           </div>
         </div>
 
         {/* Condition Filter */}
-        <div className="filter-section">
-          <h4 className="section-title">Condition</h4>
-          <div className="filter-options">
-            <div className="filter-grid">
+        <div className="laptop-filter-section">
+          <h4 className="laptop-section-title">Condition</h4>
+          <div className="laptop-filter-options">
+            <div className="laptop-filter-grid">
               {['New', 'Refurbished', 'Used'].map(condition => (
-                <label key={condition} className="filter-chip">
+                <label key={condition} className="laptop-filter-chip">
                   <input
                     type="checkbox"
                     value={condition}
                     checked={filters.conditions.includes(condition)}
                     onChange={() => handleCheckboxChange('conditions', condition)}
                   />
-                  <span className="chip-label">{condition}</span>
+                  <span className="laptop-chip-label">{condition}</span>
                 </label>
               ))}
             </div>
@@ -283,18 +283,18 @@ const LaptopFilter = ({ filters, onFilterChange, onClearFilters }) => {
         </div>
 
         {/* Discount Filter */}
-        <div className="filter-section">
-          <h4 className="section-title">Discount</h4>
-          <div className="filter-options">
+        <div className="laptop-filter-section">
+          <h4 className="laptop-section-title">Discount</h4>
+          <div className="laptop-filter-options">
             {['10% or more', '20% or more', '30% or more', '40% or more', '50% or more'].map(discount => (
-              <label key={discount} className="filter-checkbox">
+              <label key={discount} className="laptop-filter-checkbox">
                 <input
                   type="checkbox"
                   value={discount}
                   checked={filters.discounts.includes(discount)}
                   onChange={() => handleCheckboxChange('discounts', discount)}
                 />
-                <span className="checkbox-label">{discount}</span>
+                <span className="laptop-checkbox-label">{discount}</span>
               </label>
             ))}
           </div>
@@ -304,12 +304,15 @@ const LaptopFilter = ({ filters, onFilterChange, onClearFilters }) => {
   );
 };
 
-// ProductCard Component (updated for real laptop data)
-const ProductCard = ({ product, onAddToCart }) => {
+// ProductCard Component (updated with proper event handling)
+const ProductCard = ({ product, onAddToCart, onBuyNow }) => {
   const navigate = useNavigate();
   
-  const handleCardClick = () => {
-    navigate(`/laptop/${product.id}`);
+  const handleCardClick = (e) => {
+    // Only navigate if the click wasn't on a button
+    if (!e.target.closest('.laptop-product-actions')) {
+      navigate(`/laptop/${product.id}`);
+    }
   };
 
   const calculateFinalPrice = (laptop) => {
@@ -320,37 +323,45 @@ const ProductCard = ({ product, onAddToCart }) => {
 
   const handleAddToCart = (e) => {
     e.preventDefault();
-    e.stopPropagation();
+    e.stopPropagation(); // This prevents the card click from firing
+    console.log('Add to Cart clicked for:', product.brand, product.series);
     onAddToCart(product);
+  };
+
+  const handleBuyNow = (e) => {
+    e.preventDefault();
+    e.stopPropagation(); // This prevents the card click from firing
+    console.log('Buy Now clicked for:', product.brand, product.series);
+    onBuyNow(product);
   };
 
   const finalPrice = calculateFinalPrice(product);
   const originalPrice = product.pricing.basePrice;
 
   return (
-    <div className="product" onClick={handleCardClick} style={{ cursor: 'pointer' }}>
-      <div className="product-container">
-        <div className="product-image">
+    <div className="laptop-product" onClick={handleCardClick} style={{ cursor: 'pointer' }}>
+      <div className="laptop-product-container">
+        <div className="laptop-product-image">
           <img 
             src={product.image} 
             alt={`${product.brand} ${product.series}`}
             loading="lazy"
           />
           {product.pricing.discount > 0 && (
-            <div className="discount-badge">{product.pricing.discount}% OFF</div>
+            <div className="laptop-discount-badge">{product.pricing.discount}% OFF</div>
           )}
-          <div className="condition-badge">{product.condition}</div>
+          <div className="laptop-condition-badge">{product.condition}</div>
         </div>
         
-        <div className="product-details">
+        <div className="laptop-product-details">
           <h4>{product.brand} {product.series}</h4>
           
-          <div className="price-section">
-            <span className="original-price">₹{originalPrice.toLocaleString()}</span>
-            <h3 className="discounted-price">₹{finalPrice.toLocaleString()}</h3>
+          <div className="laptop-price-section">
+            <span className="laptop-original-price">₹{originalPrice.toLocaleString()}</span>
+            <h3 className="laptop-discounted-price">₹{finalPrice.toLocaleString()}</h3>
           </div>
 
-          <ul className="specs-list">
+          <ul className="laptop-specs-list">
             <li><strong>Processor:</strong> {product.processor.name} {product.processor.generation}</li>
             <li><strong>RAM:</strong> {product.memory.ram}</li>
             <li><strong>Storage:</strong> {product.memory.storage.type} {product.memory.storage.capacity}</li>
@@ -358,13 +369,22 @@ const ProductCard = ({ product, onAddToCart }) => {
             <li><strong>OS:</strong> {product.os}</li>
           </ul>
 
-          <button 
-            className="add-to-cart-btn"
-            onClick={handleAddToCart}
-          >
-            <ShoppingCart className="cart-icon" />
-            <span>Add to Cart</span>
-          </button>
+          <div className="laptop-product-actions">
+            <button 
+              className="laptop-add-to-cart-btn"
+              onClick={handleAddToCart}
+            >
+              <ShoppingCart className="laptop-cart-icon" />
+              <span>Add to Cart</span>
+            </button>
+            <button 
+              className="laptop-buy-now-btn"
+              onClick={handleBuyNow}
+            >
+              <Zap className="laptop-zap-icon" />
+              <span>Buy Now</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -603,9 +623,11 @@ const FilterLaptops = () => {
     }
   };
 
-  // Add to cart function (same as phones page)
+  // Add to cart function
   const addToCart = async (laptop) => {
     try {
+      console.log('Adding to cart:', laptop);
+      
       // Verify user session via API
       const response = await fetch('/api/user/profile', {
         method: 'GET',
@@ -675,6 +697,56 @@ const FilterLaptops = () => {
     }
   };
 
+  // Buy Now function for laptops
+  const buyNow = async (laptop) => {
+    try {
+      console.log('Buy Now clicked for:', laptop);
+      
+      // Verify user session via API
+      const response = await fetch('/api/user/profile', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        navigate('/sign-in');
+        return;
+      }
+
+      const userData = await response.json();
+      if (!userData.success || !userData.user) {
+        navigate('/sign-in');
+        return;
+      }
+
+      const userId = userData.user.user_id;
+
+      if (!laptop || !laptop.id) {
+        console.error('Laptop data not available');
+        return;
+      }
+
+      // Calculate price locally
+      const finalPrice = calculateFinalPrice(laptop);
+
+      const paymentData = {
+        price: finalPrice,
+        type: 'laptop',
+        id: laptop.id,
+        laptop: laptop,
+        userId: userId,
+      };
+
+      // Navigate to frontend payment page
+      navigate('/payment', { 
+        state: paymentData 
+      });
+    } catch (error) {
+      console.error('Buy now error:', error);
+      navigate('/sign-in');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -689,7 +761,7 @@ const FilterLaptops = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
+    <div className="laptop-page min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
       {/* Cart Message */}
       <Header />
       {cartItem && (
@@ -709,32 +781,32 @@ const FilterLaptops = () => {
       )}
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 pt-24 pb-8">
+      <div className="container mx-auto px-4 pt-10 pb-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            {brandFromUrl ? `${brandFromUrl} Laptops` : 'Find Your Perfect Laptop'}
+            {selectedFilters.brands.length > 0 ? `${selectedFilters.brands.join(', ')} Laptops` : 'Find Your Perfect Laptop'}
           </h1>
           <p className="text-gray-600">
-            {brandFromUrl 
-              ? `Browse all ${brandFromUrl} laptops` 
+            {selectedFilters.brands.length > 0 
+              ? `Browse all ${selectedFilters.brands.join(', ')} laptops` 
               : 'Filter through our collection of premium laptops'
             }
-            {maxPriceFromUrl && ` under ₹${parseInt(maxPriceFromUrl).toLocaleString()}`}
+            {selectedFilters.maxPrice < 200000 && ` under ₹${selectedFilters.maxPrice.toLocaleString()}`}
           </p>
         </div>
 
-        <div className="page-container">
+        <div className="laptop-page-container">
           <LaptopFilter
             filters={selectedFilters}
             onFilterChange={handleFilterChange}
             onClearFilters={handleClearFilters}
           />
           
-          <div className="products" id="product-list">
+          <div className="laptop-products" id="product-list">
             {filteredLaptops.length === 0 ? (
-              <div className="no-products">
+              <div className="laptop-no-products">
                 <h3>No products match your filters</h3>
-                <p>Try adjusting your filter criteria or <button className="clear-all-inline" onClick={handleClearFilters}>clear all filters</button></p>
+                <p>Try adjusting your filter criteria or <button className="laptop-clear-all-inline" onClick={handleClearFilters}>clear all filters</button></p>
               </div>
             ) : (
               filteredLaptops.map(laptop => (
@@ -742,6 +814,7 @@ const FilterLaptops = () => {
                   key={laptop.id} 
                   product={laptop}
                   onAddToCart={addToCart}
+                  onBuyNow={buyNow}
                 />
               ))
             )}

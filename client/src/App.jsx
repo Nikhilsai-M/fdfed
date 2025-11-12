@@ -1,5 +1,7 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { Provider } from 'react-redux';
+import { store } from './store';
 import Header from './components/common/Header';
 import Footer from './components/common/Footer';
 import Homepage from './pages/Homepage';
@@ -13,7 +15,7 @@ import SmartWatchesPage from './pages/SmartWatchesPage';
 import AccessoriesPage from './pages/Accessories';
 import AccessoryDetails from './pages/AccessoryDetails';
 import SupervisorDashboard from './pages/supervisor/SupervisorDashboard';
-import AdminDashboard from './pages/admin/AdminDashboard'; // UPDATED PATH
+import AdminDashboard from './pages/admin/AdminDashboard';
 import VerifyListings from './pages/supervisor/VerifyListings';
 import ManageInventory from './pages/supervisor/ManageInventory';
 import Statistics from './pages/supervisor/Statistics';
@@ -30,7 +32,7 @@ import FilterPhones from './pages/filter-phones';
 import FilterLaptops from './pages/FilterLaptops';
 import Listings from './pages/listings';
 import SellPhoneForm from './pages/SellPhone';
-import AboutUs from './pages/AboutUS';
+import AboutUs from './pages/AboutUs';
 import Blog from './pages/Blog';
 import ContactUs from './pages/ContactUs';
 import PrivacyPolicy from './pages/PrivayPolicy';
@@ -43,69 +45,68 @@ import SearchResults from './pages/SearchResults';
 import Analytics from './pages/admin/AdminAnalytics';
 import ManageSupervisors from './pages/admin/ManageSupervisors';
 
-
 function App() {
   return (
-    <CartProvider>
-    <Router>
-      <div className="flex flex-col min-h-screen">
-        
-        <main className="flex-grow">
-          <Routes>
-            <Route path="/" element={<Homepage />} />
-            <Route path="/accessories/chargers" element={<ChargersPage />} />
-            <Route path="/accessories/mouses" element={<MousePage/>}/>
-            <Route path="/accessories/earphones" element={<EarbudsPage/>}/>
-            <Route path="/accessories/smartwatches" element={<SmartWatchesPage/>}/>
-            <Route path="/profile" element={<UserProfile />} />
-            <Route path="/charger/:id" element={<AccessoryDetails type="charger" />} />
-            <Route path="/mouse/:id" element={<AccessoryDetails type="mouse" />} />
-            <Route path="/smartwatch/:id" element={<AccessoryDetails type="smartwatch" />} />
-            <Route path="/earphone/:id" element={<AccessoryDetails type="earphone" />} />
-            <Route path="/Accessories" element={<AccessoriesPage />} />
-            <Route path="/myorders" element={<MyOrders />} />
-            <Route path="/orders/:orderId" element={<Orders />} />
-            <Route path="/sell-phone" element={<SellPhoneForm />}/>
-            <Route path="/sell-laptop" element={<SellLaptop />} />
-            <Route path="/sign-in" element={<SignIn />} />
-            <Route path="/sign-up" element={<SignUp />} />
-            <Route path="/cart" element={<CartPage/>} />
-            <Route path="/checkout" element={<Checkout/>} />
-            <Route path="/buyphones" element={<BuyPhones/>} />
-            <Route path="/buylaptops" element={<BuyLaptops/>} />
-            <Route path="/filter-buy-phone" element={<FilterPhones/>}/>
-            <Route path="/filter-buy-laptop" element={<FilterLaptops />} />
-            <Route path="/product/:id" element={<PhoneDetails />} />
-            <Route path="/laptop/:id" element={<LaptopDetails />} />
-            <Route path="/about_us" element={<AboutUs/>} />
-            <Route path="/blog" element={<Blog/>} />
-            <Route path="/contact_us" element={<ContactUs/>} />
-            <Route path="/privacypolicy" element={<PrivacyPolicy/>} />
-            <Route path="/terms" element={<TermsAndConditions/>} />
-            <Route path="/payment" element={<PaymentPage/>} />
-            <Route path="/listings" element={<Listings/>} />
-             <Route path="/forgot-password" element={<ForgotPassword />} />
-             <Route path="/search" element={<SearchResults />} />
-
-            {/* Supervisor Routes */}
-            <Route path="/supervisor-dashboard" element={<SupervisorDashboard />} />
-            <Route path="/supervisor/verify-listings" element={<VerifyListings />} />
-            <Route path="/supervisor/manage-inventory" element={<ManageInventory />} />
-            <Route path="/supervisor/statistics" element={<Statistics />} />
-            <Route path="/supervisor/profile" element={<Profile />} />
+    <Provider store={store}>
+      <CartProvider>
+        <Router>
+          <div className="flex flex-col min-h-screen">
             
-            {/* Admin Routes */}
-            <Route path="/admin-dashboard" element={<AdminDashboard />} />
-            <Route path="/admin/analytics" element={<Analytics />} />
-            <Route path="/admin/manage-supervisors" element={<ManageSupervisors />} />
+            <main className="flex-grow">
+              <Routes>
+                <Route path="/" element={<Homepage />} />
+                <Route path="/accessories/chargers" element={<ChargersPage />} />
+                <Route path="/accessories/mouses" element={<MousePage/>}/>
+                <Route path="/accessories/earphones" element={<EarbudsPage/>}/>
+                <Route path="/accessories/smartwatches" element={<SmartWatchesPage/>}/>
+                <Route path="/profile" element={<UserProfile />} />
+                <Route path="/charger/:id" element={<AccessoryDetails type="charger" />} />
+                <Route path="/mouse/:id" element={<AccessoryDetails type="mouse" />} />
+                <Route path="/smartwatch/:id" element={<AccessoryDetails type="smartwatch" />} />
+                <Route path="/earphone/:id" element={<AccessoryDetails type="earphone" />} />
+                <Route path="/Accessories" element={<AccessoriesPage />} />
+                <Route path="/myorders" element={<MyOrders />} />
+                <Route path="/orders/:orderId" element={<Orders />} />
+                <Route path="/sell-phone" element={<SellPhoneForm />}/>
+                <Route path="/sell-laptop" element={<SellLaptop />} />
+                <Route path="/sign-in" element={<SignIn />} />
+                <Route path="/sign-up" element={<SignUp />} />
+                <Route path="/cart" element={<CartPage/>} />
+                <Route path="/checkout" element={<Checkout/>} />
+                <Route path="/buyphones" element={<BuyPhones/>} />
+                <Route path="/buylaptops" element={<BuyLaptops/>} />
+                <Route path="/filter-buy-phone" element={<FilterPhones/>}/>
+                <Route path="/filter-buy-laptop" element={<FilterLaptops />} />
+                <Route path="/product/:id" element={<PhoneDetails />} />
+                <Route path="/laptop/:id" element={<LaptopDetails />} />
+                <Route path="/about_us" element={<AboutUs/>} />
+                <Route path="/blog" element={<Blog/>} />
+                <Route path="/contact_us" element={<ContactUs/>} />
+                <Route path="/privacypolicy" element={<PrivacyPolicy/>} />
+                <Route path="/terms" element={<TermsAndConditions/>} />
+                <Route path="/payment" element={<PaymentPage/>} />
+                <Route path="/listings" element={<Listings/>} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/search" element={<SearchResults />} />
 
-  
-          </Routes>
-        </main>
-      
-      </div>
-    </Router>
-    </CartProvider>
+                {/* Supervisor Routes */}
+                <Route path="/supervisor-dashboard" element={<SupervisorDashboard />} />
+                <Route path="/supervisor/verify-listings" element={<VerifyListings />} />
+                <Route path="/supervisor/manage-inventory" element={<ManageInventory />} />
+                <Route path="/supervisor/statistics" element={<Statistics />} />
+                <Route path="/supervisor/profile" element={<Profile />} />
+                
+                {/* Admin Routes */}
+                <Route path="/admin-dashboard" element={<AdminDashboard />} />
+                <Route path="/admin/analytics" element={<Analytics />} />
+                <Route path="/admin/manage-supervisors" element={<ManageSupervisors />} />
+              </Routes>
+            </main>
+          
+          </div>
+        </Router>
+      </CartProvider>
+    </Provider>
   );
 }
 
