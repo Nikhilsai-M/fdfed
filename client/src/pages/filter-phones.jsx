@@ -32,21 +32,21 @@ const PhoneFilter = ({ filters, onFilterChange, onClearFilters }) => {
   const activeCount = getActiveFilterCount();
 
   return (
-    <div className="filter-container">
-      <div className="filter-header">
-        <h3 className="filter-title">Filters</h3>
+    <div className="phone-filter-container">
+      <div className="phone-filter-header">
+        <h3 className="phone-filter-title">Filters</h3>
         {activeCount > 0 && (
-          <span className="filter-count">{activeCount}</span>
+          <span className="phone-filter-count">{activeCount}</span>
         )}
       </div>
 
       {/* Active Filters Display */}
       {activeCount > 0 && (
-        <div className="active-filters-section">
-          <div className="active-filters-header">
-            <h4 className="section-title-sm">Active Filters</h4>
+        <div className="phone-active-filters-section">
+          <div className="phone-active-filters-header">
+            <h4 className="phone-section-title-sm">Active Filters</h4>
             <button 
-              className="btn-clear-all" 
+              className="phone-btn-clear-all" 
               onClick={onClearFilters}
               aria-label="Clear all filters"
             >
@@ -56,37 +56,37 @@ const PhoneFilter = ({ filters, onFilterChange, onClearFilters }) => {
         </div>
       )}
 
-      <div className="filter-sections">
+      <div className="phone-filter-sections">
         {/* Brand Filter */}
-        <div className="filter-section">
-          <h4 className="section-title">Brand</h4>
-          <div className="filter-options">
+        <div className="phone-filter-section">
+          <h4 className="phone-section-title">Brand</h4>
+          <div className="phone-filter-options">
             {['APPLE', 'SAMSUNG', 'ONEPLUS', 'GOOGLE', 'REALME', 'XIAOMI', 'MOTOROLA', 'VIVO', 'LENOVO', 'NOTHING', 'Others'].map(brand => (
-              <label key={brand} className="filter-checkbox">
+              <label key={brand} className="phone-filter-checkbox">
                 <input
                   type="checkbox"
                   value={brand}
                   checked={filters.brands.includes(brand)}
                   onChange={() => handleCheckboxChange('brands', brand)}
                 />
-                <span className="checkbox-label">{brand}</span>
+                <span className="phone-checkbox-label">{brand}</span>
               </label>
             ))}
           </div>
         </div>
 
         {/* Price Range Filter */}
-        <div className="filter-section">
-          <h4 className="section-title">Price Range</h4>
-          <div className="price-filter">
-            <div className="price-inputs">
-              <div className="price-input-group">
-                <label className="price-label">Min</label>
-                <div className="price-input-wrapper">
-                  <span className="currency-symbol">₹</span>
+        <div className="phone-filter-section">
+          <h4 className="phone-section-title">Price Range</h4>
+          <div className="phone-price-filter">
+            <div className="phone-price-inputs">
+              <div className="phone-price-input-group">
+                <label className="phone-price-label">Min</label>
+                <div className="phone-price-input-wrapper">
+                  <span className="phone-currency-symbol">₹</span>
                   <input
                     type="number"
-                    className="price-input"
+                    className="phone-price-input"
                     placeholder="0"
                     value={filters.minPrice || ''}
                     onChange={(e) => handlePriceChange('minPrice', e.target.value)}
@@ -95,14 +95,14 @@ const PhoneFilter = ({ filters, onFilterChange, onClearFilters }) => {
                   />
                 </div>
               </div>
-              <div className="price-separator">—</div>
-              <div className="price-input-group">
-                <label className="price-label">Max</label>
-                <div className="price-input-wrapper">
-                  <span className="currency-symbol">₹</span>
+              <div className="phone-price-separator">—</div>
+              <div className="phone-price-input-group">
+                <label className="phone-price-label">Max</label>
+                <div className="phone-price-input-wrapper">
+                  <span className="phone-currency-symbol">₹</span>
                   <input
                     type="number"
-                    className="price-input"
+                    className="phone-price-input"
                     placeholder="150000"
                     value={filters.maxPrice || ''}
                     onChange={(e) => handlePriceChange('maxPrice', e.target.value)}
@@ -113,10 +113,10 @@ const PhoneFilter = ({ filters, onFilterChange, onClearFilters }) => {
               </div>
             </div>
             
-            <div className="price-range-sliders">
+            <div className="phone-price-range-sliders">
               <input
                 type="range"
-                className="range-slider range-min"
+                className="phone-range-slider phone-range-min"
                 min="0"
                 max="150000"
                 step="1000"
@@ -125,7 +125,7 @@ const PhoneFilter = ({ filters, onFilterChange, onClearFilters }) => {
               />
               <input
                 type="range"
-                className="range-slider range-max"
+                className="phone-range-slider phone-range-max"
                 min="0"
                 max="150000"
                 step="1000"
@@ -137,95 +137,95 @@ const PhoneFilter = ({ filters, onFilterChange, onClearFilters }) => {
         </div>
 
         {/* RAM Filter */}
-        <div className="filter-section">
-          <h4 className="section-title">RAM</h4>
-          <div className="filter-options filter-grid">
+        <div className="phone-filter-section">
+          <h4 className="phone-section-title">RAM</h4>
+          <div className="phone-filter-options phone-filter-grid">
             {[3, 4, 6, 8, 12].map(ram => (
-              <label key={ram} className="filter-chip">
+              <label key={ram} className="phone-filter-chip">
                 <input
                   type="checkbox"
                   value={ram}
                   checked={filters.rams.includes(ram)}
                   onChange={() => handleCheckboxChange('rams', ram)}
                 />
-                <span className="chip-label">{ram}GB</span>
+                <span className="phone-chip-label">{ram}GB</span>
               </label>
             ))}
           </div>
         </div>
 
         {/* Storage Filter */}
-        <div className="filter-section">
-          <h4 className="section-title">Storage</h4>
-          <div className="filter-options filter-grid">
+        <div className="phone-filter-section">
+          <h4 className="phone-section-title">Storage</h4>
+          <div className="phone-filter-options phone-filter-grid">
             {[32, 64, 128, 256, 512].map(rom => (
-              <label key={rom} className="filter-chip">
+              <label key={rom} className="phone-filter-chip">
                 <input
                   type="checkbox"
                   value={rom}
                   checked={filters.roms.includes(rom)}
                   onChange={() => handleCheckboxChange('roms', rom)}
                 />
-                <span className="chip-label">{rom}GB</span>
+                <span className="phone-chip-label">{rom}GB</span>
               </label>
             ))}
           </div>
         </div>
 
         {/* Battery Filter */}
-        <div className="filter-section">
-          <h4 className="section-title">Battery</h4>
-          <div className="filter-options">
+        <div className="phone-filter-section">
+          <h4 className="phone-section-title">Battery</h4>
+          <div className="phone-filter-options">
             {[
               { value: '2000-3000', label: '2000 - 3000 mAh' },
               { value: '3000-4000', label: '3000 - 4000 mAh' },
               { value: '4000-5000', label: '4000 - 5000 mAh' },
               { value: '5000-6000', label: '5000 - 6000 mAh' }
             ].map(battery => (
-              <label key={battery.value} className="filter-checkbox">
+              <label key={battery.value} className="phone-filter-checkbox">
                 <input
                   type="checkbox"
                   value={battery.value}
                   checked={filters.batteries.includes(battery.value)}
                   onChange={() => handleCheckboxChange('batteries', battery.value)}
                 />
-                <span className="checkbox-label">{battery.label}</span>
+                <span className="phone-checkbox-label">{battery.label}</span>
               </label>
             ))}
           </div>
         </div>
 
         {/* Condition Filter */}
-        <div className="filter-section">
-          <h4 className="section-title">Condition</h4>
-          <div className="filter-options filter-grid">
+        <div className="phone-filter-section">
+          <h4 className="phone-section-title">Condition</h4>
+          <div className="phone-filter-options phone-filter-grid">
             {['Superb', 'Very Good', 'Good'].map(condition => (
-              <label key={condition} className="filter-chip">
+              <label key={condition} className="phone-filter-chip">
                 <input
                   type="checkbox"
                   value={condition}
                   checked={filters.conditions.includes(condition)}
                   onChange={() => handleCheckboxChange('conditions', condition)}
                 />
-                <span className="chip-label">{condition}</span>
+                <span className="phone-chip-label">{condition}</span>
               </label>
             ))}
           </div>
         </div>
 
         {/* Discount Filter */}
-        <div className="filter-section">
-          <h4 className="section-title">Discount</h4>
-          <div className="filter-options">
+        <div className="phone-filter-section">
+          <h4 className="phone-section-title">Discount</h4>
+          <div className="phone-filter-options">
             {[10, 20, 30, 40, 50].map(discount => (
-              <label key={discount} className="filter-checkbox">
+              <label key={discount} className="phone-filter-checkbox">
                 <input
                   type="checkbox"
                   value={discount}
                   checked={filters.discounts.includes(discount)}
                   onChange={() => handleCheckboxChange('discounts', discount)}
                 />
-                <span className="checkbox-label">{discount}% or more</span>
+                <span className="phone-checkbox-label">{discount}% or more</span>
               </label>
             ))}
           </div>
@@ -267,33 +267,33 @@ const ProductCard = ({ product, onAddToCart, onBuyNow }) => {
   const discountedPrice = calculateDiscountedPrice(product.pricing.basePrice, product.pricing.discount);
 
   return (
-    <div className="product" onClick={handleCardClick} style={{ cursor: 'pointer' }}>
-      <div className="product-container">
-        <div className="product-image">
+    <div className="phone-product" onClick={handleCardClick} style={{ cursor: 'pointer' }}>
+      <div className="phone-product-container">
+        <div className="phone-product-image">
           <img src={product.image} alt={`${product.brand} ${product.model}`} />
-          <div className="discount-badge">{product.pricing.discount}% OFF</div>
-          <div className="condition-badge">{product.condition}</div>
+          <div className="phone-discount-badge">{product.pricing.discount}% OFF</div>
+          <div className="phone-condition-badge">{product.condition}</div>
         </div>
-        <div className="product-details">
+        <div className="phone-product-details">
           <h4>{product.brand} {product.model}</h4>
-          <p className="discounted-price">₹{discountedPrice.toFixed(0)}</p>
-          <span className="original-price">₹{product.pricing.basePrice}</span>
-          <span className="discount">{product.pricing.discount}% Off</span>
-          <ul>
+          <p className="phone-discounted-price">₹{discountedPrice.toFixed(0)}</p>
+          <span className="phone-original-price">₹{product.pricing.basePrice}</span>
+          <span className="phone-discount">{product.pricing.discount}% Off</span>
+          <ul className="phone-specs-list">
             <li>{product.ram} RAM | {product.rom} Storage</li>
             <li>{product.specs.battery}mAh Battery</li>
             <li>Condition: {product.condition}</li>
           </ul>
-          <div className="product-actions">
+          <div className="phone-product-actions">
             <button 
-              className="add-to-cart-btn"
+              className="phone-add-to-cart-btn"
               onClick={handleAddToCart}
             >
               <ShoppingCart className="w-4 h-4 mr-2" />
               Add to Cart
             </button>
             <button 
-              className="buy-now-btn"
+              className="phone-buy-now-btn"
               onClick={handleBuyNow}
             >
               <Zap className="w-4 h-4 mr-2" />
@@ -624,7 +624,7 @@ const FilterPhones = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
+    <div className="phone-page min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
       {/* Cart Message */}
       <Header />
       {cartItem && (
@@ -644,32 +644,32 @@ const FilterPhones = () => {
       )}
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 pt-24 pb-8">
-        <div className="mb-8">
+      <div className="container mx-auto px-4 pt-10 pb-8">
+              <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            {brandFromUrl ? `${brandFromUrl} Phones` : 'Find Your Perfect Phone'}
+            {selectedFilters.brands.length > 0 ? `${selectedFilters.brands.join(', ')} Phones` : 'Find Your Perfect Phone'}
           </h1>
           <p className="text-gray-600">
-            {brandFromUrl 
-              ? `Browse all ${brandFromUrl} smartphones` 
+            {selectedFilters.brands.length > 0 
+              ? `Browse all ${selectedFilters.brands.join(', ')} smartphones` 
               : 'Filter through our collection of premium smartphones'
             }
-            {maxPriceFromUrl && ` under ₹${parseInt(maxPriceFromUrl).toLocaleString()}`}
+            {selectedFilters.maxPrice < 150000 && ` under ₹${selectedFilters.maxPrice.toLocaleString()}`}
           </p>
         </div>
 
-        <div className="page-container">
+        <div className="phone-page-container">
           <PhoneFilter
             filters={selectedFilters}
             onFilterChange={handleFilterChange}
             onClearFilters={handleClearFilters}
           />
           
-          <div className="products" id="product-list">
+          <div className="phone-products" id="product-list">
             {filteredPhones.length === 0 ? (
-              <div className="no-products">
+              <div className="phone-no-products">
                 <h3>No products match your filters</h3>
-                <p>Try adjusting your filter criteria or <button className="clear-all-inline" onClick={handleClearFilters}>clear all filters</button></p>
+                <p>Try adjusting your filter criteria or <button className="phone-clear-all-inline" onClick={handleClearFilters}>clear all filters</button></p>
               </div>
             ) : (
               filteredPhones.map(phone => (

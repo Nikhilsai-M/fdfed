@@ -1,5 +1,7 @@
 import Phone from '../models/phone.model.js';
+// import iphone12 from '../../client/src/assets/images/phones/iphone12.webp';
 
+const prefix = '/images/earphones/'; 
 export async function initPhones() {
   try {
     const phoneCount = await Phone.countDocuments();
@@ -10,7 +12,7 @@ export async function initPhones() {
           brand: 'APPLE',
           model: 'iphone 12',
           color: 'Black',
-          image: '../../client/src/assets/images/phones/iphone12.webp',
+          image: prefix + 'boat_airdopes.webp',
           processor: 'a 20 bionic',
           display: '4.9',
           battery: 1000,

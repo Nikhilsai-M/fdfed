@@ -3,27 +3,23 @@ import { Link, useNavigate } from "react-router-dom";
 import logo from "../../assets/images/icons/logo1.png";
 import cartIcon from "../../assets/images/icons/cart-icon.png";
 import profileIcon from "../../assets/images/icons/profile-icon.png";
-import { useCart } from "../../context/CartContent"; // ✅ Make sure file is correctly named
+import { useCart } from "../../context/CartContent"; 
+import { useAppDispatch, useAppSelector } from "../../hooks/redux";
+import { logout } from "../../store/slices/authSlice";
 
 const Header = () => {
-  const [user, setUser] = useState(null);
-  const { cartCount, fetchCartCount } = useCart(); // ✅ from context
+  const { user } = useAppSelector((state) => state.auth);
+  const { cartCount, fetchCartCount } = useCart(); 
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      setUser(parsedUser);
-    }
-    fetchCartCount(); // ✅ uses context’s version
+    fetchCartCount(); // ✅ uses context's version
   }, []);
 
   const handleLogout = () => {
-    localStorage.clear();
-    setUser(null);
+    dispatch(logout());
     navigate("/");
-    window.location.reload();
   };
 
   return (
@@ -106,7 +102,7 @@ const Header = () => {
                 </div>
 
                 {/* Dropdown */}
-                <div className="absolute right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg w-48 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 translate-y-2 transition-all duration-200">
+                <div className="absolute right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                   <Link
                     to="/profile"
                     className="block px-4 py-2 hover:bg-gray-100 text-gray-700"
@@ -164,64 +160,70 @@ const Header = () => {
               </Link>
             </li>
 
-            {/* Buy Phone Dropdown */}
+            {/* Buy Phone Dropdown - FIXED */}
             <li className="relative group">
-              <Link to ='/buyphones' className="cursor-pointer hover:text-gray-300">
-                Buy Phone ▾
-              </Link>
-              <div className="absolute hidden group-hover:block bg-white text-gray-800 rounded-md shadow-lg mt-2 w-48">
-                {["Apple", "Samsung", "OnePlus"].map((brand) => (
-                  <Link
-                    key={brand}
-                    to={`/buy-phone/${brand.toLowerCase()}`}
-                    className="block px-4 py-2 hover:bg-gray-100"
-                  >
-                    {brand}
-                  </Link>
-                ))}
+              <div className="cursor-pointer hover:text-gray-300 py-2">
+                <Link to='/buyphones' className="hover:text-gray-300">
+                  Buy Phone ▾
+                </Link>
+                {/* Dropdown positioned directly below with no gap */}
+                <div className="absolute left-0 top-full mt-0 bg-white text-gray-800 rounded-md shadow-lg w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 border border-gray-200">
+                  {["Apple", "Samsung", "OnePlus"].map((brand) => (
+                    <Link
+                      key={brand}
+                      to={`/filter-buy-phone?brand=${brand.toLowerCase()}`}
+                      className="block px-4 py-3 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-150 border-b border-gray-100 last:border-b-0"
+                    >
+                      {brand}
+                    </Link>
+                  ))}
+                </div>
               </div>
             </li>
 
-            {/* Buy Laptop Dropdown */}
+            {/* Buy Laptop Dropdown - FIXED */}
             <li className="relative group">
-              <Link to ='/buylaptops' className="cursor-pointer hover:text-gray-300">
-                Buy Laptop ▾
-              </Link>
-              <div className="absolute hidden group-hover:block bg-white text-gray-800 rounded-md shadow-lg mt-2 w-48">
-                {["Dell", "HP", "Apple"].map((brand) => (
-                  <Link
-                    key={brand}
-                    to={`/buy-laptop/${brand.toLowerCase()}`}
-                    className="block px-4 py-2 hover:bg-gray-100"
-                  >
-                    {brand}
-                  </Link>
-                ))}
+              <div className="cursor-pointer hover:text-gray-300 py-2">
+                <Link to='/buylaptops' className="hover:text-gray-300">
+                  Buy Laptop ▾
+                </Link>
+                {/* Dropdown positioned directly below with no gap */}
+                <div className="absolute left-0 top-full mt-0 bg-white text-gray-800 rounded-md shadow-lg w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 border border-gray-200">
+                  {["Dell", "HP", "Apple", "Lenovo", "Asus"].map((brand) => (
+                    <Link
+                      key={brand}
+                      to={`/filter-buy-laptop?brand=${brand.toLowerCase()}`}
+                      className="block px-4 py-3 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-150 border-b border-gray-100 last:border-b-0"
+                    >
+                      {brand}
+                    </Link>
+                  ))}
+                </div>
               </div>
             </li>
 
-            {/* Accessories Dropdown */}
+            {/* Accessories Dropdown - FIXED */}
             <li className="relative group">
-  <Link
-    to="/Accessories"
-    className="cursor-pointer hover:text-gray-300"
-  >
-    Accessories ▾
-  </Link>
-  <div className="absolute left-0 top-full hidden group-hover:block bg-white text-gray-800 rounded-md shadow-lg w-52 z-10">
-    {["Smartwatches", "Chargers", "Earphones", "Mouses"].map(
-      (item) => (
-        <Link
-          key={item}
-          to={`/accessories/${item.toLowerCase()}`}
-          className="block px-4 py-2 hover:bg-gray-100"
-        >
-          {item}
-        </Link>
-      )
-    )}
-  </div>
-</li>
+              <div className="cursor-pointer hover:text-gray-300 py-2">
+                <Link to="/Accessories" className="hover:text-gray-300">
+                  Accessories ▾
+                </Link>
+                {/* Dropdown positioned directly below with no gap */}
+                <div className="absolute left-0 top-full mt-0 bg-white text-gray-800 rounded-md shadow-lg w-52 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 border border-gray-200">
+                  {["Smartwatches", "Chargers", "Earphones", "Mouses"].map(
+                    (item) => (
+                      <Link
+                        key={item}
+                        to={`/accessories/${item.toLowerCase()}`}
+                        className="block px-4 py-3 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-150 border-b border-gray-100 last:border-b-0"
+                      >
+                        {item}
+                      </Link>
+                    )
+                  )}
+                </div>
+              </div>
+            </li>
           </ul>
         </nav>
       </header>
