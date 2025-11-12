@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom"; // Added useNavigate
 import { User, Lock, Shield, AlertCircle, Eye, EyeOff, LogIn } from "lucide-react";
 
@@ -16,21 +16,77 @@ export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
   const [showToken, setShowToken] = useState(false);
   const navigate = useNavigate(); // Added navigate hook
+  const debounceTimer = useRef(null);
 
-  const detectUserType = (username) => {
-    const supervisorPattern = /^supervisor\d*@se\.com$/i;
+  const detectUserType = async (username) => {
+    if (!username || username.trim() === '') return 'customer';
+    
+    // Check admin pattern first (fastest)
     const adminPattern = /^ADMIN\d+$/i;
-    if (supervisorPattern.test(username)) return 'supervisor';
     if (adminPattern.test(username)) return 'admin';
+    
+    // Check supervisor pattern
+    const supervisorPattern = /^supervisor\d*@se\.com$/i;
+    if (supervisorPattern.test(username)) return 'supervisor';
+    
+    // For other usernames, check if they exist as supervisor in database
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/supervisor-auth/check?username=${encodeURIComponent(username)}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+      const data = await response.json();
+      if (data.exists) {
+        return 'supervisor';
+      }
+    } catch (err) {
+      console.error('Error checking supervisor:', err);
+    }
+    
     return 'customer';
   };
 
   const handleChange = (e) => {
     const { id, value } = e.target;
     setFormData({ ...formData, [id]: value });
-    if (id === 'username') setUserType(detectUserType(value));
+    
+    if (id === 'username') {
+      // Clear previous debounce timer
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+      
+      // Quick pattern-based detection (instant)
+      const adminPattern = /^ADMIN\d+$/i;
+      const supervisorPattern = /^supervisor\d*@se\.com$/i;
+      
+      if (adminPattern.test(value)) {
+        setUserType('admin');
+      } else if (supervisorPattern.test(value)) {
+        setUserType('supervisor');
+      } else if (value.trim() === '') {
+        setUserType('customer');
+      } else {
+        // Debounce database check for other usernames
+        debounceTimer.current = setTimeout(async () => {
+          const detectedType = await detectUserType(value);
+          setUserType(detectedType);
+        }, 500); // Wait 500ms after user stops typing
+      }
+    }
+    
     if (error) setError(null);
   };
+
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+    };
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -44,8 +100,9 @@ export default function SignIn() {
       setLoading(true);
       setError(null);
 
-      let endpoint, userKey;
+      let endpoint, userKey, detectedType = userType;
       
+      // Try login based on detected type first
       if (userType === 'supervisor') {
         endpoint = `${API_BASE_URL}/api/supervisor-auth/signin`;
         userKey = 'supervisor';
@@ -53,18 +110,36 @@ export default function SignIn() {
         endpoint = `${API_BASE_URL}/api/admin-auth/admin-signin`;
         userKey = 'admin';
       } else {
+        // For customer, try customer login first, then supervisor if it fails
         endpoint = `${API_BASE_URL}/api/auth/signin`;
         userKey = 'user';
       }
 
-      const res = await fetch(endpoint, {
+      let res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify(formData),
       });
       
-      const data = await res.json();
+      let data = await res.json();
+
+      // If customer login failed, try supervisor login
+      if ((!res.ok || data.success === false) && userType === 'customer') {
+        console.log('Customer login failed, trying supervisor login...');
+        res = await fetch(`${API_BASE_URL}/api/supervisor-auth/signin`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(formData),
+        });
+        data = await res.json();
+        
+        if (res.ok && data.success) {
+          detectedType = 'supervisor';
+          userKey = 'supervisor';
+        }
+      }
 
       if (!res.ok || data.success === false) {
         setError(data.message || "Invalid credentials");
@@ -72,24 +147,25 @@ export default function SignIn() {
         return;
       }
 
-      // Store user data with role - FIXED: Use the correct response structure
+      // Store user data with role
       const userData = {
         ...data[userKey],
-        role: userType
+        role: detectedType
       };
       localStorage.setItem("user", JSON.stringify(userData));
       
       setLoading(false);
 
-      // Navigate based on user type using React Router
-      if (userType === "supervisor") {
+      // Navigate based on detected user type
+      if (detectedType === "supervisor") {
         navigate("/supervisor-dashboard");
-      } else if (userType === "admin") {
+      } else if (detectedType === "admin") {
         navigate("/admin-dashboard");
       } else {
         navigate("/");
       }
     } catch (err) {
+      console.error('Login error:', err);
       setError("Error during sign in");
       setLoading(false);
     }

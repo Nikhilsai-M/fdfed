@@ -41,6 +41,7 @@ import PhoneDetails from './pages/PhoneDetails';
 import ForgotPassword from './pages/ForgotPassword';
 import SearchResults from './pages/SearchResults';
 import Analytics from './pages/admin/AdminAnalytics';
+import ManageSupervisors from './pages/admin/ManageSupervisors';
 
 
 function App() {
@@ -96,6 +97,7 @@ function App() {
             {/* Admin Routes */}
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
             <Route path="/admin/analytics" element={<Analytics />} />
+            <Route path="/admin/manage-supervisors" element={<ManageSupervisors />} />
 
   
           </Routes>
