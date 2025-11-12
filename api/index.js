@@ -5,7 +5,7 @@ import cookieParser from "cookie-parser";
 import userRouter from "./routes/user.route.js";
 import authRouter from "./routes/auth.route.js";
 import supervisorAuthRouter from "./routes/supervisorAuth.route.js";
-import adminAuthRouter from "./routes/adminAuth.route.js"; // ADD THIS
+import adminAuthRouter from "./routes/adminAuth.route.js"; 
 import supervisorRouter from "./routes/supervisor.route.js";
 import chargerRouter from "./routes/charger.route.js";
 import earphoneRouter from "./routes/earphone.route.js";
@@ -23,7 +23,7 @@ import { initEarphones } from "./crud/earphones.js";
 import { initMouses } from "./crud/mouses.js";
 import { initSmartwatches } from "./crud/smartwatches.js";
 import { initializeSupervisors } from './crud/supervisors.js';
-import { initializeAdmins } from './crud/admins.js'; // ADD THIS
+import { initializeAdmins } from './crud/admins.js'; 
 import { initializeApplications } from './crud/applications.js';
 import { initPhones } from './crud/phones.js';
 import { initLaptops } from './crud/laptops.js';
@@ -40,7 +40,7 @@ mongoose.connect(process.env.MONGO).then(async() => {
   await initMouses();
   await initSmartwatches();
   await initializeSupervisors();
-  await initializeAdmins(); // ADD THIS
+  await initializeAdmins();
   await initializeApplications();
 }).catch((err) => {
   console.error("Error connecting to MongoDB:", err);
@@ -48,12 +48,12 @@ mongoose.connect(process.env.MONGO).then(async() => {
 
 const app = express();
 
-// Middleware
+
 app.use(express.json());
 app.use(cookieParser());
 app.use('/uploads', express.static('uploads'));
 
-// CORS configuration
+
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', 'http://localhost:5173');
   res.header('Access-Control-Allow-Credentials', 'true');
@@ -66,12 +66,12 @@ app.use((req, res, next) => {
   next();
 });
 
-// Routes
+
 app.use("/api/user", userRouter);
 app.use("/api/customer", customerRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/supervisor-auth", supervisorAuthRouter);
-app.use("/api/admin-auth", adminAuthRouter); // ADD THIS
+app.use("/api/admin-auth", adminAuthRouter); 
 app.use("/api/supervisor", supervisorRouter); 
 app.use("/api/supervisor/inventory", inventoryRouter);
 app.use("/api/Accessories/chargers", chargerRouter);
@@ -85,7 +85,7 @@ app.use("/api/phone-applications", phoneApplicationRouter);
 app.use("/api",orderRouter);
 app.use("/api",accessoryRouter);
  
-// Error handling middleware
+
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   const message = err.message || "Internal Server Error";
