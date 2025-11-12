@@ -53,7 +53,7 @@ mongoose.connect(process.env.MONGO).then(async() => {
 
 const app = express();
 
-// Middleware
+
 app.use(express.json());
 app.use(cookieParser());
 app.use('/uploads', express.static('uploads'));
@@ -83,7 +83,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Routes
+
 app.use("/api/user", userRouter);
 app.use("/api/customer", customerRouter);
 app.use("/api/auth", authRouter);
@@ -106,7 +106,7 @@ app.use("/api", productRouter);
 app.use("/api/search", searchRouter);
 app.use("/api/admin", adminStatisticsRouter);
  
-// Error handling middleware
+
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   const message = err.message || "Internal Server Error";
