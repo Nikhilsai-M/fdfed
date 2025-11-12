@@ -38,3 +38,23 @@ export async function initializeSupervisors() {
     console.error('Error initializing supervisors:', error);
   }
 }
+
+export async function getAllSupervisors() {
+  try {
+    const supervisors = await Supervisor.find().select('-password').lean();
+    return supervisors;
+  } catch (error) {
+    console.error('Error getting all supervisors:', error);
+    throw error;
+  }
+}
+
+export async function deleteSupervisor(userId) {
+  try {
+    const result = await Supervisor.deleteOne({ user_id: userId });
+    return { success: result.deletedCount > 0 };
+  } catch (error) {
+    console.error('Error deleting supervisor:', error);
+    throw error;
+  }
+}

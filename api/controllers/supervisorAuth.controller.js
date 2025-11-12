@@ -81,3 +81,26 @@ export const supervisorSignin = async (req, res, next) => {
     next(errorHandler(500, 'Error during supervisor signin: ' + error.message));
   }
 }
+
+// Check if username/email exists as supervisor (for detection)
+export const checkSupervisorExists = async (req, res, next) => {
+  const { username } = req.query;
+  
+  try {
+    if (!username) {
+      return res.json({ exists: false });
+    }
+
+    const supervisor = await Supervisor.findOne({
+      $or: [
+        { username: username.trim() },
+        { email: username.trim().toLowerCase() }
+      ]
+    }).select('username email').lean();
+    
+    res.json({ exists: !!supervisor });
+  } catch (error) {
+    console.error('Error checking supervisor:', error);
+    res.json({ exists: false });
+  }
+}

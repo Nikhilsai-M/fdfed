@@ -39,6 +39,10 @@ import PaymentPage from './pages/Payment';
 import LaptopDetails from './pages/LaptopDetails';
 import PhoneDetails from './pages/PhoneDetails';
 import ForgotPassword from './pages/ForgotPassword';
+import SearchResults from './pages/SearchResults';
+import Analytics from './pages/admin/AdminAnalytics';
+import ManageSupervisors from './pages/admin/ManageSupervisors';
+
 
 function App() {
   return (
@@ -81,6 +85,7 @@ function App() {
             <Route path="/payment" element={<PaymentPage/>} />
             <Route path="/listings" element={<Listings/>} />
              <Route path="/forgot-password" element={<ForgotPassword />} />
+             <Route path="/search" element={<SearchResults />} />
 
             {/* Supervisor Routes */}
             <Route path="/supervisor-dashboard" element={<SupervisorDashboard />} />
@@ -91,6 +96,10 @@ function App() {
             
             {/* Admin Routes */}
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/analytics" element={<Analytics />} />
+            <Route path="/admin/manage-supervisors" element={<ManageSupervisors />} />
+
+  
           </Routes>
         </main>
       

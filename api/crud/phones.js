@@ -204,8 +204,6 @@ export const getLatestPhones = async (limit = 8) => {
       .limit(limit)
       .select('id brand model base_price discount condition image')
       .lean();
-    
-    console.log(`Found ${phones.length} latest phones`);
     return phones;
   } catch (error) {
     console.error('Error in getLatestPhones:', error);
