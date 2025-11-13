@@ -14,13 +14,13 @@ const Checkout = () => {
 
   useEffect(() => {
     const allKeys = Object.keys(localStorage);
-    const cartKey = allKeys.find((key) => key.startsWith('cart_user'));
+    const cartKey = allKeys.find((key) => key.startsWith('cart_'));
     if (!cartKey) {
       navigate('/sign-in');
       return;
     }
 
-    const extractedUserId = cartKey.replace('cart_user_', '');
+    const extractedUserId = cartKey.replace('cart_', '');
     setUserId(extractedUserId);
 
     let fetchedCart = [];
@@ -38,7 +38,7 @@ const Checkout = () => {
     if (item.design && item.batteryLife) return 'earphone';
     if (item.displaySize && item.displayType && item.batteryRuntime) return 'smartwatch';
     if (item.resolution && item.connectivity && item.type) return 'mouse';
-    if (item.series && item.processor && item.memory) return 'laptop';
+    if (item.processor && item.ram) return 'laptop';
     return 'unknown';
   };
 
@@ -47,6 +47,7 @@ const Checkout = () => {
     delete accessory.quantity;
     delete accessory.price;
     delete accessory.discount;
+    delete accessory.pricing;
     return accessory;
   };
 
@@ -65,15 +66,15 @@ const Checkout = () => {
       return `${item.title}<br>${item.displaySize}"`;
     if (item.resolution && item.connectivity && item.type)
       return `${item.title}<br>${item.type}`;
-    if (item.series && item.processor && item.memory)
-      return `${item.brand} ${item.series}<br>${item.memory.ram} RAM`;
+    if (item.processor && item.ram)
+      return `${item.brand} ${item.name || ''}<br>${item.ram} RAM`;
     return item.title || 'Unknown Item';
   };
 
   // ---- SUMMARY CALCULATION WITH DISCOUNT ----
   const { subtotal, shipping, discountAmount, total } = useMemo(() => {
     const subtotal = cart.reduce((total, item) => total + calculateItemTotal(item), 0);
-    const shipping = subtotal > 10000 ? 0 : 100;
+    const shipping = subtotal > 10000 ? 0 : 99;
     const discountAmount = (subtotal * discountPercent) / 100;
     const total = subtotal - discountAmount + shipping;
     return { subtotal, shipping, discountAmount, total };
@@ -116,6 +117,14 @@ const Checkout = () => {
       return;
     }
 
+    // Validate item types before proceeding
+    const invalidItems = cart.filter(item => determineItemType(item) === 'unknown');
+    if (invalidItems.length > 0) {
+      console.error('Invalid items in cart:', invalidItems);
+      setMessage({ text: 'Invalid items in cart. Please remove and add them again.', type: 'error' });
+      return;
+    }
+
     if (!selectedPaymentMethod) {
       setMessage({ text: 'Please select a payment method.', type: 'error' });
       return;
@@ -134,10 +143,6 @@ const Checkout = () => {
         quantity: item.quantity || 1,
         amount: calculateItemTotal(item),
       })),
-      subtotal,
-      discountPercent,
-      discountAmount,
-      shipping,
       totalAmount: total,
       paymentMethod: selectedPaymentMethod,
       timestamp: new Date().toISOString(),
@@ -156,7 +161,7 @@ const Checkout = () => {
       if (!result.success) throw new Error(result.message || 'Failed to save order');
 
       // ✅ Clear user's cart
-      const userCartKey = `cart_user_${userId}`;
+      const userCartKey = `cart_${userId}`;
       localStorage.setItem(userCartKey, JSON.stringify([]));
       setCart([]);
 

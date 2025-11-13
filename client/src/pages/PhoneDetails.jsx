@@ -130,7 +130,7 @@ const PhoneDetails = () => {
 
   const buyNow = async () => {
     await addToCart();
-    navigate('/cart');
+    navigate('/payment');
   };
 
   if (loading) {
