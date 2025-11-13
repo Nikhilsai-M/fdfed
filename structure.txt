@@ -1,0 +1,282 @@
+Folder PATH listing for volume OS
+Volume serial number is 8C85-0305
+C:.
+¦   .DS_Store
+¦   .env
+¦   package-lock.json
+¦   structure.txt
+¦   
++---api
+¦   ¦   .gitignore
+¦   ¦   CheckDatabase.js
+¦   ¦   index.js
+¦   ¦   package-lock.json
+¦   ¦   package.json
+¦   ¦   
+¦   +---controllers
+¦   ¦       accessories.controller.js
+¦   ¦       admin.controller.js
+¦   ¦       adminAuth.controller.js
+¦   ¦       adminStatistics.controller.js
+¦   ¦       auth.controller.js
+¦   ¦       customer.controller.js
+¦   ¦       inventory.controller.js
+¦   ¦       laptopApplication.controller.js
+¦   ¦       phoneApplication.controller.js
+¦   ¦       search.controller.js
+¦   ¦       supervisor.controller.js
+¦   ¦       supervisorAuth.controller.js
+¦   ¦       user.controller.js
+¦   ¦       
+¦   +---crud
+¦   ¦       admins.js
+¦   ¦       applications.js
+¦   ¦       chargers.js
+¦   ¦       earphones.js
+¦   ¦       inventory.js
+¦   ¦       laptops.js
+¦   ¦       mouses.js
+¦   ¦       orders.js
+¦   ¦       phones.js
+¦   ¦       smartwatches.js
+¦   ¦       supervisors.js
+¦   ¦       
+¦   +---middleware
+¦   ¦       admin.middleware.js
+¦   ¦       adminauth.middleware.js
+¦   ¦       auth.middleware.js
+¦   ¦       
+¦   +---models
+¦   ¦       admin.model.js
+¦   ¦       charger.model.js
+¦   ¦       counter.model.js
+¦   ¦       earphone.model.js
+¦   ¦       laptop.model.js
+¦   ¦       laptopApplication.model.js
+¦   ¦       mouse.model.js
+¦   ¦       order.model.js
+¦   ¦       orderitem.model.js
+¦   ¦       phone.model.js
+¦   ¦       phoneApplication.model.js
+¦   ¦       smartwatch.model.js
+¦   ¦       supervisor.model.js
+¦   ¦       user.model.js
+¦   ¦       
+¦   +---routes
+¦   ¦       admin.route.js
+¦   ¦       adminAuth.route.js
+¦   ¦       adminStatistics.route.js
+¦   ¦       auth.route.js
+¦   ¦       charger.route.js
+¦   ¦       customer.route.js
+¦   ¦       earphone.route.js
+¦   ¦       Inventory.route.js
+¦   ¦       laptop.route.js
+¦   ¦       laptopApplication.route.js
+¦   ¦       latestaccessories.js
+¦   ¦       mouse.route.js
+¦   ¦       orders.route.js
+¦   ¦       phone.route.js
+¦   ¦       phoneApplication.route.js
+¦   ¦       product.route.js
+¦   ¦       search.route.js
+¦   ¦       smartwatch.route.js
+¦   ¦       supervisor.route.js
+¦   ¦       supervisorAuth.route.js
+¦   ¦       user.route.js
+¦   ¦       
+¦   +---uploads
+¦   ¦   +---laptops
+¦   ¦   ¦       laptop-1762338137185-684802320.png
+¦   ¦   ¦       laptop-1762338589488-85793404.png
+¦   ¦   ¦       laptop-1762672066630-566018929.png
+¦   ¦   ¦       laptop-1762682041653-13794482.png
+¦   ¦   ¦       laptop-1762682294915-404620729.png
+¦   ¦   ¦       
+¦   ¦   +---phones
+¦   ¦           phone-1762370241402-413615609.png
+¦   ¦           phone-1762371961184-554384795.jpg
+¦   ¦           phone-1762373266060-513258375.jpeg
+¦   ¦           
+¦   +---utils
+¦           error.js
+¦           mailer.js
+¦           verifyUser.js
+¦           
++---client
+    ¦   .gitignore
+    ¦   eslint.config.js
+    ¦   index.html
+    ¦   package-lock.json
+    ¦   package.json
+    ¦   README.md
+    ¦   vite.config.js
+    ¦   
+    +---public
+    ¦   +---images
+    +---src
+        ¦   App.css
+        ¦   App.jsx
+        ¦   index.css
+        ¦   main.jsx
+        ¦   
+        +---assets
+        ¦   +---images
+        ¦       +---buy_laptop
+        ¦       ¦       acer-swift3.webp
+        ¦       ¦       asus-zenbook.webp
+        ¦       ¦       buy-laptop-page-curosal.webp
+        ¦       ¦       buy-laptop-page.webp
+        ¦       ¦       buy-laptop-page1.webp
+        ¦       ¦       buy-laptop-page2.webp
+        ¦       ¦       buy-laptop-page3.webp
+        ¦       ¦       buy-laptop-page4.webp
+        ¦       ¦       dell-xps13.webp
+        ¦       ¦       hp-pavilion15.webp
+        ¦       ¦       lenovo-thinkpad.webp
+        ¦       ¦       mac-air-m1.webp
+        ¦       ¦       topbrands1.webp
+        ¦       ¦       topbrands2.webp
+        ¦       ¦       topbrands3.webp
+        ¦       ¦       topbrands4.webp
+        ¦       ¦       topbrands5.webp
+        ¦       ¦       topbrands6.webp
+        ¦       ¦       topbrands7.webp
+        ¦       ¦       topbrands8.webp
+        ¦       ¦       
+        ¦       +---buy_phone
+        ¦       ¦       img1.jpeg
+        ¦       ¦       img2.jpeg
+        ¦       ¦       img3.jpeg
+        ¦       ¦       img4.webp
+        ¦       ¦       img5.webp
+        ¦       ¦       img6.webp
+        ¦       ¦       img7.webp
+        ¦       ¦       
+        ¦       +---carousal
+        ¦       ¦   +---accessories
+        ¦       ¦   ¦       acc-1.webp
+        ¦       ¦   ¦       acc-2.jpeg
+        ¦       ¦   ¦       acc-3.jpeg
+        ¦       ¦   ¦       acc-4.webp
+        ¦       ¦   ¦       
+        ¦       ¦   +---home
+        ¦       ¦           pic-1.jpeg
+        ¦       ¦           pic-2.jpeg
+        ¦       ¦           pic-3.jpeg
+        ¦       ¦           pic-4.jpeg
+        ¦       ¦           
+        ¦       +---icons
+        ¦       ¦       cart-icon.png
+        ¦       ¦       charger.jpg
+        ¦       ¦       Ear buds.png
+        ¦       ¦       logo1.png
+        ¦       ¦       mouse.jpg
+        ¦       ¦       profile-icon.png
+        ¦       ¦       Smart watch.jpg
+        ¦       ¦       
+        ¦       +---laptops
+        ¦       +---phones
+        ¦       ¦       iphone12.webp
+        ¦       ¦       
+        ¦       +---topbrands
+        ¦               google pixel.webp
+        ¦               homepage_last.png
+        ¦               iphone.webp
+        ¦               motorola.webp
+        ¦               oneplus.webp
+        ¦               realme.webp
+        ¦               samsung.webp
+        ¦               vivo.png
+        ¦               xiaomi.webp
+        ¦               
+        +---components
+        ¦   ¦   CartMessage.jsx
+        ¦   ¦   ProductActions.jsx
+        ¦   ¦   ProductContent.jsx
+        ¦   ¦   ProductImage.jsx
+        ¦   ¦   ProductSideBar.jsx
+        ¦   ¦   
+        ¦   +---admin
+        ¦   ¦       AdminSidebar.jsx
+        ¦   ¦       
+        ¦   +---common
+        ¦   ¦       Footer.jsx
+        ¦   ¦       Header.jsx
+        ¦   ¦       
+        ¦   +---filters
+        ¦   ¦       ChargerFilter.jsx
+        ¦   ¦       EarbudsFilter.jsx
+        ¦   ¦       MouseFilter.jsx
+        ¦   ¦       SmartWatchFilter.jsx
+        ¦   ¦       style.css
+        ¦   ¦       
+        ¦   +---supervisor
+        ¦           SupervisorLayout.jsx
+        ¦           
+        +---context
+        ¦       CartContent.jsx
+        ¦       
+        +---hooks
+        ¦       redux.js
+        ¦       
+        +---pages
+        ¦   ¦   AboutUs.jsx
+        ¦   ¦   Accessories.jsx
+        ¦   ¦   AccessoryDetails.jsx
+        ¦   ¦   Blog.jsx
+        ¦   ¦   Buylaptops.jsx
+        ¦   ¦   Buyphones.jsx
+        ¦   ¦   CartPage.jsx
+        ¦   ¦   ChargersPage.jsx
+        ¦   ¦   Checkout.jsx
+        ¦   ¦   ContactUs.jsx
+        ¦   ¦   EarbudsPage.jsx
+        ¦   ¦   filter-phones.jsx
+        ¦   ¦   FilterLaptops.css
+        ¦   ¦   FilterLaptops.jsx
+        ¦   ¦   FilterPhones.css
+        ¦   ¦   ForgotPassword.jsx
+        ¦   ¦   Homepage.jsx
+        ¦   ¦   LaptopDetails.css
+        ¦   ¦   LaptopDetails.jsx
+        ¦   ¦   listings.jsx
+        ¦   ¦   MousePage.jsx
+        ¦   ¦   MyOrders.jsx
+        ¦   ¦   Orders.jsx
+        ¦   ¦   Payment.jsx
+        ¦   ¦   PhoneDetails.css
+        ¦   ¦   PhoneDetails.jsx
+        ¦   ¦   PrivayPolicy.jsx
+        ¦   ¦   Profile.jsx
+        ¦   ¦   SearchResults.jsx
+        ¦   ¦   SellLaptop.jsx
+        ¦   ¦   SellPhone.jsx
+        ¦   ¦   SignIn.jsx
+        ¦   ¦   SignUp.jsx
+        ¦   ¦   SmartWatchesPage.jsx
+        ¦   ¦   SupervisorDashboard.jsx
+        ¦   ¦   TermsAndConditions.jsx
+        ¦   ¦   UserProfile.jsx
+        ¦   ¦   
+        ¦   +---admin
+        ¦   ¦       AdminAnalytics.jsx
+        ¦   ¦       adminDashboard.jsx
+        ¦   ¦       ManageSupervisors.jsx
+        ¦   ¦       
+        ¦   +---supervisor
+        ¦           ManageInventory.jsx
+        ¦           Profile.jsx
+        ¦           Statistics.jsx
+        ¦           SupervisorDashboard.jsx
+        ¦           VerifyListings.jsx
+        ¦           
+        +---store
+        ¦   ¦   index.js
+        ¦   ¦   
+        ¦   +---slices
+        ¦           authSlice.js
+        ¦           
+        +---styles
+                ManageInventory.css
+                

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContent';
-import './FilterPhones.css';
+import '../styles/FilterPhones.css';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
 import { Check, X, ShoppingCart, Zap } from 'lucide-react';
