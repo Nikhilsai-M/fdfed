@@ -33,6 +33,28 @@ const MyOrders = () => {
     fetchOrders();
   }, []);
 
+  const getItemDisplayName = (item) => {
+    const acc = item.accessory;
+    if (!acc) return 'Unnamed Item';
+
+    switch (item.type) {
+      case 'phone':
+        return `${acc.brand || ''} ${acc.model || ''} - ${acc.ram || ''} RAM, ${acc.rom || ''} Storage`;
+      case 'laptop':
+        return acc.name || `${acc.brand || ''} ${acc.series || ''} - ${acc.ram || ''} RAM`;
+      case 'charger':
+        return acc.title || `${acc.brand || ''} ${acc.wattage || ''}W`;
+      case 'earphone':
+        return acc.title || `${acc.brand || ''} ${acc.design || ''}`;
+      case 'smartwatch':
+        return acc.title || `${acc.brand || ''} ${acc.displaySize || ''}"`;
+      case 'mouse':
+        return acc.title || `${acc.brand || ''} ${acc.type || ''}`;
+      default:
+        return acc.title || acc.name || acc.brand || 'Unnamed Item';
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-100">
@@ -128,8 +150,9 @@ const MyOrders = () => {
                         >
                           <div className="flex-1">
                             <div className="font-medium text-gray-800">
-                              {item.accessory.brand || ''} {item.accessory.title || item.accessory.model || item.accessory.series || 'Item'}
+                              {getItemDisplayName(item)}
                             </div>
+                            <div className="text-xs text-gray-500 capitalize">{item.type}</div>
                             <div className="text-sm text-gray-600">Quantity: {item.quantity || 1}</div>
                           </div>
                           <div className="text-right font-bold text-green-600 ml-4">

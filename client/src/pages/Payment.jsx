@@ -7,7 +7,7 @@ const PaymentPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Get data from location state (passed from AccessoryDetails)
+  // Get data from location state (passed from details page via /api/orders/buy/:type/:id)
   const { price, type, id, accessory, userId } = location.state || {};
 
   const [selectedMethod, setSelectedMethod] = useState(null);
@@ -176,9 +176,13 @@ const PaymentPage = () => {
 
   const getItemDisplayName = () => {
     if (!accessory) return "Product";
-    if (accessory.brand && accessory.model) return `${accessory.brand} ${accessory.model}`;
+    // Enhanced to handle phones (brand + model), laptops (brand + series or name), and accessories (title)
     if (accessory.title) return accessory.title;
-    if (accessory.brand) return accessory.brand;
+    if (accessory.name) return accessory.name; // For laptops
+    if (accessory.brand) {
+      const modelPart = accessory.model || accessory.series || '';
+      return `${accessory.brand}${modelPart ? ` ${modelPart}` : ''}`;
+    }
     return "Product";
   };
 

@@ -13,6 +13,28 @@ const Orders = () => {
     if (data) setOrder(JSON.parse(data));
   }, [orderId]);
 
+  const getItemDisplayName = (item) => {
+    const acc = item.accessory;
+    if (!acc) return "Unnamed Item";
+
+    switch (item.type) {
+      case "phone":
+        return `${acc.brand || ''} ${acc.model || ''} - ${acc.ram || ''} RAM, ${acc.rom || ''} Storage`;
+      case "laptop":
+        return acc.name || `${acc.brand || ''} ${acc.series || ''} - ${acc.ram || ''} RAM`;
+      case "charger":
+        return acc.title || `${acc.brand || ''} ${acc.wattage || ''}W`;
+      case "earphone":
+        return acc.title || `${acc.brand || ''} ${acc.design || ''}`;
+      case "smartwatch":
+        return acc.title || `${acc.brand || ''} ${acc.displaySize || ''}"`;
+      case "mouse":
+        return acc.title || `${acc.brand || ''} ${acc.type || ''}`;
+      default:
+        return acc.title || acc.name || acc.brand || "Unnamed Item";
+    }
+  };
+
   // 🧾 Function to create a plain text invoice
   const downloadTextBill = () => {
     if (!order) return;
@@ -26,17 +48,18 @@ const Orders = () => {
     text += `Items:\n`;
 
     order.items.forEach((item, idx) => {
-      const title = item.accessory?.title || "Unnamed Item";
+      const title = getItemDisplayName(item);
+      const type = item.type.toUpperCase();
       const qty = item.quantity;
       const price = (item.amount / qty).toFixed(2);
       const total = item.amount.toFixed(2);
-      text += `${idx + 1}. ${title}\n   Qty: ${qty}, Price: ₹${price}, Total: ₹${total}\n`;
+      text += `${idx + 1}. ${title} (${type})\n   Qty: ${qty}, Unit: ₹${price}, Total: ₹${total}\n`;
     });
 
     text += `---------------------\n`;
-    text += `Subtotal: ₹${order.subtotal.toFixed(2)}\n`;
-    text += `Shipping: ₹${order.shipping.toFixed(2)}\n`;
-    if (order.discountAmount > 0)
+    text += `Subtotal: ₹${(order.subtotal || order.totalAmount).toFixed(2)}\n`;
+    text += `Shipping: ₹${(order.shipping || 0).toFixed(2)}\n`;
+    if ((order.discountAmount || 0) > 0)
       text += `Discount: -₹${order.discountAmount.toFixed(2)}\n`;
     text += `TOTAL: ₹${order.totalAmount.toFixed(2)}\n`;
     text += `=====================\n`;
@@ -57,7 +80,7 @@ const Orders = () => {
       <div className="flex flex-col items-center justify-center min-h-[70vh] text-gray-600">
         <p>Order not found.</p>
         <Link
-          to="/orders"
+          to="/myorders"
           className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
         >
           View All Orders
@@ -102,12 +125,17 @@ const Orders = () => {
               <tr key={idx} className="border-b">
                 <td className="p-3">
                   <div className="flex items-center gap-3">
-                    <img
-                      src={item.accessory?.image}
-                      alt={item.accessory?.title}
-                      className="w-12 h-12 rounded-md border"
-                    />
-                    <span>{item.accessory?.title}</span>
+                    {item.accessory?.image && (
+                      <img
+                        src={item.accessory.image}
+                        alt={getItemDisplayName(item)}
+                        className="w-12 h-12 rounded-md border object-cover"
+                      />
+                    )}
+                    <div>
+                      <div className="font-medium text-sm">{getItemDisplayName(item)}</div>
+                      <div className="text-xs text-gray-500 capitalize">{item.type}</div>
+                    </div>
                   </div>
                 </td>
                 <td className="p-3">{item.quantity}</td>
@@ -121,9 +149,9 @@ const Orders = () => {
         </table>
 
         <div className="text-right space-y-2 text-gray-800">
-          <p>Subtotal: ₹{order.subtotal.toFixed(2)}</p>
-          <p>Shipping: ₹{order.shipping.toFixed(2)}</p>
-          {order.discountAmount > 0 && (
+          <p>Subtotal: ₹{(order.subtotal || order.totalAmount).toFixed(2)}</p>
+          <p>Shipping: ₹{(order.shipping || 0).toFixed(2)}</p>
+          {(order.discountAmount || 0) > 0 && (
             <p>Discount: -₹{order.discountAmount.toFixed(2)}</p>
           )}
           <p className="text-xl font-semibold border-t pt-2">
