@@ -19,53 +19,40 @@ const Orders = () => {
 
     switch (item.type) {
       case "phone":
-        return `${acc.brand || ''} ${acc.model || ''} - ${acc.ram || ''} RAM, ${acc.rom || ''} Storage`;
+        return `${acc.brand} ${acc.model} - ${acc.ram} RAM, ${acc.rom} Storage`;
       case "laptop":
-        return acc.name || `${acc.brand || ''} ${acc.series || ''} - ${acc.ram || ''} RAM`;
-      case "charger":
-        return acc.title || `${acc.brand || ''} ${acc.wattage || ''}W`;
-      case "earphone":
-        return acc.title || `${acc.brand || ''} ${acc.design || ''}`;
-      case "smartwatch":
-        return acc.title || `${acc.brand || ''} ${acc.displaySize || ''}"`;
-      case "mouse":
-        return acc.title || `${acc.brand || ''} ${acc.type || ''}`;
+        return acc.name || `${acc.brand} ${acc.series} - ${acc.ram} RAM`;
       default:
         return acc.title || acc.name || acc.brand || "Unnamed Item";
     }
   };
 
-  // 🧾 Function to create a plain text invoice
   const downloadTextBill = () => {
     if (!order) return;
 
-    let text = `🧾 Order Invoice\n`;
-    text += `=====================\n`;
+    let text = `🧾 Order Invoice\n=========================\n`;
     text += `Order ID: ${order.orderId}\n`;
     text += `Date: ${new Date(order.timestamp).toLocaleString()}\n`;
-    text += `Payment Method: ${order.paymentMethod}\n`;
-    text += `---------------------\n`;
-    text += `Items:\n`;
+    text += `Payment Mode: ${order.paymentMethod}\n`;
+    text += `-------------------------\nItems:\n`;
 
     order.items.forEach((item, idx) => {
       const title = getItemDisplayName(item);
-      const type = item.type.toUpperCase();
       const qty = item.quantity;
-      const price = (item.amount / qty).toFixed(2);
+      const unit = (item.amount / qty).toFixed(2);
       const total = item.amount.toFixed(2);
-      text += `${idx + 1}. ${title} (${type})\n   Qty: ${qty}, Unit: ₹${price}, Total: ₹${total}\n`;
+
+      text += `${idx + 1}. ${title}\n   Qty: ${qty}, Unit: ₹${unit}, Total: ₹${total}\n`;
     });
 
-    text += `---------------------\n`;
-    text += `Subtotal: ₹${(order.subtotal || order.totalAmount).toFixed(2)}\n`;
-    text += `Shipping: ₹${(order.shipping || 0).toFixed(2)}\n`;
-    if ((order.discountAmount || 0) > 0)
+    text += `-------------------------\n`;
+    text += `Subtotal: ₹${order.subtotal.toFixed(2)}\n`;
+    text += `Shipping: ₹${order.shipping.toFixed(2)}\n`;
+    if (order.discountAmount > 0)
       text += `Discount: -₹${order.discountAmount.toFixed(2)}\n`;
     text += `TOTAL: ₹${order.totalAmount.toFixed(2)}\n`;
-    text += `=====================\n`;
-    text += `Thank you for your purchase! 🙌\n`;
+    text += `=========================\nThank you for your purchase 🙌\n`;
 
-    // Create blob and trigger download
     const blob = new Blob([text], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -77,12 +64,9 @@ const Orders = () => {
 
   if (!order)
     return (
-      <div className="flex flex-col items-center justify-center min-h-[70vh] text-gray-600">
-        <p>Order not found.</p>
-        <Link
-          to="/myorders"
-          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-        >
+      <div className="min-h-[70vh] flex flex-col items-center justify-center">
+        <p className="text-gray-600">Order not found.</p>
+        <Link to="/myorders" className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg">
           View All Orders
         </Link>
       </div>
@@ -92,34 +76,34 @@ const Orders = () => {
     <div className="min-h-screen bg-gray-50 py-10 px-4">
       <motion.div
         ref={billRef}
-        initial={{ opacity: 0, y: 30 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-3xl mx-auto bg-white shadow-xl rounded-2xl p-8 border border-gray-200"
+        className="max-w-3xl mx-auto bg-white shadow-xl rounded-xl p-8 border"
       >
-        <div className="flex justify-between items-center mb-6 border-b pb-4">
-          <h1 className="text-2xl font-bold text-gray-800">Order Invoice</h1>
-          <span className="text-gray-600">Order ID: {order.orderId}</span>
+        <div className="flex justify-between items-center border-b pb-4 mb-6">
+          <h1 className="text-2xl font-bold">Order Invoice</h1>
+          <span className="text-gray-600">#{order.orderId}</span>
         </div>
 
-        <div className="mb-6">
-          <p className="text-gray-700">
-            <strong>Date:</strong>{" "}
-            {new Date(order.timestamp).toLocaleString()}
+        <div className="mb-6 text-gray-700">
+          <p>
+            <strong>Date:</strong> {new Date(order.timestamp).toLocaleString()}
           </p>
-          <p className="text-gray-700">
+          <p>
             <strong>Payment Method:</strong> {order.paymentMethod}
           </p>
         </div>
 
-        <table className="w-full text-left border-t border-b border-gray-300 mb-6 text-sm">
+        <table className="w-full text-left border-y text-sm">
           <thead className="bg-gray-100">
             <tr>
               <th className="p-3">Item</th>
               <th className="p-3">Qty</th>
-              <th className="p-3">Price</th>
+              <th className="p-3">Unit Price</th>
               <th className="p-3">Total</th>
             </tr>
           </thead>
+
           <tbody>
             {order.items.map((item, idx) => (
               <tr key={idx} className="border-b">
@@ -128,16 +112,17 @@ const Orders = () => {
                     {item.accessory?.image && (
                       <img
                         src={item.accessory.image}
-                        alt={getItemDisplayName(item)}
-                        className="w-12 h-12 rounded-md border object-cover"
+                        className="w-12 h-12 rounded border"
+                        alt=""
                       />
                     )}
                     <div>
-                      <div className="font-medium text-sm">{getItemDisplayName(item)}</div>
-                      <div className="text-xs text-gray-500 capitalize">{item.type}</div>
+                      <div className="font-medium">{getItemDisplayName(item)}</div>
+                      <div className="text-xs text-gray-500">{item.type}</div>
                     </div>
                   </div>
                 </td>
+
                 <td className="p-3">{item.quantity}</td>
                 <td className="p-3">
                   ₹{(item.amount / item.quantity).toFixed(2)}
@@ -148,28 +133,31 @@ const Orders = () => {
           </tbody>
         </table>
 
-        <div className="text-right space-y-2 text-gray-800">
-          <p>Subtotal: ₹{(order.subtotal || order.totalAmount).toFixed(2)}</p>
-          <p>Shipping: ₹{(order.shipping || 0).toFixed(2)}</p>
-          {(order.discountAmount || 0) > 0 && (
-            <p>Discount: -₹{order.discountAmount.toFixed(2)}</p>
+        {/* FIXED PRICE SUMMARY */}
+        <div className="text-right mt-6 space-y-1 text-gray-800">
+          <p>Subtotal: ₹{order.subtotal.toFixed(2)}</p>
+          <p>Shipping: ₹{order.shipping.toFixed(2)}</p>
+
+          {order.discountAmount > 0 && (
+            <p className="text-green-600">
+              Discount: -₹{order.discountAmount.toFixed(2)}
+            </p>
           )}
+
           <p className="text-xl font-semibold border-t pt-2">
             Total: ₹{order.totalAmount.toFixed(2)}
           </p>
         </div>
       </motion.div>
 
-      <div className="max-w-3xl mx-auto flex justify-between mt-6">
-        <Link
-          to="/myorders"
-          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition"
-        >
-          <ArrowLeft className="w-5 h-5" /> View All Orders
+      <div className="max-w-3xl mx-auto mt-6 flex justify-between">
+        <Link to="/myorders" className="text-blue-600 flex items-center gap-2">
+          <ArrowLeft className="w-5 h-5" /> Back to Orders
         </Link>
+
         <button
           onClick={downloadTextBill}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
         >
           <Download className="w-5 h-5" /> Download Invoice
         </button>

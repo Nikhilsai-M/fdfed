@@ -22,7 +22,7 @@ const LaptopDetails = () => {
 
   const { updateCart } = useCart();
 
-  // Fetch laptop details - SIMPLE like PhoneDetails
+  // Fetch laptop details
   useEffect(() => {
     const fetchLaptop = async () => {
       try {
@@ -103,35 +103,60 @@ const LaptopDetails = () => {
     }
   };
 
+  // Buy Now function - SAME as FilterLaptops page
   const buyNow = async () => {
     try {
-      const response = await fetch('/api/user/profile', { credentials: 'include' });
+      console.log('Buy Now clicked for laptop:', laptop);
+      
+      // Verify user session via API
+      const response = await fetch('/api/user/profile', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
       if (!response.ok) {
         navigate('/sign-in');
         return;
       }
 
       const userData = await response.json();
-      const userId = userData?.user?.user_id;
-      
-      if (!userId) {
+      if (!userData.success || !userData.user) {
         navigate('/sign-in');
         return;
       }
 
-      // Calculate price locally - use direct fields from laptop object
-      const basePrice = laptop.base_price;
-      const discount = laptop.discount || 0;
-      const finalPrice = parseFloat(basePrice) - parseFloat(basePrice) * (parseFloat(discount) / 100);
+      const userId = userData.user.user_id;
+
+      if (!laptop || !laptop.id) {
+        console.error('Laptop data not available');
+        return;
+      }
+
+      // Calculate price locally - SAME calculation as FilterLaptops
+      const calculateFinalPrice = (laptopData) => {
+        const price = parseFloat(laptopData.pricing.basePrice || 0);
+        const discount = parseFloat(laptopData.pricing.discount || 0);
+        return Number((price - (price * discount / 100)).toFixed(2));
+      };
+
+      const finalPrice = calculateFinalPrice(laptop);
+
+      console.log('Buy Now - Price details:', { 
+        basePrice: laptop.pricing.basePrice, 
+        discount: laptop.pricing.discount, 
+        finalPrice,
+        laptopId: laptop.id 
+      });
 
       const paymentData = {
         price: finalPrice,
         type: 'laptop',
-        id: id,
+        id: laptop.id,
         laptop: laptop,
         userId: userId,
       };
 
+      // Navigate to frontend payment page - SAME as FilterLaptops
       navigate('/payment', { 
         state: paymentData 
       });
