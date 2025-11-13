@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContent';
 import { ShoppingCart, X, Check, Zap } from 'lucide-react';
-import './FilterLaptops.css';
+import '../styles/FilterLaptops.css';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
 
