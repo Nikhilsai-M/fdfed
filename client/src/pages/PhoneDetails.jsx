@@ -53,18 +53,30 @@ const PhoneDetails = () => {
       model: phoneData.model,
       color: phoneData.color,
       image: phoneData.image,
+  
+      // ORIGINAL PRICE
       price: phoneData.pricing.basePrice,
-      discount: parseFloat(phoneData.pricing.discount),
+  
+      // STORE DISCOUNT PERCENTAGE IN CART
+      discountPercentage: parseFloat(phoneData.pricing.discount),
+  
+      // OPTIONAL: STORE DISCOUNT PRICE DIRECTLY (YOUR CART USES THIS)
+      discountPrice:
+        phoneData.pricing.basePrice -
+        phoneData.pricing.basePrice * (phoneData.pricing.discount / 100),
+  
       ram: phoneData.ram,
       rom: phoneData.rom,
       processor: phoneData.specs.processor,
       display: phoneData.specs.display,
       battery: phoneData.specs.battery,
       camera: phoneData.specs.camera,
+  
       quantity: 1,
-      type: 'phone'
+      type: 'phone',
     };
   };
+  
 
   // Add to Cart using Context
   const addToCart = async () => {

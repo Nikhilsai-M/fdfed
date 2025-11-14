@@ -23,7 +23,7 @@ const AccessoryDetails = ({ type }) => {
 
   const { updateCart } = useCart();
 
-  // Dynamic API endpoint based on type
+  // API endpoint by type
   const getApiEndpoint = () => {
     switch (type) {
       case 'charger': return `/api/Accessories/chargers/${id}`;
@@ -34,29 +34,78 @@ const AccessoryDetails = ({ type }) => {
     }
   };
 
+  // Calculate discounted price
+  const getDiscountedPrice = (p) => {
+    const price = parseFloat(p.pricing.originalPrice || p.pricing.basePrice || 0);
+    const discount = parseFloat(p.pricing.discount || 0);
+    return price - (price * discount / 100);
+  };
+
+  // Format cart item structure
   const getCartItemFields = (productData) => {
+    const originalPrice = parseFloat(
+      productData.pricing.originalPrice || productData.pricing.basePrice || 0
+    );
+  
+    const discount = parseFloat(productData.pricing.discount || 0);
+  
+    const discountedPrice = Number(
+      originalPrice - (originalPrice * discount) / 100
+    ).toFixed(2);
+  
     const base = {
       id: productData.id,
       brand: productData.brand,
       title: productData.title,
       image: productData.image,
-      price: productData.pricing.originalPrice,
-      discount: parseFloat(productData.pricing.discount),
+  
+      // FINAL price saved correctly
+      price: Number(discountedPrice),
+  
+      // ORIGINAL price saved correctly
+      originalPrice: originalPrice,
+  
+      discount: discount,
       quantity: 1,
     };
+  
     switch (type) {
-      case 'charger':
-        return { ...base, wattage: productData.wattage, type: productData.type, outputCurrent: productData.outputCurrent };
-      case 'mouse':
-        return { ...base, connectivity: productData.connectivity, resolution: productData.resolution, type: productData.type };
-      case 'smartwatch':
-        return { ...base, displaySize: productData.displaySize, displayType: productData.displayType, batteryRuntime: productData.batteryRuntime };
-      case 'earphone':
-        return { ...base, design: productData.design, batteryLife: productData.batteryLife };
+      case "charger":
+        return {
+          ...base,
+          wattage: productData.wattage,
+          type: productData.type,
+          outputCurrent: productData.outputCurrent,
+        };
+  
+      case "mouse":
+        return {
+          ...base,
+          connectivity: productData.connectivity,
+          resolution: productData.resolution,
+          type: productData.type,
+        };
+  
+      case "smartwatch":
+        return {
+          ...base,
+          displaySize: productData.displaySize,
+          displayType: productData.displayType,
+          batteryRuntime: productData.batteryRuntime,
+        };
+  
+      case "earphone":
+        return {
+          ...base,
+          design: productData.design,
+          batteryLife: productData.batteryLife,
+        };
+  
       default:
         return base;
     }
   };
+  
 
   // Fetch product details
   useEffect(() => {
@@ -64,10 +113,13 @@ const AccessoryDetails = ({ type }) => {
       try {
         setLoading(true);
         setError(null);
+
         const response = await fetch(getApiEndpoint());
         if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+
         const data = await response.json();
         if (!data || !data.id) throw new Error(`Invalid ${type} data`);
+
         setProduct(data);
       } catch (err) {
         setError(err.message);
@@ -80,30 +132,30 @@ const AccessoryDetails = ({ type }) => {
     if (id && type) fetchProduct();
   }, [id, type]);
 
-  // Add to Cart using Context
+  // Add to Cart
   const addToCart = async () => {
     try {
-      const response = await fetch('/api/user/profile', { method: 'GET', credentials: 'include' });
-      if (!response.ok) {
-        navigate('/sign-in');
-        return;
-      }
+      const response = await fetch('/api/user/profile', {
+        method: 'GET',
+        credentials: 'include'
+      });
+
+      if (!response.ok) return navigate('/sign-in');
 
       const userData = await response.json();
       const userId = userData?.user?.user_id;
-      if (!userId) {
-        navigate('/sign-in');
-        return;
-      }
+
+      if (!userId) return navigate('/sign-in');
 
       const cartKey = `cart_user_${userId}`;
       const existingCart = JSON.parse(localStorage.getItem(cartKey)) || [];
 
-      const existingIndex = existingCart.findIndex((item) => item.id === product.id);
+      const index = existingCart.findIndex((item) => item.id === product.id);
       let updatedCart;
-      if (existingIndex !== -1) {
+
+      if (index !== -1) {
         updatedCart = [...existingCart];
-        updatedCart[existingIndex].quantity += 1;
+        updatedCart[index].quantity += 1;
       } else {
         updatedCart = [...existingCart, getCartItemFields(product)];
       }
@@ -113,30 +165,24 @@ const AccessoryDetails = ({ type }) => {
       setCartMessage(`${product.title} added to cart!`);
       setTimeout(() => setCartMessage(null), 3500);
     } catch (error) {
-      console.error('Error adding to cart:', error);
+      console.error('Add to cart error:', error);
       navigate('/sign-in');
     }
   };
 
+  // Buy Now
   const buyNow = async () => {
     try {
       const response = await fetch('/api/user/profile', { credentials: 'include' });
-      if (!response.ok) {
-        navigate('/sign-in');
-        return;
-      }
+      if (!response.ok) return navigate('/sign-in');
 
       const userData = await response.json();
       const userId = userData?.user?.user_id;
-      
-      if (!userId) {
-        navigate('/sign-in');
-        return;
-      }
+      if (!userId) return navigate('/sign-in');
 
-      // Calculate price locally
-      const basePrice = product.pricing.originalPrice || product.pricing.basePrice;
-      const finalPrice = parseFloat(basePrice) - parseFloat(basePrice) * (parseFloat(product.pricing.discount) / 100);
+      const original = parseFloat(product.pricing.originalPrice || product.pricing.basePrice || 0);
+      const discount = parseFloat(product.pricing.discount || 0);
+      const finalPrice = original - (original * discount / 100);
 
       const paymentData = {
         price: finalPrice,
@@ -146,17 +192,14 @@ const AccessoryDetails = ({ type }) => {
         userId: userId,
       };
 
-      // Navigate to frontend payment page
-      navigate('/payment', { 
-        state: paymentData 
-      });
+      navigate('/payment', { state: paymentData });
     } catch (error) {
       console.error('Buy now error:', error);
       navigate('/sign-in');
     }
   };
 
-  // Loading state
+  // Loading UI
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -165,6 +208,7 @@ const AccessoryDetails = ({ type }) => {
     );
   }
 
+  // Error UI
   if (error || !product || !product.id) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
