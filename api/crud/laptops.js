@@ -6,7 +6,7 @@ export async function initLaptops() {
     if (laptopCount === 0) {
       await Laptop.insertMany([
         {
-          id: 1,
+          id: 3,
           brand: 'Dell',
           series: 'XPS 13',
           processor_name: 'Intel i7',
@@ -23,7 +23,7 @@ export async function initLaptops() {
           image: '../../client/src/assets/images/laptops/dell_xps13.webp',
         },
         {
-          id: 2,
+          id: 4,
           brand: 'Apple',
           series: 'MacBook Air',
           processor_name: 'M1',
