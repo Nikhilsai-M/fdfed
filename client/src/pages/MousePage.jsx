@@ -182,18 +182,31 @@ const MousePage = () => {
         updatedCart = [...currentCart];
         updatedCart[existingProductIndex].quantity += 1;
       } else {
-        updatedCart = [...currentCart, {
-          id: productData.id,
-          title: productData.title,
-          brand: productData.brand,
-          connectivity: productData.connectivity,
-          type: productData.type,
-          resolution: productData.resolution,
-          image: productData.image,
-          price: productData.originalPrice,
-          discount: parseFloat(productData.discount),
-          quantity: 1,
-        }];
+        updatedCart = [
+          ...currentCart,
+          {
+            id: productData.id,
+            title: productData.title,
+            brand: productData.brand,
+            connectivity: productData.connectivity,
+            type: productData.type,
+            resolution: productData.resolution,
+            image: productData.image,
+        
+            // Correct price fields for Cart.jsx
+            price: parseFloat(productData.originalPrice),        
+            discountPercentage: parseFloat(productData.discount), 
+            discountPrice:
+              parseFloat(productData.originalPrice) -
+              (parseFloat(productData.originalPrice) *
+                parseFloat(productData.discount)) /
+                100,                                             
+        
+            quantity: 1,
+            type: "mouse",
+          },
+        ];
+        
       }
 
       // ✅ Use the context function to update localStorage and state

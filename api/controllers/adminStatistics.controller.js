@@ -2,15 +2,7 @@ import PhoneApplication from "../models/phoneApplication.model.js";
 import LaptopApplication from "../models/laptopApplication.model.js";
 import Phone from "../models/phone.model.js";
 import Laptop from "../models/laptop.model.js";
-import Charger from "../models/charger.model.js";
-import Earphone from "../models/earphone.model.js";
-import Mouse from "../models/mouse.model.js";
-import Smartwatch from "../models/smartwatch.model.js";
 import Order from "../models/order.model.js";
-import { 
-  getAllPhones, 
-  getAllLaptops 
-} from "../crud/inventory.js";
 
 const pct = (cur, prev) => {
   if (!prev) return cur ? 100 : 0;
@@ -73,6 +65,8 @@ export const getAdminStatistics = async (req, res) => {
     }).lean();
 
     console.log(`🔄 Found ${phoneAppsToSync.length} phone apps and ${laptopAppsToSync.length} laptop apps to sync`);
+    console.log(`🔄 Phone IDs to sync:`, phoneAppsToSync.map(p => ({ id: p.id, status: p.status })));
+    console.log(`🔄 Laptop IDs to sync:`, laptopAppsToSync.map(l => ({ id: l.id, status: l.status })));
 
     let phonesSynced = 0;
     for (const app of phoneAppsToSync) {
@@ -151,71 +145,6 @@ export const getAdminStatistics = async (req, res) => {
       console.log(`✅ Sync complete: ${phonesSynced} phones and ${laptopsSynced} laptops synced`);
     }
 
-    
-    let phonesCount = 0;
-    let laptopsCount = 0;
-    let chargersCount = 0;
-    let earphonesCount = 0;
-    let mousesCount = 0;
-    let watchesCount = 0;
-
-    try {
-      
-      const [phones, laptops, chargers, earphones, mouses, smartwatches] = await Promise.all([
-        getAllPhones().catch(err => { 
-          console.error("❌ Error getting phones:", err); 
-          return []; 
-        }),
-        getAllLaptops().catch(err => { 
-          console.error("❌ Error getting laptops:", err); 
-          return []; 
-        }),
-        Charger.countDocuments().catch(err => { 
-          console.error("❌ Charger count error:", err); 
-          return 0; 
-        }),
-        Earphone.countDocuments().catch(err => { 
-          console.error("❌ Earphone count error:", err); 
-          return 0; 
-        }),
-        Mouse.countDocuments().catch(err => { 
-          console.error("❌ Mouse count error:", err); 
-          return 0; 
-        }),
-        Smartwatch.countDocuments().catch(err => { 
-          console.error("❌ Smartwatch count error:", err); 
-          return 0; 
-        }),
-      ]);
-
-      
-      phonesCount = Array.isArray(phones) ? phones.length : 0;
-      laptopsCount = Array.isArray(laptops) ? laptops.length : 0;
-      chargersCount = typeof chargers === 'number' ? chargers : 0;
-      earphonesCount = typeof earphones === 'number' ? earphones : 0;
-      mousesCount = typeof mouses === 'number' ? mouses : 0;
-      watchesCount = typeof smartwatches === 'number' ? smartwatches : 0;
-
-      
-      console.log("📊 INVENTORY Counts (using same functions as Manage Inventory):", {
-        phones: phonesCount,
-        laptops: laptopsCount,
-        chargers: chargersCount,
-        earphones: earphonesCount,
-        mouses: mousesCount,
-        smartwatches: watchesCount
-      });
-      
-      
-      if (Array.isArray(phones) && phones.length > 0) {
-        console.log("📊 Sample Phones (first 2):", phones.slice(0, 2));
-      }
-      if (Array.isArray(laptops) && laptops.length > 0) {
-        console.log("📊 Sample Laptops (first 2):", laptops.slice(0, 2));
-      }
-    } catch (error) {
-      console.error("❌ Error counting inventory items:", error);
-    }
 
     
     const [salesAggThis] = await Order.aggregate([
@@ -240,16 +169,6 @@ export const getAdminStatistics = async (req, res) => {
       totalSalesRevenue: pct(totalSalesRevenue, prevRevenue),
     };
 
-    
-    
-    const salesByCategory = {
-      phones: phonesCount,    
-      laptops: laptopsCount,  
-      chargers: chargersCount,
-      earphones: earphonesCount,
-      mouses: mousesCount,
-      smartwatches: watchesCount,
-    };
 
     
     const applicationStatus = {
@@ -270,7 +189,6 @@ export const getAdminStatistics = async (req, res) => {
       laptop: applicationStatus.laptop
     });
 
-    console.log("📊 Sales By Category (being sent to frontend):", salesByCategory);
 
     const response = {
       success: true,
@@ -280,12 +198,9 @@ export const getAdminStatistics = async (req, res) => {
         approvedListings,
         totalSalesRevenue,
         trends,
-        salesByCategory,
         applicationStatus,
       },
     };
-
-    console.log("📊 Full Response - salesByCategory:", response.statistics.salesByCategory);
 
     res.status(200).json(response);
 

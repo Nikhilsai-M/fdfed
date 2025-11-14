@@ -187,18 +187,29 @@ const SmartWatchesPage = () => {
         updatedCart = [...currentCart];
         updatedCart[existingProductIndex].quantity += 1;
       } else {
-        updatedCart = [...currentCart, {
-          id: productData.id,
-          title: productData.title,
-          brand: productData.brand,
-          displayType: productData.displayType,
-          displaySize: productData.displaySize,
-          batteryRuntime: productData.batteryRuntime,
-          image: productData.image,
-          price: productData.originalPrice,
-          discount: parseFloat(productData.discount),
-          quantity: 1,
-        }];
+        updatedCart = [
+          ...currentCart,
+          {
+            id: productData.id,
+            title: productData.title,
+            brand: productData.brand,
+            displayType: productData.displayType,
+            displaySize: productData.displaySize,
+            batteryRuntime: productData.batteryRuntime,
+            image: productData.image,
+        
+            price: parseFloat(productData.originalPrice), 
+            discountPercentage: parseFloat(productData.discount), 
+            discountPrice:
+              parseFloat(productData.originalPrice) -
+              (parseFloat(productData.originalPrice) *
+                parseFloat(productData.discount)) / 100, 
+        
+            quantity: 1,
+            type: "smartwatch",
+          },
+        ];
+        
       }
 
       // ✅ Use the context function to update localStorage and state

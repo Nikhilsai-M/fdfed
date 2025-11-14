@@ -45,14 +45,24 @@ const LaptopDetails = () => {
   }, [id]);
 
   const getCartItemFields = (laptopData) => {
+    const basePrice = parseFloat(laptopData.pricing?.basePrice || 0);
+    const discountPercentage = parseFloat(laptopData.pricing?.discount || 0);
+  
+    // Calculate final discount price
+    const discountPrice = basePrice - basePrice * (discountPercentage / 100);
+  
     return {
       id: laptopData.id,
       brand: laptopData.brand,
       title: `${laptopData.brand} ${laptopData.series}`,
       model: laptopData.series,
       image: laptopData.image,
-      price: laptopData.pricing.basePrice,
-      discount: parseFloat(laptopData.pricing.discount || 0),
+  
+      // Store original + discount values so Cart.jsx can read them
+      price: basePrice, // Original price
+      discountPercentage: discountPercentage, // % off
+      discountPrice: Number(discountPrice.toFixed(2)), // Discounted Price
+  
       ram: laptopData.ram,
       storage: `${laptopData.storage_type} ${laptopData.storage_capacity}`,
       processor: `${laptopData.processor_name} ${laptopData.processor_generation || ''}`.trim(),
@@ -60,10 +70,12 @@ const LaptopDetails = () => {
       os: laptopData.os,
       weight: `${laptopData.weight} kg`,
       condition: laptopData.condition,
+  
       quantity: 1,
-      type: 'laptop'
+      type: 'laptop',
     };
   };
+  
 
   // Add to Cart using Context
   const addToCart = async () => {

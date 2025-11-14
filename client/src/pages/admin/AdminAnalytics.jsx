@@ -13,9 +13,7 @@ export default function AdminAnalytics() {
   const [error, setError] = useState("");
   const [supervisorListings, setSupervisorListings] = useState(null);
 
-  const categoryRef = useRef(null);
   const statusRef = useRef(null);
-  const categoryChart = useRef(null);
   const statusChart = useRef(null);
   const timerRef = useRef(null);
 
@@ -66,11 +64,6 @@ export default function AdminAnalytics() {
       setLastUpdated(new Date().toLocaleString());
       
       
-      console.log("📊 Admin Statistics Data:", {
-        salesByCategory: data.statistics.salesByCategory,
-        phones: data.statistics.salesByCategory?.phones,
-        laptops: data.statistics.salesByCategory?.laptops
-      });
       
     
       const supervisorData = await fetchSupervisorListings(range);
@@ -83,51 +76,8 @@ export default function AdminAnalytics() {
 
   const renderCharts = (s, supervisorData = null) => {
     
-    categoryChart.current?.destroy();
     statusChart.current?.destroy();
 
-
-    categoryChart.current = new Chart(categoryRef.current, {
-      type: "bar",
-      data: {
-        labels: [
-          "Phones",
-          "Laptops",
-          "Chargers",
-          "Earphones",
-          "Mouses",
-          "Smartwatches",
-        ],
-        datasets: [
-          {
-            label: "Inventory Count",
-            data: [
-              s.salesByCategory?.phones || 0,
-              s.salesByCategory?.laptops || 0,
-              s.salesByCategory?.chargers || 0,
-              s.salesByCategory?.earphones || 0,
-              s.salesByCategory?.mouses || 0,
-              s.salesByCategory?.smartwatches || 0,
-            ],
-            backgroundColor: "rgba(99, 102, 241, 0.25)",
-            borderColor: "rgba(99, 102, 241, 1)",
-            borderWidth: 1,
-            hoverBackgroundColor: "rgba(99, 102, 241, 0.5)",
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        animation: { duration: 650, easing: "easeOutQuart" },
-        scales: {
-          y: { beginAtZero: true, title: { display: true, text: "Count" } },
-          x: { title: { display: true, text: "Category" } },
-        },
-        plugins: { legend: { display: false } },
-      },
-    });
-
-    
     
     const statusData = supervisorData || {
       phone: { pending: 0, approved: 0, addedToInventory: 0, rejected: 0 },
@@ -199,7 +149,6 @@ export default function AdminAnalytics() {
  
   useEffect(() => {
     return () => {
-      categoryChart.current?.destroy();
       statusChart.current?.destroy();
     };
   }, []);
@@ -349,10 +298,7 @@ export default function AdminAnalytics() {
           <h2 className="text-2xl font-semibold text-indigo-700 mb-4">
             Analytics Overview
           </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="h-[340px] rounded-xl border p-4 shadow-sm hover:shadow-md transition">
-              <canvas ref={categoryRef} />
-            </div>
+          <div className="grid grid-cols-1 gap-8">
             <div className="h-[340px] rounded-xl border p-4 shadow-sm hover:shadow-md transition">
               <canvas ref={statusRef} />
             </div>

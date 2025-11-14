@@ -181,17 +181,28 @@ const ChargersPage = () => {
         updatedCart = [...currentCart];
         updatedCart[existingProductIndex].quantity += 1;
       } else {
-        updatedCart = [...currentCart, {
-          id: productData.id,
-          title: productData.title,
-          brand: productData.brand,
-          wattage: productData.wattage,
-          outputCurrent: productData.outputCurrent,
-          image: productData.image,
-          price: productData.originalPrice,
-          discount: parseFloat(productData.discount),
-          quantity: 1,
-        }];
+        updatedCart = [
+          ...currentCart,
+          {
+            id: productData.id,
+            title: productData.title,
+            brand: productData.brand,
+            wattage: productData.wattage,
+            outputCurrent: productData.outputCurrent,
+            image: productData.image,
+        
+            price: parseFloat(productData.originalPrice),                
+            discountPercentage: parseFloat(productData.discount),        
+            discountPrice:
+              parseFloat(productData.originalPrice) -
+              (parseFloat(productData.originalPrice) *
+                parseFloat(productData.discount)) / 100,               
+        
+            quantity: 1,
+            type: "charger",
+          },
+        ];
+        
       }
 
       // ✅ Save to localStorage immediately after updating the cart

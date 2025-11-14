@@ -179,14 +179,24 @@ const EarbudsPage = () => {
       } else {
         updatedCart = [...currentCart, {
           id: productData.id,
-          title: productData.title,
-          brand: productData.brand,
-          batteryLife: productData.batteryLife,
-          design: productData.design,
-          image: productData.image,
-          price: productData.originalPrice,
-          discount: parseFloat(productData.discount),
-          quantity: 1,
+  title: productData.title,
+  brand: productData.brand,
+  batteryLife: productData.batteryLife,
+  design: productData.design,
+  image: productData.image,
+
+  // Store original + discount values
+  price: parseFloat(productData.originalPrice),   // Original price
+  discountPercentage: parseFloat(productData.discount), // % discount
+
+  // Calculate final discounted price
+  discountPrice:
+    parseFloat(productData.originalPrice) -
+    (parseFloat(productData.originalPrice) *
+      parseFloat(productData.discount)) / 100,
+
+  quantity: 1,
+  type: "earbuds",
         }];
       }
 
