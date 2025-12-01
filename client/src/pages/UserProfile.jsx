@@ -47,44 +47,78 @@ export default function UserProfile() {
   }, [user]);
 
   const fetchUserProfile = async () => {
-    try {
-      const userData = JSON.parse(localStorage.getItem('user'));
-      if (!userData || userData.role !== 'customer') {
-        window.location.href = '/sign-in';
-        return;
-      }
-
-      const res = await fetch(`${API_BASE_URL}/api/customer/profile`, {
-        credentials: 'include'
-      });
-      
-      const data = await res.json();
-      
-      if (data.success) {
-        setUser(data.user);
-        setFormData({
-          first_name: data.user.first_name,
-          last_name: data.user.last_name,
-          email: data.user.email,
-          phone: data.user.phone,
-          address: {
-            street: data.user.address?.street || '',
-            city: data.user.address?.city || '',
-            state: data.user.address?.state || '',
-            postal_code: data.user.address?.postal_code || '',
-            country: data.user.address?.country || ''
-          }
-        });
-      } else {
-        setMessage('Error loading profile');
-      }
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-      setMessage('Error loading profile data');
-    } finally {
-      setLoading(false);
+  try {
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+    if (!storedUser || storedUser.role !== "customer") {
+      window.location.href = "/sign-in";
+      return;
     }
-  };
+
+    const userId = storedUser.user_id;
+
+    // 1️⃣ Fetch base user profile
+    const res = await fetch(`${API_BASE_URL}/api/customer/profile`, {
+      credentials: "include",
+    });
+
+    const data = await res.json();
+    if (!data.success) {
+      setMessage("Error loading profile");
+      return;
+    }
+
+    const baseUser = data.user;
+
+    // 2️⃣ Fetch user's listings to compute items_sold_count
+    const listingsRes = await fetch(`${API_BASE_URL}/api/customer/listings`, {
+      credentials: "include",
+    });
+
+    const listingsData = await listingsRes.json();
+    const listings = listingsData.listings || [];
+
+    // 3️⃣ Count items sold = approved + added_to_inventory
+    const itemsSoldCount = listings.filter(listing =>
+      ["approved", "added_to_inventory"].includes(listing.status)
+    ).length;
+
+    // 4️⃣ Final updated user object
+    const finalUser = {
+      ...baseUser,
+      items_sold_count: itemsSoldCount
+    };
+
+    setUser(finalUser);
+
+    // 5️⃣ Update localStorage
+    localStorage.setItem("user", JSON.stringify({
+      ...storedUser,
+      items_sold_count: itemsSoldCount
+    }));
+
+    // 6️⃣ Update form
+    setFormData({
+      first_name: baseUser.first_name,
+      last_name: baseUser.last_name,
+      email: baseUser.email,
+      phone: baseUser.phone,
+      address: {
+        street: baseUser.address?.street || "",
+        city: baseUser.address?.city || "",
+        state: baseUser.address?.state || "",
+        postal_code: baseUser.address?.postal_code || "",
+        country: baseUser.address?.country || ""
+      }
+    });
+
+  } catch (error) {
+    console.error("Error fetching profile:", error);
+    setMessage("Error loading profile data");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const renderPieChart = () => {
     if (!user || !chartRef.current) return;
