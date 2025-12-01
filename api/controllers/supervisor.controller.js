@@ -1,6 +1,8 @@
 import { Supervisor, SupervisorActivity } from "../models/supervisor.model.js";
 import PhoneApplication from "../models/phoneApplication.model.js";
 import LaptopApplication from "../models/laptopApplication.model.js";
+import Phone from "../models/phone.model.js";
+import Laptop from "../models/laptop.model.js";
 import bcrypt from "bcryptjs";
 import { errorHandler } from "../utils/error.js";
 
@@ -172,29 +174,102 @@ export const updateApplicationStatus = async (req, res, next) => {
 };
 
 // Add to inventory
+// Add to inventory
 export const addToInventory = async (req, res, next) => {
   try {
     const { type, id } = req.params;
     const { discount, condition } = req.body;
     const numericId = parseInt(id);
 
-    let result;
+    let application;
+    let productData;
+    
     if (type === 'phone') {
-      result = await PhoneApplication.updateOne(
+      // Get phone application
+      application = await PhoneApplication.findOne({ id: numericId });
+      if (!application) {
+        return next(errorHandler(404, 'Phone application not found'));
+      }
+      
+      // Update application status
+      const result = await PhoneApplication.updateOne(
         { id: numericId },
         { $set: { status: 'added_to_inventory' } }
       );
+
+      if (result.modifiedCount === 0) {
+        return next(errorHandler(404, 'Failed to update application status'));
+      }
+
+      // Create product data from application
+      productData = {
+        id: application.id,
+        brand: application.brand,
+        model: application.model,
+        color: '', // Default or extract from description if available
+        image: application.image_path || '/default-phone.jpg',
+        processor: application.processor,
+        display: application.size || '',
+        battery: parseInt(application.battery) || 0,
+        camera: application.camera,
+        os: application.os,
+        network: application.network,
+        weight: application.weight || '',
+        ram: application.ram,
+        rom: application.rom,
+        base_price: application.price || 0,
+        discount: parseInt(discount) || 0,
+        condition: condition || 'Good',
+        created_at: new Date()
+      };
+
+      // Add to Phone collection
+      const phone = new Phone(productData);
+      await phone.save();
+
     } else if (type === 'laptop') {
-      result = await LaptopApplication.updateOne(
+      // Get laptop application
+      application = await LaptopApplication.findOne({ id: numericId });
+      if (!application) {
+        return next(errorHandler(404, 'Laptop application not found'));
+      }
+
+      // Update application status
+      const result = await LaptopApplication.updateOne(
         { id: numericId },
         { $set: { status: 'added_to_inventory' } }
       );
+
+      if (result.modifiedCount === 0) {
+        return next(errorHandler(404, 'Failed to update application status'));
+      }
+
+      // Create product data from application
+      productData = {
+        id: application.id,
+        brand: application.brand,
+        series: application.model,
+        processor_name: application.processor,
+        processor_generation: application.generation || '',
+        base_price: application.price || 0,
+        discount: parseInt(discount) || 0,
+        ram: application.ram,
+        storage_type: 'SSD', // Default or extract from storage field
+        storage_capacity: application.storage,
+        display_size: parseFloat(application.display_size) || 14,
+        weight: parseFloat(application.weight) || 1.5,
+        condition: condition || 'Good',
+        os: application.os || 'Windows',
+        image: application.image_path || '/default-laptop.jpg',
+        created_at: new Date()
+      };
+
+      // Add to Laptop collection
+      const laptop = new Laptop(productData);
+      await laptop.save();
+
     } else {
       return next(errorHandler(400, 'Invalid application type'));
-    }
-
-    if (result.modifiedCount === 0) {
-      return next(errorHandler(404, 'Application not found'));
     }
 
     // Log activity
@@ -205,10 +280,16 @@ export const addToInventory = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      message: 'Item added to inventory successfully'
+      message: 'Item added to inventory successfully and product created'
     });
   } catch (error) {
     console.error('Error adding to inventory:', error);
+    
+    // Handle duplicate ID error
+    if (error.code === 11000) {
+      return next(errorHandler(400, 'Product with this ID already exists in inventory'));
+    }
+    
     next(errorHandler(500, 'Error adding to inventory'));
   }
 };
