@@ -23,65 +23,195 @@ export default function SignUp() {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
-    const handleChange = (e) => {
-        const { id, value } = e.target;
-        
-        // Handle nested address fields
-        if (id.startsWith('address.')) {
-            const addressField = id.split('.')[1];
-            setFormData({
-                ...formData,
-                address: {
-                    ...formData.address,
-                    [addressField]: value
+    // Regex patterns matching JS
+    const nameRegex = /^[a-zA-Z\s-]+$/;
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const phoneRegex = /^\d{10}$/;
+    const postalRegex = /^\d{5,10}$/;
+    const passwordRegex = /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/;
+
+    const getValue = (fieldId, currentFormData) => {
+        if (fieldId.startsWith('address.')) {
+            const key = fieldId.split('.')[1];
+            return currentFormData.address[key];
+        }
+        return currentFormData[fieldId];
+    };
+
+    const getValidationError = (fieldId, currentFormData) => {
+        const value = getValue(fieldId, currentFormData);
+        const trimmed = value ? value.trim() : '';
+        let message = '';
+
+        switch (fieldId) {
+            case 'username':
+                if (!trimmed) {
+                    message = 'Username is required';
                 }
-            });
-        } else {
-            setFormData({
-                ...formData,
-                [id]: value
-            });
+                break;
+
+            case 'firstName':
+            case 'lastName':
+                if (!trimmed) {
+                    message = `${fieldId.charAt(0).toUpperCase() + fieldId.slice(1)} is required`;
+                } else if (trimmed.length < 2) {
+                    message = `${fieldId.charAt(0).toUpperCase() + fieldId.slice(1)} must be at least 2 characters`;
+                } else if (!nameRegex.test(trimmed)) {
+                    message = `${fieldId.charAt(0).toUpperCase() + fieldId.slice(1)} can only contain letters, spaces, and hyphens`;
+                }
+                break;
+
+            case 'address.street':
+            case 'address.city':
+            case 'address.state':
+            case 'address.country':
+                const fieldName = fieldId.split('.').pop();
+                if (!trimmed) {
+                    message = `${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)} is required`;
+                } else if (!nameRegex.test(trimmed)) {
+                    message = `${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)} can only contain letters, spaces, and hyphens`;
+                }
+                break;
+
+            case 'email':
+                if (!trimmed) {
+                    message = 'Email is required';
+                } else if (!emailRegex.test(trimmed)) {
+                    message = 'Please enter a valid email address (e.g., user@example.com)';
+                }
+                break;
+
+            case 'phone':
+                if (!trimmed) {
+                    message = 'Phone number is required';
+                } else if (!phoneRegex.test(trimmed)) {
+                    message = 'Phone number must be 10 digits';
+                }
+                break;
+
+            case 'address.postal_code':
+                if (!trimmed) {
+                    message = 'Postal code is required';
+                } else if (!postalRegex.test(trimmed)) {
+                    message = 'Postal code must be 5-10 digits';
+                }
+                break;
+
+            case 'password':
+                if (!value) {
+                    message = 'Password is required';
+                } else if (value.length < 6) {
+                    message = 'Password must be at least 6 characters';
+                } else if (!passwordRegex.test(value)) {
+                    message = 'Password must contain at least one uppercase letter, one lowercase letter, and one number';
+                }
+                break;
+
+            case 'confirmPassword':
+                const passwordValue = currentFormData.password;
+                if (!trimmed) {
+                    message = 'Please confirm your password';
+                } else if (trimmed !== passwordValue) {
+                    message = 'Passwords do not match';
+                }
+                break;
+
+            default:
+                break;
         }
-        
-        // Clear field error when user starts typing
-        if (fieldErrors[id]) {
-            setFieldErrors({ ...fieldErrors, [id]: null });
-        }
+
+        return message;
+    };
+
+    const validateField = (fieldId, currentFormData) => {
+        const message = getValidationError(fieldId, currentFormData);
+        setFieldErrors((prev) => ({
+            ...prev,
+            [fieldId]: message || null
+        }));
     };
 
     const validateForm = () => {
         const errors = {};
-        
-        if (!formData.username) errors.username = "Username is required";
-        if (!formData.firstName) errors.firstName = "First name is required";
-        if (!formData.lastName) errors.lastName = "Last name is required";
-        if (!formData.email) errors.email = "Email is required";
-        if (!formData.phone) errors.phone = "Phone number is required";
-        if (!formData.password) errors.password = "Password is required";
-        if (formData.password.length < 6) errors.password = "Password must be at least 6 characters";
-        if (formData.password !== formData.confirmPassword) {
-            errors.confirmPassword = "Passwords do not match";
-        }
-        if (!formData.address.street) errors['address.street'] = "Street is required";
-        if (!formData.address.city) errors['address.city'] = "City is required";
-        if (!formData.address.state) errors['address.state'] = "State is required";
-        if (!formData.address.postal_code) errors['address.postal_code'] = "Postal code is required";
-        if (!formData.address.country) errors['address.country'] = "Country is required";
-        
+        const fields = [
+            'username', 'firstName', 'lastName', 'email', 'phone',
+            'address.street', 'address.city', 'address.state', 'address.postal_code', 'address.country',
+            'password', 'confirmPassword'
+        ];
+
+        fields.forEach((fieldId) => {
+            const message = getValidationError(fieldId, formData);
+            if (message) {
+                errors[fieldId] = message;
+            }
+        });
+
+        setFieldErrors(errors);
         return errors;
     };
 
-    const handleSubmit = async(e) => {
+    const handleChange = (e) => {
+        const { id, value } = e.target;
+
+        // Create new form data with the update
+        let newFormData = { ...formData };
+        if (id.startsWith('address.')) {
+            const addressField = id.split('.')[1];
+            newFormData = {
+                ...newFormData,
+                address: {
+                    ...newFormData.address,
+                    [addressField]: value
+                }
+            };
+        } else {
+            newFormData = {
+                ...newFormData,
+                [id]: value
+            };
+        }
+
+        // Update state
+        setFormData(newFormData);
+
+        // Validate the changed field with new data
+        validateField(id, newFormData);
+
+        // Special handling for confirmPassword when password changes
+        if (id === 'password') {
+            validateField('confirmPassword', newFormData);
+        }
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        
-        // Validate form
+
+        // Validate all fields
         const errors = validateForm();
         if (Object.keys(errors).length > 0) {
-            setFieldErrors(errors);
             setError("Please fill in all required fields correctly");
             return;
         }
-        
+
+        // Trim values before submission (excluding password and confirmPassword)
+        const submitData = {
+            ...newFormData, // Use the latest, but since submit after change, formData is updated
+            username: newFormData.username.trim(),
+            firstName: newFormData.firstName.trim(),
+            lastName: newFormData.lastName.trim(),
+            email: newFormData.email.trim(),
+            phone: newFormData.phone.trim(),
+            confirmPassword: newFormData.confirmPassword.trim(), // Trim but not used in submit
+            address: {
+                ...newFormData.address,
+                street: newFormData.address.street.trim(),
+                city: newFormData.address.city.trim(),
+                state: newFormData.address.state.trim(),
+                postal_code: newFormData.address.postal_code.trim(),
+                country: newFormData.address.country.trim()
+            }
+        };
+
         try {
             setLoading(true);
             setError(null);
@@ -92,38 +222,39 @@ export default function SignUp() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(formData),
+                body: JSON.stringify(submitData),
             });
 
             const data = await res.json();
 
             if (data.success === false || !res.ok) {
                 setLoading(false);
-                setError(data.message || "Signup failed");
                 if (data.errors) {
+                    // Handle server errors, assuming dotted notation like 'address.street'
                     setFieldErrors(data.errors);
                 }
+                setError(data.message || "Signup failed");
                 return;
             }
-            
+
             setLoading(false);
             setError(null);
             alert('Account created successfully! Please sign in.');
             navigate('/sign-in');
-        } catch(error) {
+        } catch (err) {
             setLoading(false);
-            setError(error.message || "An error occurred during sign up.");
+            setError(err.message || "An error occurred during sign up.");
         }
     };
 
     return (
         <div className="p-3 max-w-2xl mx-auto min-h-screen">
             <h1 className="text-3xl text-center font-semibold my-7">Create Account</h1>
-            
+
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                 {/* Account Information */}
                 <h3 className="text-xl font-semibold mt-2">Account Information</h3>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <input
@@ -138,7 +269,7 @@ export default function SignUp() {
                             <p className="text-red-500 text-sm mt-1">{fieldErrors.username}</p>
                         )}
                     </div>
-                    
+
                     <div>
                         <input
                             type="email"
@@ -156,7 +287,7 @@ export default function SignUp() {
 
                 {/* Personal Information */}
                 <h3 className="text-xl font-semibold mt-4">Personal Information</h3>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <input
@@ -171,7 +302,7 @@ export default function SignUp() {
                             <p className="text-red-500 text-sm mt-1">{fieldErrors.firstName}</p>
                         )}
                     </div>
-                    
+
                     <div>
                         <input
                             type="text"
@@ -203,7 +334,7 @@ export default function SignUp() {
 
                 {/* Address Section */}
                 <h3 className="text-xl font-semibold mt-4">Address Information</h3>
-                
+
                 <div>
                     <input
                         type="text"
@@ -232,7 +363,7 @@ export default function SignUp() {
                             <p className="text-red-500 text-sm mt-1">{fieldErrors['address.city']}</p>
                         )}
                     </div>
-                    
+
                     <div>
                         <input
                             type="text"
@@ -262,7 +393,7 @@ export default function SignUp() {
                             <p className="text-red-500 text-sm mt-1">{fieldErrors['address.postal_code']}</p>
                         )}
                     </div>
-                    
+
                     <div>
                         <input
                             type="text"
@@ -280,7 +411,7 @@ export default function SignUp() {
 
                 {/* Password Section */}
                 <h3 className="text-xl font-semibold mt-4">Security</h3>
-                
+
                 <div>
                     <input
                         type="password"
@@ -309,21 +440,21 @@ export default function SignUp() {
                     )}
                 </div>
 
-                <button 
-                    disabled={loading} 
+                <button
+                    disabled={loading}
                     className="bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-80 disabled:opacity-50 mt-4"
                 >
                     {loading ? "Creating Account..." : "Sign Up"}
                 </button>
             </form>
-            
+
             <div className="flex gap-2 mt-5 justify-center">
                 <p>Already have an account?</p>
                 <Link to="/sign-in">
                     <span className="text-blue-700 hover:underline">Sign In</span>
                 </Link>
             </div>
-            
+
             {error && (
                 <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mt-3">
                     {error}
