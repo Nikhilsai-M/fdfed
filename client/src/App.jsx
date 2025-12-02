@@ -1,7 +1,8 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { store } from './store';
+import { useAppSelector } from './hooks/redux';
 import Homepage from './pages/Homepage';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
@@ -43,6 +44,12 @@ import SearchResults from './pages/SearchResults';
 import Analytics from './pages/admin/AdminAnalytics';
 import ManageSupervisors from './pages/admin/ManageSupervisors';
 
+// Protected Route Component
+const ProtectedRoute = ({ children }) => {
+  const { user } = useAppSelector((state) => state.auth);
+  return user ? children : <Navigate to="/sign-in" replace />;
+};
+
 function App() {
   return (
     <Provider store={store}>
@@ -57,20 +64,40 @@ function App() {
                 <Route path="/accessories/mouses" element={<MousePage/>}/>
                 <Route path="/accessories/earphones" element={<EarbudsPage/>}/>
                 <Route path="/accessories/smartwatches" element={<SmartWatchesPage/>}/>
-                <Route path="/profile" element={<UserProfile />} />
+                <Route path="/profile" element={
+                  <ProtectedRoute>
+                    <UserProfile />
+                  </ProtectedRoute>
+                } />
                 <Route path="/charger/:id" element={<AccessoryDetails type="charger" />} />
                 <Route path="/mouse/:id" element={<AccessoryDetails type="mouse" />} />
                 <Route path="/smartwatch/:id" element={<AccessoryDetails type="smartwatch" />} />
                 <Route path="/earphone/:id" element={<AccessoryDetails type="earphone" />} />
                 <Route path="/Accessories" element={<AccessoriesPage />} />
-                <Route path="/myorders" element={<MyOrders />} />
-                <Route path="/orders/:orderId" element={<Orders />} />
+                <Route path="/myorders" element={
+                  <ProtectedRoute>
+                    <MyOrders />
+                  </ProtectedRoute>
+                } />
+                <Route path="/orders/:orderId" element={
+                  <ProtectedRoute>
+                    <Orders />
+                  </ProtectedRoute>
+                } />
                 <Route path="/sell-phone" element={<SellPhoneForm />}/>
                 <Route path="/sell-laptop" element={<SellLaptop />} />
                 <Route path="/sign-in" element={<SignIn />} />
                 <Route path="/sign-up" element={<SignUp />} />
-                <Route path="/cart" element={<CartPage/>} />
-                <Route path="/checkout" element={<Checkout/>} />
+                <Route path="/cart" element={
+                  <ProtectedRoute>
+                    <CartPage/>
+                  </ProtectedRoute>
+                } />
+                <Route path="/checkout" element={
+                  <ProtectedRoute>
+                    <Checkout/>
+                  </ProtectedRoute>
+                } />
                 <Route path="/buyphones" element={<BuyPhones/>} />
                 <Route path="/buylaptops" element={<BuyLaptops/>} />
                 <Route path="/filter-buy-phone" element={<FilterPhones/>}/>
@@ -82,22 +109,30 @@ function App() {
                 <Route path="/contact_us" element={<ContactUs/>} />
                 <Route path="/privacypolicy" element={<PrivacyPolicy/>} />
                 <Route path="/terms" element={<TermsAndConditions/>} />
-                <Route path="/payment" element={<PaymentPage/>} />
-                <Route path="/listings" element={<Listings/>} />
+                <Route path="/payment" element={
+                  <ProtectedRoute>
+                    <PaymentPage/>
+                  </ProtectedRoute>
+                } />
+                <Route path="/listings" element={
+                  <ProtectedRoute>
+                    <Listings/>
+                  </ProtectedRoute>
+                } />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/search" element={<SearchResults />} />
 
-                {/* Supervisor Routes */}
-                <Route path="/supervisor-dashboard" element={<SupervisorDashboard />} />
-                <Route path="/supervisor/verify-listings" element={<VerifyListings />} />
-                <Route path="/supervisor/manage-inventory" element={<ManageInventory />} />
-                <Route path="/supervisor/statistics" element={<Statistics />} />
-                <Route path="/supervisor/profile" element={<Profile />} />
+                {/* Supervisor Routes - Also protected */}
+                <Route path="/supervisor-dashboard" element={<ProtectedRoute><SupervisorDashboard /></ProtectedRoute>} />
+                <Route path="/supervisor/verify-listings" element={<ProtectedRoute><VerifyListings /></ProtectedRoute>} />
+                <Route path="/supervisor/manage-inventory" element={<ProtectedRoute><ManageInventory /></ProtectedRoute>} />
+                <Route path="/supervisor/statistics" element={<ProtectedRoute><Statistics /></ProtectedRoute>} />
+                <Route path="/supervisor/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                 
-                {/* Admin Routes */}
-                <Route path="/admin-dashboard" element={<AdminDashboard />} />
-                <Route path="/admin/analytics" element={<Analytics />} />
-                <Route path="/admin/manage-supervisors" element={<ManageSupervisors />} />
+                {/* Admin Routes - Also protected */}
+                <Route path="/admin-dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+                <Route path="/admin/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+                <Route path="/admin/manage-supervisors" element={<ProtectedRoute><ManageSupervisors /></ProtectedRoute>} />
               </Routes>
             </main>
           
