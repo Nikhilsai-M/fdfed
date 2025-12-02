@@ -25,6 +25,7 @@ const phoneApplicationSchema = new mongoose.Schema({
   email: { type: String, required: true },
   phone: { type: String, required: true },
   image_path: { type: String },
+  cloudinary_public_id: { type: String, default: '' },
   status: { type: String, default: 'pending' },
   rejection_reason: { type: String },
   price: { type: Number },
