@@ -1,10 +1,11 @@
 import PhoneApplication from '../models/phoneApplication.model.js';
-import { v4 as uuidv4 } from 'uuid';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import { uploadToCloudinary } from '../utils/cloudinary.js';
+import { unlink } from 'fs/promises';
 
-// Configure multer for file uploads
+// Configure multer for temporary storage
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const uploadDir = 'uploads/phones/';
@@ -23,6 +24,17 @@ const upload = multer({
   storage: storage,
   limits: {
     fileSize: 5 * 1024 * 1024,
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|gif|webp/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+    
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed (jpeg, jpg, png, gif, webp)!'));
+    }
   }
 });
 
@@ -66,19 +78,70 @@ export const submitPhoneApplication = async (req, res) => {
       }
     }
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid email format'
+      });
+    }
+
+    // Validate phone number
+    const phoneRegex = /^[0-9]{10}$/;
+    if (!phoneRegex.test(phone.replace(/\D/g, ''))) {
+      return res.status(400).json({
+        success: false,
+        message: 'Phone number must be 10 digits'
+      });
+    }
+
     // Generate unique ID
     const lastApplication = await PhoneApplication.findOne().sort({ id: -1 });
     const nextId = lastApplication ? lastApplication.id + 1 : 1;
 
     let image_path = '';
+    let cloudinary_public_id = '';
+
+    // Upload to Cloudinary if file exists
     if (req.file) {
-      image_path = req.file.path;
+      try {
+        // Upload to Cloudinary
+        const cloudinaryResult = await uploadToCloudinary(req.file.path, 'phones');
+        
+        // Store Cloudinary URL in image_path (keeping the same field name)
+        image_path = cloudinaryResult.secure_url;
+        cloudinary_public_id = cloudinaryResult.public_id;
+        
+        // Clean up temporary file
+        await unlink(req.file.path);
+        console.log('Temporary file cleaned up:', req.file.path);
+      } catch (uploadError) {
+        console.error('Error uploading to Cloudinary:', uploadError);
+        // Clean up temp file even if upload fails
+        if (req.file && req.file.path) {
+          try {
+            await unlink(req.file.path);
+          } catch (cleanupError) {
+            console.error('Error cleaning up temp file:', cleanupError);
+          }
+        }
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to upload image. Please try again.'
+        });
+      }
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: 'Device image is required'
+      });
     }
 
-    // Create new application
+    // Create new application - image_path now contains Cloudinary URL
     const newApplication = new PhoneApplication({
       id: nextId,
-      user_id: req.user.user_id ,
+      user_id: req.user?.user_id || null,
       brand: brand.toUpperCase(),
       model,
       ram,
@@ -100,7 +163,8 @@ export const submitPhoneApplication = async (req, res) => {
       location,
       email,
       phone,
-      image_path,
+      image_path, // This now contains Cloudinary URL, not local path
+      cloudinary_public_id, // Store Cloudinary ID for future management
       status: 'pending'
     });
 
@@ -109,11 +173,27 @@ export const submitPhoneApplication = async (req, res) => {
     res.status(201).json({
       success: true,
       message: 'Phone application submitted successfully',
-      applicationId: nextId
+      applicationId: nextId,
+      data: {
+        id: nextId,
+        brand: newApplication.brand,
+        model: newApplication.model,
+        image_url: image_path
+      }
     });
 
   } catch (error) {
     console.error('Error submitting phone application:', error);
+    
+    // Clean up any temporary files
+    if (req.file && req.file.path) {
+      try {
+        await unlink(req.file.path);
+      } catch (cleanupError) {
+        console.error('Error cleaning up temp file:', cleanupError);
+      }
+    }
+    
     res.status(500).json({
       success: false,
       message: 'Internal server error: ' + error.message
@@ -124,9 +204,17 @@ export const submitPhoneApplication = async (req, res) => {
 export const getPhoneApplications = async (req, res) => {
   try {
     const applications = await PhoneApplication.find().sort({ created_at: -1 });
+    
+    // Transform data if needed for frontend
+    const transformedApplications = applications.map(app => ({
+      ...app.toObject(),
+      // If you need to add a separate image_url field while keeping image_path
+      image_url: app.image_path // Add this if frontend expects image_url
+    }));
+    
     res.status(200).json({
       success: true,
-      data: applications
+      data: transformedApplications
     });
   } catch (error) {
     console.error('Error fetching phone applications:', error);
@@ -164,6 +252,66 @@ export const updatePhoneApplicationStatus = async (req, res) => {
     });
   } catch (error) {
     console.error('Error updating application status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
+// Get single application by ID
+export const getPhoneApplicationById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const application = await PhoneApplication.findOne({ id: parseInt(id) });
+    
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: 'Application not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: application
+    });
+  } catch (error) {
+    console.error('Error fetching phone application:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
+// Delete application
+export const deletePhoneApplication = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const application = await PhoneApplication.findOne({ id: parseInt(id) });
+    
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: 'Application not found'
+      });
+    }
+
+    // Optionally: Delete from Cloudinary if you stored public_id
+    if (application.cloudinary_public_id) {
+      const { deleteFromCloudinary } = await import('../utils/cloudinary.js');
+      await deleteFromCloudinary(application.cloudinary_public_id);
+    }
+
+    await application.remove();
+
+    res.status(200).json({
+      success: true,
+      message: 'Application deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting phone application:', error);
     res.status(500).json({
       success: false,
       message: 'Internal server error'
