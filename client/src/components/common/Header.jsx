@@ -109,6 +109,7 @@ const Header = () => {
                   >
                     Your Profile
                   </Link>
+
                   <Link
                     to="/myorders"
                     className="block px-4 py-2 hover:bg-gray-100 text-gray-700"
@@ -145,19 +146,25 @@ const Header = () => {
         <nav className="bg-gradient-to-r from-blue-800 via-indigo-800 to-purple-900 text-white font-medium shadow-inner">
           <ul className="flex flex-wrap justify-center space-x-8 py-3 text-sm md:text-base">
             <li>
+            <div className="cursor-pointer hover:text-gray-300 py-2">
               <Link to="/" className="hover:text-gray-300">
                 All
               </Link>
+              </div>
             </li>
             <li>
+            <div className="cursor-pointer hover:text-gray-300 py-2">
               <Link to="/sell-phone" className="hover:text-gray-300">
                 Sell Phone
               </Link>
+              </div>
             </li>
             <li>
+            <div className="cursor-pointer hover:text-gray-300 py-2">
               <Link to="/sell-laptop" className="hover:text-gray-300">
                 Sell Laptop
               </Link>
+              </div>
             </li>
 
             {/* Buy Phone Dropdown - FIXED */}
