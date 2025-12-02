@@ -336,6 +336,29 @@ export default function VerifyListings() {
                         </div>
                         
                         <div className="p-8">
+                            {/* Image Display Section */}
+                            {selectedApplication.image_path && (
+                                <div className="mb-8 flex justify-center">
+                                    <div className="max-w-md w-full">
+                                        <h3 className="text-lg font-bold text-gray-700 mb-3 text-center">Product Image</h3>
+                                        <div className="bg-gray-50 rounded-2xl p-4 border-2 border-gray-200">
+                                            <img
+                                                src={selectedApplication.image_path}
+                                                alt={`${selectedApplication.brand} ${selectedApplication.model}`}
+                                                className="w-full h-64 object-contain rounded-lg"
+                                                onError={(e) => {
+                                                    e.target.src = 'https://via.placeholder.com/300x300?text=No+Image+Available';
+                                                    e.target.className = 'w-full h-64 object-cover rounded-lg opacity-70';
+                                                }}
+                                            />
+                                        </div>
+                                        <p className="text-sm text-gray-500 text-center mt-2">
+                                            Image provided by seller
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+                            
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                                 {/* Basic Info */}
                                 <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl border border-gray-200">
@@ -377,6 +400,36 @@ export default function VerifyListings() {
                                             <p className="text-gray-600 text-sm mb-1">Network</p>
                                             <p className="font-bold text-gray-900">{selectedApplication.network}</p>
                                         </div>
+                                        
+                                        {/* Phone-specific condition fields */}
+                                        <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl border border-gray-200 md:col-span-2">
+                                            <p className="text-gray-600 text-sm mb-1">Device Age</p>
+                                            <p className="font-bold text-gray-900">{selectedApplication.device_age}</p>
+                                        </div>
+                                        <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl border border-gray-200">
+                                            <p className="text-gray-600 text-sm mb-1">Switching On</p>
+                                            <p className="font-bold text-gray-900">{selectedApplication.switching_on}</p>
+                                        </div>
+                                        <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl border border-gray-200">
+                                            <p className="text-gray-600 text-sm mb-1">Phone Calls</p>
+                                            <p className="font-bold text-gray-900">{selectedApplication.phone_calls}</p>
+                                        </div>
+                                        <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl border border-gray-200">
+                                            <p className="text-gray-600 text-sm mb-1">Cameras Working</p>
+                                            <p className="font-bold text-gray-900">{selectedApplication.cameras_working}</p>
+                                        </div>
+                                        <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl border border-gray-200">
+                                            <p className="text-gray-600 text-sm mb-1">Battery Issues</p>
+                                            <p className="font-bold text-gray-900">{selectedApplication.battery_issues}</p>
+                                        </div>
+                                        <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl border border-gray-200">
+                                            <p className="text-gray-600 text-sm mb-1">Physically Damaged</p>
+                                            <p className="font-bold text-gray-900">{selectedApplication.physically_damaged}</p>
+                                        </div>
+                                        <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl border border-gray-200">
+                                            <p className="text-gray-600 text-sm mb-1">Sound Issues</p>
+                                            <p className="font-bold text-gray-900">{selectedApplication.sound_issues}</p>
+                                        </div>
                                     </>
                                 ) : (
                                     <>
@@ -396,6 +449,30 @@ export default function VerifyListings() {
                                             <p className="text-gray-600 text-sm mb-1">Display Size</p>
                                             <p className="font-bold text-gray-900">{selectedApplication.display_size || 'N/A'}</p>
                                         </div>
+                                        <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl border border-gray-200">
+                                            <p className="text-gray-600 text-sm mb-1">Weight</p>
+                                            <p className="font-bold text-gray-900">{selectedApplication.weight || 'N/A'}</p>
+                                        </div>
+                                        <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl border border-gray-200">
+                                            <p className="text-gray-600 text-sm mb-1">OS</p>
+                                            <p className="font-bold text-gray-900">{selectedApplication.os || 'N/A'}</p>
+                                        </div>
+                                        
+                                        {/* Laptop-specific fields */}
+                                        <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl border border-gray-200">
+                                            <p className="text-gray-600 text-sm mb-1">Device Age</p>
+                                            <p className="font-bold text-gray-900">{selectedApplication.device_age || 'N/A'}</p>
+                                        </div>
+                                        <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl border border-gray-200">
+                                            <p className="text-gray-600 text-sm mb-1">Battery Issues</p>
+                                            <p className="font-bold text-gray-900">{selectedApplication.battery_issues || 'N/A'}</p>
+                                        </div>
+                                        {selectedApplication.description && (
+                                            <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl border border-gray-200 md:col-span-2">
+                                                <p className="text-gray-600 text-sm mb-1">Description</p>
+                                                <p className="font-bold text-gray-900">{selectedApplication.description}</p>
+                                            </div>
+                                        )}
                                     </>
                                 )}
                                 
