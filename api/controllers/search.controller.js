@@ -15,66 +15,100 @@ export const searchProducts = async (req, res) => {
 
     const searchTerm = q.trim();
     const searchRegex = new RegExp(searchTerm, 'i'); // Case-insensitive search
+    const lowerTerm = searchTerm.toLowerCase();
+
+    // Allow generic queries like "phone", "laptop", etc. to return all items of that type
+    const isPhoneQuery = ['phone', 'phones', 'mobile', 'mobiles'].includes(lowerTerm);
+    const isLaptopQuery = ['laptop', 'laptops', 'notebook', 'notebooks'].includes(lowerTerm);
+    const isEarphoneQuery = ['earphone', 'earphones', 'earbud', 'earbuds', 'headphone', 'headphones'].includes(lowerTerm);
+    const isChargerQuery = ['charger', 'chargers', 'adapter', 'adapters'].includes(lowerTerm);
+    const isMouseQuery = ['mouse', 'mouses', 'mice'].includes(lowerTerm);
+    const isSmartwatchQuery = ['smartwatch', 'smartwatches', 'watch', 'watches'].includes(lowerTerm);
+
+    // Build queries per collection (empty filter = all documents)
+    const phoneFilter = isPhoneQuery
+      ? {}
+      : {
+          $or: [
+            { brand: searchRegex },
+            { model: searchRegex },
+            { color: searchRegex },
+            { processor: searchRegex },
+            { os: searchRegex },
+          ],
+        };
+
+    const laptopFilter = isLaptopQuery
+      ? {}
+      : {
+          $or: [
+            { brand: searchRegex },
+            { series: searchRegex },
+            { processor_name: searchRegex },
+            { os: searchRegex },
+          ],
+        };
+
+    const earphoneFilter = isEarphoneQuery
+      ? {}
+      : {
+          $or: [
+            { title: searchRegex },
+            { brand: searchRegex },
+            { design: searchRegex },
+          ],
+        };
+
+    const chargerFilter = isChargerQuery
+      ? {}
+      : {
+          $or: [
+            { title: searchRegex },
+            { brand: searchRegex },
+            { type: searchRegex },
+            { wattage: searchRegex },
+          ],
+        };
+
+    const mouseFilter = isMouseQuery
+      ? {}
+      : {
+          $or: [
+            { title: searchRegex },
+            { brand: searchRegex },
+            { type: searchRegex },
+          ],
+        };
+
+    const smartwatchFilter = isSmartwatchQuery
+      ? {}
+      : {
+          $or: [
+            { title: searchRegex },
+            { brand: searchRegex },
+            { displayType: searchRegex },
+          ],
+        };
 
     // Search across all product types
     const [phones, laptops, earphones, chargers, mouses, smartwatches] = await Promise.all([
       // Search phones
-      Phone.find({
-        $or: [
-          { brand: searchRegex },
-          { model: searchRegex },
-          { color: searchRegex },
-          { processor: searchRegex },
-          { os: searchRegex }
-        ]
-      }).lean(),
-      
+      Phone.find(phoneFilter).lean(),
+
       // Search laptops
-      Laptop.find({
-        $or: [
-          { brand: searchRegex },
-          { series: searchRegex },
-          { processor_name: searchRegex },
-          { os: searchRegex }
-        ]
-      }).lean(),
-      
+      Laptop.find(laptopFilter).lean(),
+
       // Search earphones
-      Earphone.find({
-        $or: [
-          { title: searchRegex },
-          { brand: searchRegex },
-          { design: searchRegex }
-        ]
-      }).lean(),
-      
+      Earphone.find(earphoneFilter).lean(),
+
       // Search chargers
-      Charger.find({
-        $or: [
-          { title: searchRegex },
-          { brand: searchRegex },
-          { type: searchRegex },
-          { wattage: searchRegex }
-        ]
-      }).lean(),
-      
+      Charger.find(chargerFilter).lean(),
+
       // Search mouses
-      Mouse.find({
-        $or: [
-          { title: searchRegex },
-          { brand: searchRegex },
-          { type: searchRegex }
-        ]
-      }).lean(),
-      
+      Mouse.find(mouseFilter).lean(),
+
       // Search smartwatches
-      Smartwatch.find({
-        $or: [
-          { title: searchRegex },
-          { brand: searchRegex },
-          { displayType: searchRegex }
-        ]
-      }).lean()
+      Smartwatch.find(smartwatchFilter).lean(),
     ]);
 
     // Format results with product type
