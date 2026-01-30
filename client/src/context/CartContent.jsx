@@ -6,7 +6,7 @@ const CartContext = createContext();
 export const CartProvider = ({ children }) => {
   const [cartCount, setCartCount] = useState(0);
 
-  // Load cart count from localStorage
+  
   const fetchCartCount = () => {
     const allKeys = Object.keys(localStorage);
     const cartKey = allKeys.find((key) => key.startsWith("cart_user_"));
@@ -20,12 +20,10 @@ export const CartProvider = ({ children }) => {
     setCartCount(totalCount);
   };
 
-  // Call once on mount
   useEffect(() => {
     fetchCartCount();
   }, []);
 
-  // Function to update cart anywhere
   const updateCart = (newCartData, userId) => {
     localStorage.setItem(`cart_user_${userId}`, JSON.stringify(newCartData));
     fetchCartCount();
@@ -38,5 +36,4 @@ export const CartProvider = ({ children }) => {
   );
 };
 
-// Custom hook for easy access
 export const useCart = () => useContext(CartContext);

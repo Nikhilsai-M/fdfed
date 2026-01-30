@@ -123,15 +123,16 @@ const ManageSupervisors = () => {
   const checkDuplicate = async (field, value) => {
     if (!value) return '';
     
-    // Check if email or username already exists in current supervisors list
+    // Check if email, username, or phone already exists in current supervisors list
     const exists = supervisors.some(supervisor => {
       if (field === 'email') return supervisor.email.toLowerCase() === value.toLowerCase();
       if (field === 'username') return supervisor.username.toLowerCase() === value.toLowerCase();
+      if (field === 'phone') return supervisor.phone === value;
       return false;
     });
     
     if (exists) {
-      return `${field === 'email' ? 'Email' : 'Username'} already exists`;
+      return `${field === 'email' ? 'Email' : field === 'username' ? 'Username' : 'Phone number'} already exists`;
     }
     
     return '';
@@ -158,8 +159,8 @@ const ManageSupervisors = () => {
       if (error) {
         setErrors(prev => ({ ...prev, [name]: error }));
       } else {
-        // Check for duplicates for email and username
-        if (name === 'email' || name === 'username') {
+        // Check for duplicates for email, username, and phone
+        if (name === 'email' || name === 'username' || name === 'phone') {
           const duplicateError = await checkDuplicate(name, value);
           if (duplicateError) {
             setErrors(prev => ({ ...prev, [name]: duplicateError }));
@@ -178,8 +179,8 @@ const ManageSupervisors = () => {
     if (error) {
       setErrors(prev => ({ ...prev, [name]: error }));
     } else {
-      // Check for duplicates for email and username
-      if (name === 'email' || name === 'username') {
+      // Check for duplicates for email, username, and phone
+      if (name === 'email' || name === 'username' || name === 'phone') {
         const duplicateError = await checkDuplicate(name, value);
         if (duplicateError) {
           setErrors(prev => ({ ...prev, [name]: duplicateError }));
@@ -251,11 +252,13 @@ const ManageSupervisors = () => {
     // Check for duplicates
     const emailDuplicate = await checkDuplicate('email', formData.email);
     const usernameDuplicate = await checkDuplicate('username', formData.username);
+    const phoneDuplicate = await checkDuplicate('phone', formData.phone);
     
-    if (emailDuplicate || usernameDuplicate) {
+    if (emailDuplicate || usernameDuplicate || phoneDuplicate) {
       setErrors({
         ...(emailDuplicate && { email: emailDuplicate }),
-        ...(usernameDuplicate && { username: usernameDuplicate })
+        ...(usernameDuplicate && { username: usernameDuplicate }),
+        ...(phoneDuplicate && { phone: phoneDuplicate })
       });
       setIsSubmitting(false);
       return;
@@ -295,6 +298,8 @@ const ManageSupervisors = () => {
           setErrors(prev => ({ ...prev, email: result.message }));
         } else if (result.message.includes('username') || result.message.includes('Username')) {
           setErrors(prev => ({ ...prev, username: result.message }));
+        } else if (result.message.includes('phone') || result.message.includes('Phone')) {
+          setErrors(prev => ({ ...prev, phone: result.message }));
         } else {
           setFormMessage(result.message || 'Failed to add supervisor.');
         }
@@ -818,4 +823,3 @@ const ManageSupervisors = () => {
 };
 
 export default ManageSupervisors;
-

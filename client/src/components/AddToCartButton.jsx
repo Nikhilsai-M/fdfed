@@ -67,7 +67,7 @@ const AddToCartButton = ({ product }) => {
       localStorage.setItem(userCartKey, JSON.stringify(updatedCart));
       updateCart(updatedCart, userId);
 
-      // ⭐ Simplified message
+      //  Simplified message
       setMessage("Item added to cart");
       setTimeout(() => setMessage(null), 2500);
     } catch (error) {
@@ -82,7 +82,7 @@ const AddToCartButton = ({ product }) => {
         <div className="fixed bottom-6 right-6 bg-green-500 text-white px-6 py-4 rounded-lg shadow-2xl z-50 flex items-center gap-3">
           <Check className="w-5 h-5" />
           
-          {/* ⭐ Simplified popup text */}
+          {/*  Simplified popup text */}
           <span className="flex-1">Item added to cart</span>
 
           <Link to="/cart" className="underline text-white">
