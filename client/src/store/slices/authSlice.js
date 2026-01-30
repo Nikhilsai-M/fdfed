@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
 const API_BASE_URL = 'http://localhost:3000';
 
-// Async thunks for different login types
+
 export const loginUser = createAsyncThunk(
   'auth/loginUser',
   async ({ username, password, securityToken, userType }, { rejectWithValue }) => {
@@ -16,7 +16,7 @@ export const loginUser = createAsyncThunk(
         endpoint = `${API_BASE_URL}/api/admin-auth/admin-signin`;
         body = { username, password, securityToken };
       } else {
-        // Try customer login first, then supervisor if it fails
+      
         endpoint = `${API_BASE_URL}/api/auth/signin`;
         body = { username, password };
       }
@@ -30,7 +30,7 @@ export const loginUser = createAsyncThunk(
 
       let data = await response.json();
 
-      // If customer login failed, try supervisor login
+      
       if ((!response.ok || data.success === false) && userType === 'customer') {
         response = await fetch(`${API_BASE_URL}/api/supervisor-auth/signin`, {
           method: 'POST',
@@ -53,7 +53,7 @@ export const loginUser = createAsyncThunk(
         return rejectWithValue(data.message || 'Invalid credentials');
       }
 
-      // Determine role and user data based on response
+      
       let userData, role;
       if (userType === 'admin') {
         userData = data.admin;
@@ -77,7 +77,6 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-// Check supervisor existence for user type detection
 export const checkSupervisorExists = createAsyncThunk(
   'auth/checkSupervisorExists',
   async (username) => {
@@ -100,7 +99,7 @@ const authSlice = createSlice({
   initialState: {
     user: JSON.parse(localStorage.getItem('user')) || null,
     token: localStorage.getItem('token') || null,
-    userType: 'customer', // detected user type
+    userType: 'customer', 
     loading: false,
     error: null,
     supervisorExists: false,
@@ -123,7 +122,6 @@ const authSlice = createSlice({
       localStorage.removeItem('user');
       localStorage.removeItem('token');
       
-      // Clear cookies by making logout API calls
       ['/api/auth/signout', '/api/supervisor-auth/signout', '/api/admin-auth/signout'].forEach(endpoint => {
         fetch(`${API_BASE_URL}${endpoint}`, { 
           method: 'POST',
@@ -142,7 +140,7 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Login cases
+  
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -164,7 +162,7 @@ const authSlice = createSlice({
         state.user = null;
         state.token = null;
       })
-      // Check supervisor existence cases
+      
       .addCase(checkSupervisorExists.fulfilled, (state, action) => {
         state.supervisorExists = action.payload;
       });

@@ -33,6 +33,12 @@ import productRouter from "./routes/product.route.js";
 import orderRouter from "./routes/orders.route.js";
 import searchRouter from "./routes/search.route.js";
 import adminStatisticsRouter from "./routes/adminStatistics.route.js";
+import morgan from "morgan";
+import { createStream } from "rotating-file-stream";
+import path from "path";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+
 
 dotenv.config({ path: '../.env' });
 
@@ -51,14 +57,29 @@ mongoose.connect(process.env.MONGO).then(async() => {
   console.error("Error connecting to MongoDB:", err);
 });
 
+
 const app = express();
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const accessLogStream = createStream("access.log", {
+  interval: "1d",
+  path: path.join(__dirname, "log"),
+});
+
+morgan.token("custom", (req, res) => {
+  return `New request -> ${req.method} ${req.originalUrl} | Status: ${res.statusCode}`;
+});
+
+app.use(morgan("dev")); 
+app.use(morgan(":custom :response-time ms", { stream: accessLogStream })); 
 
 app.use(express.json());
 app.use(cookieParser());
 app.use('/uploads', express.static('uploads'));
 
-// Session configuration - ADD THIS BEFORE CORS
+
 app.use(session({
   secret: process.env.SESSION_SECRET || 'your-secret-key-change-this-in-production',
   resave: false,
