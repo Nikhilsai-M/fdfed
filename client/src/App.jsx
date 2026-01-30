@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { Provider } from 'react-redux';
@@ -6,6 +7,7 @@ import { useAppSelector } from './hooks/redux';
 import Homepage from './pages/Homepage';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
+import OTPVerification from './pages/OTPVerification'; // ADD THIS
 import SellLaptop from './pages/SellLaptop';
 import ChargersPage from './pages/ChargersPage';
 import MousePage from './pages/MousePage';
@@ -88,6 +90,7 @@ function App() {
                 <Route path="/sell-laptop" element={<SellLaptop />} />
                 <Route path="/sign-in" element={<SignIn />} />
                 <Route path="/sign-up" element={<SignUp />} />
+                <Route path="/verify-otp" element={<OTPVerification />} /> {/* ADD THIS */}
                 <Route path="/cart" element={
                   <ProtectedRoute>
                     <CartPage/>

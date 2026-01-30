@@ -23,7 +23,7 @@ export default function SignUp() {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
-    // Regex patterns matching JS
+    // Regex patterns
     const nameRegex = /^[a-zA-Z\s-]+$/;
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     const phoneRegex = /^\d{10}$/;
@@ -153,7 +153,6 @@ export default function SignUp() {
     const handleChange = (e) => {
         const { id, value } = e.target;
 
-        // Create new form data with the update
         let newFormData = { ...formData };
         if (id.startsWith('address.')) {
             const addressField = id.split('.')[1];
@@ -171,13 +170,9 @@ export default function SignUp() {
             };
         }
 
-        // Update state
         setFormData(newFormData);
-
-        // Validate the changed field with new data
         validateField(id, newFormData);
 
-        // Special handling for confirmPassword when password changes
         if (id === 'password') {
             validateField('confirmPassword', newFormData);
         }
@@ -193,22 +188,20 @@ export default function SignUp() {
             return;
         }
 
-        // Trim values before submission (excluding password and confirmPassword)
+        // Prepare data for submission
         const submitData = {
-            ...newFormData, // Use the latest, but since submit after change, formData is updated
-            username: newFormData.username.trim(),
-            firstName: newFormData.firstName.trim(),
-            lastName: newFormData.lastName.trim(),
-            email: newFormData.email.trim(),
-            phone: newFormData.phone.trim(),
-            confirmPassword: newFormData.confirmPassword.trim(), // Trim but not used in submit
+            username: formData.username.trim(),
+            firstName: formData.firstName.trim(),
+            lastName: formData.lastName.trim(),
+            email: formData.email.trim(),
+            phone: formData.phone.trim(),
+            password: formData.password,
             address: {
-                ...newFormData.address,
-                street: newFormData.address.street.trim(),
-                city: newFormData.address.city.trim(),
-                state: newFormData.address.state.trim(),
-                postal_code: newFormData.address.postal_code.trim(),
-                country: newFormData.address.country.trim()
+                street: formData.address.street.trim(),
+                city: formData.address.city.trim(),
+                state: formData.address.state.trim(),
+                postal_code: formData.address.postal_code.trim(),
+                country: formData.address.country.trim()
             }
         };
 
@@ -217,7 +210,8 @@ export default function SignUp() {
             setError(null);
             setFieldErrors({});
 
-            const res = await fetch('/api/auth/signup', {
+            // Step 1: Initiate signup and send OTP
+            const res = await fetch('/api/auth/signup/initiate', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -230,7 +224,6 @@ export default function SignUp() {
             if (data.success === false || !res.ok) {
                 setLoading(false);
                 if (data.errors) {
-                    // Handle server errors, assuming dotted notation like 'address.street'
                     setFieldErrors(data.errors);
                 }
                 setError(data.message || "Signup failed");
@@ -239,8 +232,17 @@ export default function SignUp() {
 
             setLoading(false);
             setError(null);
-            alert('Account created successfully! Please sign in.');
-            navigate('/sign-in');
+            
+            // Store email for OTP verification
+            localStorage.setItem("pendingRegistrationEmail", submitData.email);
+            
+            // Navigate to OTP verification page
+            navigate("/verify-otp", { 
+                state: { 
+                    email: submitData.email,
+                    message: "OTP sent to your email. Please verify to complete registration."
+                }
+            });
         } catch (err) {
             setLoading(false);
             setError(err.message || "An error occurred during sign up.");
@@ -442,24 +444,31 @@ export default function SignUp() {
 
                 <button
                     disabled={loading}
-                    className="bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-80 disabled:opacity-50 mt-4"
+                    className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-3 rounded-lg uppercase hover:opacity-90 disabled:opacity-50 mt-4 font-semibold transition-all duration-300 hover:shadow-lg"
                 >
-                    {loading ? "Creating Account..." : "Sign Up"}
+                    {loading ? "Sending OTP..." : "Create Account"}
                 </button>
             </form>
 
             <div className="flex gap-2 mt-5 justify-center">
                 <p>Already have an account?</p>
                 <Link to="/sign-in">
-                    <span className="text-blue-700 hover:underline">Sign In</span>
+                    <span className="text-blue-700 hover:underline font-medium">Sign In</span>
                 </Link>
             </div>
 
             {error && (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mt-3">
+                <div className="bg-red-50 border border-red-400 text-red-700 px-4 py-3 rounded mt-3">
                     {error}
                 </div>
             )}
+
+            <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                <p className="text-sm text-blue-700">
+                    <strong>Note:</strong> After submitting, you'll receive a 6-digit OTP via email. 
+                    You must verify your email to complete registration.
+                </p>
+            </div>
         </div>
     );
 }
