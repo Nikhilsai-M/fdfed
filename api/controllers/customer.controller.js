@@ -1,7 +1,12 @@
+
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import { errorHandler } from "../utils/error.js";
 import { getPhoneApplicationsByUserId, getLaptopApplicationsByUserId } from "../crud/applications.js";
+import PhoneApplication from "../models/phoneApplication.model.js";
+import LaptopApplication from "../models/laptopApplication.model.js";
+import Notification from "../models/notification.model.js"; // Add this import
+import { v4 as uuidv4 } from 'uuid'; // Add this import
 
 // Get customer profile
 export const getCustomerProfile = async (req, res, next) => {
@@ -165,4 +170,425 @@ export const getCustomerListings = async (req, res, next) => {
     console.error('❌ Error fetching customer listings:', error);
     next(errorHandler(500, 'Error fetching listings: ' + error.message));
   }
+};
+
+
+const syncNotificationsFromApplications = async (userId) => {
+    try {
+        console.log(`🔄 Syncing notifications for user ${userId}`);
+        
+        // Get all applications
+        const [phoneApps, laptopApps] = await Promise.all([
+            PhoneApplication.find({ user_id: userId }),
+            LaptopApplication.find({ user_id: userId })
+        ]);
+
+        const allApps = [
+            ...phoneApps.map(app => ({ ...app.toObject(), type: 'phone' })),
+            ...laptopApps.map(app => ({ ...app.toObject(), type: 'laptop' }))
+        ];
+
+        // Create/update notifications for each application
+        for (const app of allApps) {
+            const notificationData = {
+                notification_id: uuidv4(),
+                user_id: userId,
+                application_id: app._id.toString(),
+                application_type: app.type,
+                type: 'listing_update',
+                title: `${app.brand} ${app.model} Status Update`,
+                message: `Your ${app.brand} ${app.model} ${app.type} listing status has been updated to ${app.status}`,
+                status: app.status,
+                price: app.price || 0,
+                rejection_reason: app.rejection_reason || '',
+                device_data: {
+                    brand: app.brand,
+                    model: app.model,
+                    storage: app.storage,
+                    ram: app.ram
+                },
+                created_at: app.updated_at || app.created_at || new Date()
+            };
+
+            // Upsert notification
+            await Notification.findOneAndUpdate(
+                {
+                    user_id: userId,
+                    application_id: app._id.toString(),
+                    application_type: app.type
+                },
+                notificationData,
+                {
+                    upsert: true,
+                    new: true,
+                    setDefaultsOnInsert: true
+                }
+            );
+        }
+
+        console.log(`✅ Synced ${allApps.length} applications to notifications`);
+    } catch (error) {
+        console.error('❌ Error syncing notifications:', error);
+    }
+};
+
+// Format time ago helper function
+const formatTimeAgo = (date) => {
+    if (!date) return 'just now';
+    
+    const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+    if (seconds < 60) return 'just now';
+    if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes ago`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`;
+    if (seconds < 604800) return `${Math.floor(seconds / 86400)} days ago`;
+    return new Date(date).toLocaleDateString();
+};
+
+// Get notifications
+export const getNotifications = async (req, res, next) => {
+    try {
+        console.log('\n=== 🔔 GET NOTIFICATIONS START ===');
+        const userId = req.user.user_id;
+        console.log('👤 User ID:', userId);
+
+        // First sync notifications from applications
+        await syncNotificationsFromApplications(userId);
+
+        // Get non-archived notifications
+        const notifications = await Notification.find({
+            user_id: userId,
+            archived: false
+        }).sort({ created_at: -1 });
+
+        console.log(`📊 Found ${notifications.length} notifications`);
+
+        // Format for frontend
+        const formattedNotifications = notifications.map(notif => ({
+            id: notif.notification_id || notif._id.toString(),
+            type: notif.type,
+            device_type: notif.application_type,
+            brand: notif.device_data?.brand || 'Unknown',
+            model: notif.device_data?.model || 'Unknown',
+            status: notif.status,
+            price: notif.price || 0,
+            rejection_reason: notif.rejection_reason || '',
+            storage: notif.device_data?.storage,
+            ram: notif.device_data?.ram,
+            created_at: notif.created_at,
+            updated_at: notif.updated_at || notif.created_at,
+            read: notif.read,
+            time: formatTimeAgo(notif.updated_at || notif.created_at),
+            date: new Date(notif.created_at).toLocaleDateString(),
+            _id: notif._id.toString()
+        }));
+
+        const unreadCount = formattedNotifications.filter(n => !n.read).length;
+
+        console.log(`✅ Returning ${formattedNotifications.length} notifications, ${unreadCount} unread`);
+        console.log('=== GET NOTIFICATIONS END ===\n');
+        
+        res.status(200).json({
+            success: true,
+            notifications: formattedNotifications,
+            unreadCount: unreadCount,
+            totalCount: formattedNotifications.length
+        });
+        
+    } catch (error) {
+        console.error('❌ Error fetching notifications:', error);
+        next(errorHandler(500, 'Error fetching notifications: ' + error.message));
+    }
+};
+
+// Mark a single notification as read
+export const markNotificationAsRead = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user.user_id;
+
+        console.log(`\n=== 📝 MARK NOTIFICATION AS READ START ===`);
+        console.log(`Notification ID: ${id}, User ID: ${userId}`);
+
+        // Find the notification by notification_id or _id
+        const notification = await Notification.findOne({
+            $or: [
+                { notification_id: id },
+                { _id: id }
+            ],
+            user_id: userId
+        });
+
+        if (!notification) {
+            return next(errorHandler(404, 'Notification not found'));
+        }
+
+        // Update the notification as read
+        await Notification.updateOne(
+            { _id: notification._id },
+            { 
+                $set: { 
+                    read: true, 
+                    updated_at: new Date() 
+                } 
+            }
+        );
+
+        console.log(`✅ Notification marked as read: ${notification._id}`);
+        console.log('=== MARK NOTIFICATION AS READ END ===\n');
+        
+        res.status(200).json({
+            success: true,
+            message: 'Notification marked as read'
+        });
+        
+    } catch (error) {
+        console.error('❌ Error marking notification as read:', error);
+        next(errorHandler(500, 'Error marking notification as read: ' + error.message));
+    }
+};
+
+// Mark all notifications as read
+export const markAllNotificationsAsRead = async (req, res, next) => {
+    try {
+        const userId = req.user.user_id;
+
+        console.log(`\n=== 📝 MARK ALL NOTIFICATIONS AS READ START ===`);
+        console.log(`User ID: ${userId}`);
+
+        // Update all non-archived notifications for this user
+        const result = await Notification.updateMany(
+            { 
+                user_id: userId, 
+                read: false,
+                archived: false 
+            },
+            { 
+                $set: { 
+                    read: true, 
+                    updated_at: new Date() 
+                } 
+            }
+        );
+
+        console.log(`✅ Marked ${result.modifiedCount} notifications as read`);
+        console.log('=== MARK ALL NOTIFICATIONS AS READ END ===\n');
+        
+        res.status(200).json({
+            success: true,
+            message: 'All notifications marked as read',
+            updatedCount: result.modifiedCount
+        });
+        
+    } catch (error) {
+        console.error('❌ Error marking all notifications as read:', error);
+        next(errorHandler(500, 'Error marking all notifications as read: ' + error.message));
+    }
+};
+
+// Delete a notification (archive it)
+export const deleteNotification = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user.user_id;
+
+        console.log(`\n=== 🗑️ DELETE NOTIFICATION START ===`);
+        console.log(`Notification ID: ${id}, User ID: ${userId}`);
+
+        // Try to find by notification_id first, then by _id
+        let notification = await Notification.findOne({
+            notification_id: id,
+            user_id: userId
+        });
+
+        // If not found by notification_id, try by _id
+        if (!notification) {
+            try {
+                notification = await Notification.findOne({
+                    _id: id,
+                    user_id: userId
+                });
+            } catch (err) {
+                // If _id is invalid format, it will throw error
+                console.log('Invalid _id format, trying as string...');
+            }
+        }
+
+        // If still not found, try as string _id
+        if (!notification) {
+            notification = await Notification.findOne({
+                _id: { $eq: id },
+                user_id: userId
+            });
+        }
+
+        if (!notification) {
+            console.log(`❌ Notification not found for ID: ${id}`);
+            return next(errorHandler(404, 'Notification not found'));
+        }
+
+        console.log(`🔍 Found notification:`, {
+            _id: notification._id,
+            notification_id: notification.notification_id,
+            archived: notification.archived
+        });
+
+        // Archive the notification (soft delete)
+        const result = await Notification.updateOne(
+            { _id: notification._id },
+            { 
+                $set: { 
+                    archived: true, 
+                    read: true, 
+                    updated_at: new Date() 
+                } 
+            }
+        );
+
+        console.log(`✅ Notification archived: ${notification._id}, Modified count: ${result.modifiedCount}`);
+        console.log('=== DELETE NOTIFICATION END ===\n');
+        
+        res.status(200).json({
+            success: true,
+            message: 'Notification removed',
+            notificationId: id
+        });
+        
+    } catch (error) {
+        console.error('❌ Error deleting notification:', error);
+        next(errorHandler(500, 'Error deleting notification: ' + error.message));
+    }
+};
+        
+
+// Clear all notifications (archive all)
+export const clearAllNotifications = async (req, res, next) => {
+    try {
+        const userId = req.user.user_id;
+
+        console.log(`\n=== 🗑️ CLEAR ALL NOTIFICATIONS START ===`);
+        console.log(`User ID: ${userId}`);
+
+        // Archive all notifications for this user
+        const result = await Notification.updateMany(
+            { 
+                user_id: userId, 
+                archived: false 
+            },
+            { 
+                $set: { 
+                    archived: true, 
+                    read: true, 
+                    updated_at: new Date() 
+                } 
+            }
+        );
+
+        console.log(`✅ Archived ${result.modifiedCount} notifications`);
+        console.log('=== CLEAR ALL NOTIFICATIONS END ===\n');
+        
+        res.status(200).json({
+            success: true,
+            message: 'All notifications cleared',
+            clearedCount: result.modifiedCount
+        });
+        
+    } catch (error) {
+        console.error('❌ Error clearing all notifications:', error);
+        next(errorHandler(500, 'Error clearing all notifications: ' + error.message));
+    }
+};
+
+// If you need dummy data for testing, use this version:
+export const getNotificationsDummy = async (req, res, next) => {
+    try {
+        console.log('\n=== 🔔 GET DUMMY NOTIFICATIONS START ===');
+        
+        const dummyNotifications = [
+            {
+                id: 'phone_123',
+                type: 'listing',
+                device_type: 'phone',
+                brand: 'iPhone',
+                model: '13 Pro',
+                status: 'approved',
+                price: 45000,
+                time: '2 hours ago',
+                date: 'Today',
+                read: false,
+                storage: '256GB',
+                ram: '6GB'
+            },
+            {
+                id: 'laptop_456',
+                type: 'listing',
+                device_type: 'laptop',
+                brand: 'Dell',
+                model: 'XPS 13',
+                status: 'rejected',
+                rejection_reason: 'Device age exceeds our acceptance criteria',
+                time: '1 day ago',
+                date: 'Yesterday',
+                read: false,
+                storage: '512GB SSD',
+                ram: '16GB'
+            },
+            {
+                id: 'phone_789',
+                type: 'listing',
+                device_type: 'phone',
+                brand: 'Samsung',
+                model: 'Galaxy S23',
+                status: 'processing',
+                time: '3 days ago',
+                date: 'Mar 12',
+                read: true,
+                storage: '128GB',
+                ram: '8GB'
+            },
+            {
+                id: 'laptop_101',
+                type: 'listing',
+                device_type: 'laptop',
+                brand: 'MacBook',
+                model: 'Air M2',
+                status: 'approved',
+                price: 62000,
+                time: '1 week ago',
+                date: 'Mar 8',
+                read: true,
+                storage: '256GB SSD',
+                ram: '8GB'
+            },
+            {
+                id: 'phone_202',
+                type: 'listing',
+                device_type: 'phone',
+                brand: 'OnePlus',
+                model: '11R',
+                status: 'pending',
+                time: '2 weeks ago',
+                date: 'Mar 1',
+                read: true,
+                storage: '256GB',
+                ram: '16GB'
+            }
+        ];
+        
+        const unreadCount = dummyNotifications.filter(n => !n.read).length;
+        
+        console.log(`✅ Returning ${dummyNotifications.length} dummy notifications, ${unreadCount} unread`);
+        console.log('=== GET DUMMY NOTIFICATIONS END ===\n');
+        
+        res.status(200).json({
+            success: true,
+            notifications: dummyNotifications,
+            unreadCount: unreadCount,
+            totalCount: dummyNotifications.length,
+            message: 'Using dummy data for testing'
+        });
+        
+    } catch (error) {
+        console.error('❌ Error fetching dummy notifications:', error);
+        next(errorHandler(500, 'Error fetching notifications: ' + error.message));
+    }
 };

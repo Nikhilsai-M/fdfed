@@ -45,6 +45,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import SearchResults from './pages/SearchResults';
 import Analytics from './pages/admin/AdminAnalytics';
 import ManageSupervisors from './pages/admin/ManageSupervisors';
+import Notifications from './pages/Notifications.jsx';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -124,6 +125,12 @@ function App() {
                 } />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/search" element={<SearchResults />} />
+
+                <Route path="/notifications" element={
+                  <ProtectedRoute>
+                    <Notifications />
+                  </ProtectedRoute>
+                } />
 
                 {/* Supervisor Routes - Also protected */}
                 <Route path="/supervisor-dashboard" element={<ProtectedRoute><SupervisorDashboard /></ProtectedRoute>} />
