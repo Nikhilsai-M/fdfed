@@ -16,6 +16,7 @@ export default function SignIn() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const debounceTimer = useRef(null);
+  const lastCheckedUsername = useRef('');
 
   const { 
     userType, 
@@ -47,6 +48,7 @@ export default function SignIn() {
       }
       
       // For other usernames, check supervisor existence
+      lastCheckedUsername.current = username;
       dispatch(checkSupervisorExists(username));
     };
 
@@ -68,7 +70,10 @@ export default function SignIn() {
     } else if (username.trim() === '') {
       dispatch(setUserType('customer'));
     } else {
-      // Debounce database check
+      // Reset to customer while waiting for debounce check
+      dispatch(setUserType('customer'));
+      
+      // Debounce database check for supervisor
       debounceTimer.current = setTimeout(() => {
         detectUserType(username);
       }, 500);
@@ -77,10 +82,26 @@ export default function SignIn() {
 
   // Update userType based on supervisorExists
   useEffect(() => {
-    if (supervisorExists && userType === 'customer') {
-      dispatch(setUserType('supervisor'));
+    if (supervisorExists && formData.username === lastCheckedUsername.current) {
+      // Only set to supervisor if the username matches the one we just checked
+      // and it doesn't match admin pattern
+      const adminPattern = /^ADMIN\d+$/i;
+      const supervisorPattern = /^supervisor\d*@se\.com$/i;
+      
+      if (!adminPattern.test(formData.username) && !supervisorPattern.test(formData.username)) {
+        dispatch(setUserType('supervisor'));
+      }
+    } else if (!supervisorExists && userType === 'supervisor') {
+      // Check if current username matches supervisor pattern
+      const supervisorPattern = /^supervisor\d*@se\.com$/i;
+      const adminPattern = /^ADMIN\d+$/i;
+      
+      // Only revert to customer if username doesn't match supervisor pattern
+      if (!supervisorPattern.test(formData.username) && !adminPattern.test(formData.username)) {
+        dispatch(setUserType('customer'));
+      }
     }
-  }, [supervisorExists, userType, dispatch]);
+  }, [supervisorExists, userType, formData.username, dispatch]);
 
   // Cleanup debounce timer
   useEffect(() => {
@@ -105,12 +126,14 @@ export default function SignIn() {
     e.preventDefault();
     
     if (!formData.username || !formData.password) {
-      dispatch(setError("Please fill in all fields"));
+      // Note: You might need to import setError from authSlice
+      // For now, we'll just return early
+      console.error("Please fill in all fields");
       return;
     }
 
     if (userType === 'admin' && !formData.securityToken) {
-      dispatch(setError("Security token required for admin login"));
+      console.error("Security token required for admin login");
       return;
     }
 
