@@ -229,6 +229,10 @@ export const addToInventory = async (req, res, next) => {
       // Add to Phone collection
       const phone = new Phone(productData);
       await phone.save();
+      console.log("🚀 Calling matchRequests after inventory add");
+console.log("➡️ Brand:", phone.brand);
+console.log("➡️ Model:", phone.model);
+
       await matchRequests("phone", phone);
       // 🔔 Notify users who requested this device
 
@@ -274,6 +278,10 @@ export const addToInventory = async (req, res, next) => {
       // Add to Laptop collection
       const laptop = new Laptop(productData);
       await laptop.save();
+      console.log("🚀 Calling matchRequests after inventory add");
+console.log("➡️ Brand:", phone.brand);
+console.log("➡️ Model:", phone.model);
+
       await matchRequests("laptop", laptop);
 
   } else {
