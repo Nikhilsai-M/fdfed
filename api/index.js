@@ -38,8 +38,8 @@ import { createStream } from "rotating-file-stream";
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
-
-
+import deviceRequestRoutes from "./routes/deviceRequest.route.js";
+import notificationRoutes from "./routes/notification.route.js"
 dotenv.config({ path: '../.env' });
 
 mongoose.connect(process.env.MONGO).then(async() => {
@@ -126,7 +126,8 @@ app.use("/api",accessoryRouter);
 app.use("/api", productRouter);
 app.use("/api/search", searchRouter);
 app.use("/api/admin", adminStatisticsRouter);
- 
+app.use("/api/device-requests", deviceRequestRoutes);
+app.use("/api/customer/notifications", notificationRoutes);
 
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;

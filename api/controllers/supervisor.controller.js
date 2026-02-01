@@ -4,8 +4,11 @@ import LaptopApplication from "../models/laptopApplication.model.js";
 import Phone from "../models/phone.model.js";
 import Laptop from "../models/laptop.model.js";
 import bcrypt from "bcryptjs";
+import { matchRequests } from "../services/requestMatcher.service.js";
 import { errorHandler } from "../utils/error.js";
-
+import DeviceRequest from "../models/deviceRequest.model.js";
+import Notification from "../models/notification.model.js";
+import { v4 as uuidv4 } from "uuid";
 // Dashboard Data
 export const getDashboardData = async (req, res, next) => {
   try {
@@ -226,6 +229,10 @@ export const addToInventory = async (req, res, next) => {
       // Add to Phone collection
       const phone = new Phone(productData);
       await phone.save();
+      await matchRequests("phone", phone);
+      // 🔔 Notify users who requested this device
+
+
 
     } else if (type === 'laptop') {
       // Get laptop application
@@ -267,8 +274,9 @@ export const addToInventory = async (req, res, next) => {
       // Add to Laptop collection
       const laptop = new Laptop(productData);
       await laptop.save();
+      await matchRequests("laptop", laptop);
 
-    } else {
+  } else {
       return next(errorHandler(400, 'Invalid application type'));
     }
 

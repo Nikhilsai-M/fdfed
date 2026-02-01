@@ -10,7 +10,10 @@ const Notifications = () => {
   const [error, setError] = useState(null);
 
   const fetchNotifications = useCallback(async () => {
+    
+
     try {
+      
       setLoading(true);
       setError(null);
       
@@ -22,7 +25,12 @@ const Notifications = () => {
       });
       
       if (response.data.success) {
-        setNotifications(response.data.notifications || []);
+        const normalized = response.data.notifications.map(n => ({
+    ...n,
+    id: n._id || n.notification_id, // ✅ FIX
+  }));
+
+  setNotifications(normalized);
       } else {
         setError(response.data.message || "Failed to load notifications");
       }
@@ -185,57 +193,86 @@ const Notifications = () => {
                 {notifications.map((notification, index) => {
                   // Get status styling
                   let statusStyle;
-                  switch (notification.status) {
-                    case 'approved': 
-                      statusStyle = { 
-                        bg: 'bg-gradient-to-br from-green-50 to-emerald-50',
-                        border: 'border-green-200',
-                        text: 'text-green-700',
-                        icon: 'fa-check-circle',
-                        label: 'Approved',
-                        iconColor: 'text-green-500'
-                      };
-                      break;
-                    case 'rejected': 
-                      statusStyle = { 
-                        bg: 'bg-gradient-to-br from-red-50 to-rose-50',
-                        border: 'border-red-200',
-                        text: 'text-red-700',
-                        icon: 'fa-times-circle',
-                        label: 'Rejected',
-                        iconColor: 'text-red-500'
-                      };
-                      break;
-                    case 'pending': 
-                      statusStyle = { 
-                        bg: 'bg-gradient-to-br from-yellow-50 to-amber-50',
-                        border: 'border-yellow-200',
-                        text: 'text-yellow-700',
-                        icon: 'fa-clock',
-                        label: 'Pending',
-                        iconColor: 'text-yellow-500'
-                      };
-                      break;
-                    case 'processing': 
-                      statusStyle = { 
-                        bg: 'bg-gradient-to-br from-blue-50 to-sky-50',
-                        border: 'border-blue-200',
-                        text: 'text-blue-700',
-                        icon: 'fa-gear',
-                        label: 'Processing',
-                        iconColor: 'text-blue-500'
-                      };
-                      break;
-                    default: 
-                      statusStyle = { 
-                        bg: 'bg-gradient-to-br from-gray-50 to-slate-50',
-                        border: 'border-gray-200',
-                        text: 'text-gray-700',
-                        icon: 'fa-bell',
-                        label: 'Unknown',
-                        iconColor: 'text-gray-500'
-                      };
-                  }
+
+if (notification.type === "request_update") {
+  statusStyle = {
+    bg: "bg-gradient-to-br from-purple-50 to-indigo-50",
+    border: "border-purple-200",
+    text: "text-purple-700",
+    icon: "fa-box-open",
+    label: notification.status === "approved"
+      ? "Available Now"
+      : "Requested",
+    iconColor: "text-purple-500"
+  };
+} else {
+  switch (notification.status) {
+    case "added_to_inventory":
+      statusStyle = {
+        bg: "bg-gradient-to-br from-green-50 to-emerald-50",
+        border: "border-green-200",
+        text: "text-green-700",
+        icon: "fa-check-circle",
+        label: "Approved",
+        iconColor: "text-green-500"
+      };
+      break;
+
+    case "rejected":
+      statusStyle = {
+        bg: "bg-gradient-to-br from-red-50 to-rose-50",
+        border: "border-red-200",
+        text: "text-red-700",
+        icon: "fa-times-circle",
+        label: "Rejected",
+        iconColor: "text-red-500"
+      };
+      break;
+
+    case "pending":
+      statusStyle = {
+        bg: "bg-gradient-to-br from-yellow-50 to-amber-50",
+        border: "border-yellow-200",
+        text: "text-yellow-700",
+        icon: "fa-clock",
+        label: "Pending",
+        iconColor: "text-yellow-500"
+      };
+      break;
+
+    case "processing":
+      statusStyle = {
+        bg: "bg-gradient-to-br from-blue-50 to-sky-50",
+        border: "border-blue-200",
+        text: "text-blue-700",
+        icon: "fa-gear",
+        label: "Processing",
+        iconColor: "text-blue-500"
+      };
+      break;
+    case "fulfilled":
+  statusStyle = {
+    bg: "bg-gradient-to-br from-green-50 to-lime-50",
+    border: "border-green-300",
+    text: "text-green-800",
+    icon: "fa-check-double",
+    label: "Available",
+    iconColor: "text-green-600"
+  };
+  break;
+
+    default:
+      statusStyle = {
+        bg: "bg-gradient-to-br from-gray-50 to-slate-50",
+        border: "border-gray-200",
+        text: "text-gray-700",
+        icon: "fa-bell",
+        label: "Requested",
+        iconColor: "text-gray-500"
+      };
+  }
+}
+
                   
                   return (
                     <div
@@ -278,8 +315,13 @@ const Notifications = () => {
                                 <div className="flex items-center gap-2 text-gray-600">
                                   <i className={`fa-solid ${notification.device_type === 'phone' ? 'fa-mobile-screen' : 'fa-laptop'} text-gray-400`}></i>
                                   <span className="font-medium">
-                                    {notification.device_type === 'phone' ? 'Smartphone' : 'Laptop'}
-                                  </span>
+  {notification.type === "request_update"
+    ? "Device Request"
+    : notification.device_type === "phone"
+    ? "Smartphone"
+    : "Laptop"}
+</span>
+
                                 </div>
                                 
                                 {notification.storage && (
