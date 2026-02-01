@@ -335,6 +335,13 @@ const Header = () => {
               </Link>
               </div>
             </li>
+            <li>
+  <div className="cursor-pointer hover:text-gray-300 py-2">
+    <Link to="/request-device" className="hover:text-gray-300">
+      Request Device
+    </Link>
+  </div>
+</li>
 
             {/* Buy Phone Dropdown - FIXED */}
             <li className="relative group">

@@ -46,7 +46,7 @@ import SearchResults from './pages/SearchResults';
 import Analytics from './pages/admin/AdminAnalytics';
 import ManageSupervisors from './pages/admin/ManageSupervisors';
 import Notifications from './pages/Notifications.jsx';
-
+import RequestDevice from "./pages/RequestDevice";
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
   const { user } = useAppSelector((state) => state.auth);
@@ -67,6 +67,7 @@ function App() {
                 <Route path="/accessories/mouses" element={<MousePage/>}/>
                 <Route path="/accessories/earphones" element={<EarbudsPage/>}/>
                 <Route path="/accessories/smartwatches" element={<SmartWatchesPage/>}/>
+                 <Route path="/request-device" element={<RequestDevice />} />
                 <Route path="/profile" element={
                   <ProtectedRoute>
                     <UserProfile />
