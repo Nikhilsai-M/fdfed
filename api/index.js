@@ -40,6 +40,7 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 import deviceRequestRoutes from "./routes/deviceRequest.route.js";
 import notificationRoutes from "./routes/notification.route.js"
+import helmet from "helmet"
 dotenv.config({ path: '../.env' });
 
 mongoose.connect(process.env.MONGO).then(async() => {
@@ -59,18 +60,24 @@ mongoose.connect(process.env.MONGO).then(async() => {
 
 
 const app = express();
-
+app.use(helmet());
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const accessLogStream = createStream("access.log", {
+const accessLogStream = createStream((time, index) => {
+  if (!time) return "access.log";
+  const date = time.toISOString().slice(0, 10);
+  return `access-${date}.log`;
+}, {
   interval: "1d",
   path: path.join(__dirname, "log"),
 });
 
 morgan.token("custom", (req, res) => {
-  return `New request -> ${req.method} ${req.originalUrl} | Status: ${res.statusCode}`;
+  const now = new Date().toISOString(); 
+  return `[${now}] ${req.method} ${req.originalUrl} | Status: ${res.statusCode}`;
 });
+
 
 app.use(morgan("dev")); 
 app.use(morgan(":custom :response-time ms", { stream: accessLogStream })); 
