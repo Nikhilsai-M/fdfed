@@ -92,13 +92,12 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: false, // Set to true in production with HTTPS
+    secure: false, 
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    maxAge: 24 * 60 * 60 * 1000 
   }
 }));
 
-// CORS configuration
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', 'http://localhost:5173');
   res.header('Access-Control-Allow-Credentials', 'true');
@@ -117,7 +116,7 @@ app.use("/api/customer", customerRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/supervisor-auth", supervisorAuthRouter);
 app.use("/api/admin-auth", adminAuthRouter);
-app.use("/api/admin", adminRouter); // ADD THIS
+app.use("/api/admin", adminRouter); 
 app.use("/api/supervisor", supervisorRouter); 
 app.use("/api/supervisor/inventory", inventoryRouter);
 app.use("/api/Accessories/chargers", chargerRouter);
