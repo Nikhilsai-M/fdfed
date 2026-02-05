@@ -47,6 +47,7 @@ import Analytics from './pages/admin/AdminAnalytics';
 import ManageSupervisors from './pages/admin/ManageSupervisors';
 import Notifications from './pages/Notifications.jsx';
 import RequestDevice from "./pages/RequestDevice";
+import ErrorPage from './pages/ErrorPage';
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
   const { user } = useAppSelector((state) => state.auth);
@@ -144,6 +145,7 @@ function App() {
                 <Route path="/admin-dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
                 <Route path="/admin/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
                 <Route path="/admin/manage-supervisors" element={<ProtectedRoute><ManageSupervisors /></ProtectedRoute>} />
+                <Route path="*" element={<ErrorPage code={404} />} />
               </Routes>
             </main>
           
