@@ -1,13 +1,13 @@
-
-import React from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Route, Routes, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { store } from './store';
 import { useAppSelector } from './hooks/redux';
+import LandingPage from './pages/LandingPage';
 import Homepage from './pages/Homepage';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
-import OTPVerification from './pages/OTPVerification'; // ADD THIS
+import OTPVerification from './pages/OTPVerification';
 import SellLaptop from './pages/SellLaptop';
 import ChargersPage from './pages/ChargersPage';
 import MousePage from './pages/MousePage';
@@ -47,11 +47,32 @@ import Analytics from './pages/admin/AdminAnalytics';
 import ManageSupervisors from './pages/admin/ManageSupervisors';
 import Notifications from './pages/Notifications.jsx';
 import RequestDevice from "./pages/RequestDevice";
-import ErrorPage from './pages/ErrorPage';
+
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
   const { user } = useAppSelector((state) => state.auth);
   return user ? children : <Navigate to="/sign-in" replace />;
+};
+
+// Component to handle first visit redirect
+const FirstVisitRedirect = ({ children }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [hasVisited, setHasVisited] = useState(false);
+
+  useEffect(() => {
+    // Check if user has visited before
+    const visited = sessionStorage.getItem('hasVisitedLanding');
+    
+    if (!visited && location.pathname === '/') {
+      // First visit to root - redirect to landing
+      navigate('/welcome', { replace: true });
+    } else {
+      setHasVisited(true);
+    }
+  }, [navigate, location]);
+
+  return children;
 };
 
 function App() {
@@ -59,97 +80,103 @@ function App() {
     <Provider store={store}>
       <CartProvider>
         <Router>
-          <div className="flex flex-col min-h-screen">
+          <FirstVisitRedirect>
+            <div className="flex flex-col min-h-screen">
+              
+              <main className="flex-grow">
+                <Routes>
+                  {/* Landing Page - Shows first time */}
+                  <Route path="/welcome" element={<LandingPage />} />
+                  
+                  {/* Homepage at root */}
+                  <Route path="/" element={<Homepage />} />
+                  
+                  <Route path="/accessories/chargers" element={<ChargersPage />} />
+                  <Route path="/accessories/mouses" element={<MousePage/>}/>
+                  <Route path="/accessories/earphones" element={<EarbudsPage/>}/>
+                  <Route path="/accessories/smartwatches" element={<SmartWatchesPage/>}/>
+                  <Route path="/request-device" element={<RequestDevice />} />
+                  <Route path="/profile" element={
+                    <ProtectedRoute>
+                      <UserProfile />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/charger/:id" element={<AccessoryDetails type="charger" />} />
+                  <Route path="/mouse/:id" element={<AccessoryDetails type="mouse" />} />
+                  <Route path="/smartwatch/:id" element={<AccessoryDetails type="smartwatch" />} />
+                  <Route path="/earphone/:id" element={<AccessoryDetails type="earphone" />} />
+                  <Route path="/Accessories" element={<AccessoriesPage />} />
+                  <Route path="/myorders" element={
+                    <ProtectedRoute>
+                      <MyOrders />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/orders/:orderId" element={
+                    <ProtectedRoute>
+                      <Orders />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/sell-phone" element={<SellPhoneForm />}/>
+                  <Route path="/sell-laptop" element={<SellLaptop />} />
+                  <Route path="/sign-in" element={<SignIn />} />
+                  <Route path="/sign-up" element={<SignUp />} />
+                  <Route path="/verify-otp" element={<OTPVerification />} />
+                  <Route path="/cart" element={
+                    <ProtectedRoute>
+                      <CartPage/>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/checkout" element={
+                    <ProtectedRoute>
+                      <Checkout/>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/buyphones" element={<BuyPhones/>} />
+                  <Route path="/buylaptops" element={<BuyLaptops/>} />
+                  <Route path="/filter-buy-phone" element={<FilterPhones/>}/>
+                  <Route path="/filter-buy-laptop" element={<FilterLaptops />} />
+                  <Route path="/product/:id" element={<PhoneDetails />} />
+                  <Route path="/laptop/:id" element={<LaptopDetails />} />
+                  <Route path="/about_us" element={<AboutUs/>} />
+                  <Route path="/blog" element={<Blog/>} />
+                  <Route path="/contact_us" element={<ContactUs/>} />
+                  <Route path="/privacypolicy" element={<PrivacyPolicy/>} />
+                  <Route path="/terms" element={<TermsAndConditions/>} />
+                  <Route path="/payment" element={
+                    <ProtectedRoute>
+                      <PaymentPage/>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/listings" element={
+                    <ProtectedRoute>
+                      <Listings/>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/search" element={<SearchResults />} />
+
+                  <Route path="/notifications" element={
+                    <ProtectedRoute>
+                      <Notifications />
+                    </ProtectedRoute>
+                  } />
+
+                  {/* Supervisor Routes - Also protected */}
+                  <Route path="/supervisor-dashboard" element={<ProtectedRoute><SupervisorDashboard /></ProtectedRoute>} />
+                  <Route path="/supervisor/verify-listings" element={<ProtectedRoute><VerifyListings /></ProtectedRoute>} />
+                  <Route path="/supervisor/manage-inventory" element={<ProtectedRoute><ManageInventory /></ProtectedRoute>} />
+                  <Route path="/supervisor/statistics" element={<ProtectedRoute><Statistics /></ProtectedRoute>} />
+                  <Route path="/supervisor/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                  
+                  {/* Admin Routes - Also protected */}
+                  <Route path="/admin-dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+                  <Route path="/admin/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+                  <Route path="/admin/manage-supervisors" element={<ProtectedRoute><ManageSupervisors /></ProtectedRoute>} />
+                </Routes>
+              </main>
             
-            <main className="flex-grow">
-              <Routes>
-                <Route path="/" element={<Homepage />} />
-                <Route path="/accessories/chargers" element={<ChargersPage />} />
-                <Route path="/accessories/mouses" element={<MousePage/>}/>
-                <Route path="/accessories/earphones" element={<EarbudsPage/>}/>
-                <Route path="/accessories/smartwatches" element={<SmartWatchesPage/>}/>
-                 <Route path="/request-device" element={<RequestDevice />} />
-                <Route path="/profile" element={
-                  <ProtectedRoute>
-                    <UserProfile />
-                  </ProtectedRoute>
-                } />
-                <Route path="/charger/:id" element={<AccessoryDetails type="charger" />} />
-                <Route path="/mouse/:id" element={<AccessoryDetails type="mouse" />} />
-                <Route path="/smartwatch/:id" element={<AccessoryDetails type="smartwatch" />} />
-                <Route path="/earphone/:id" element={<AccessoryDetails type="earphone" />} />
-                <Route path="/Accessories" element={<AccessoriesPage />} />
-                <Route path="/myorders" element={
-                  <ProtectedRoute>
-                    <MyOrders />
-                  </ProtectedRoute>
-                } />
-                <Route path="/orders/:orderId" element={
-                  <ProtectedRoute>
-                    <Orders />
-                  </ProtectedRoute>
-                } />
-                <Route path="/sell-phone" element={<SellPhoneForm />}/>
-                <Route path="/sell-laptop" element={<SellLaptop />} />
-                <Route path="/sign-in" element={<SignIn />} />
-                <Route path="/sign-up" element={<SignUp />} />
-                <Route path="/verify-otp" element={<OTPVerification />} /> {/* ADD THIS */}
-                <Route path="/cart" element={
-                  <ProtectedRoute>
-                    <CartPage/>
-                  </ProtectedRoute>
-                } />
-                <Route path="/checkout" element={
-                  <ProtectedRoute>
-                    <Checkout/>
-                  </ProtectedRoute>
-                } />
-                <Route path="/buyphones" element={<BuyPhones/>} />
-                <Route path="/buylaptops" element={<BuyLaptops/>} />
-                <Route path="/filter-buy-phone" element={<FilterPhones/>}/>
-                <Route path="/filter-buy-laptop" element={<FilterLaptops />} />
-                <Route path="/product/:id" element={<PhoneDetails />} />
-                <Route path="/laptop/:id" element={<LaptopDetails />} />
-                <Route path="/about_us" element={<AboutUs/>} />
-                <Route path="/blog" element={<Blog/>} />
-                <Route path="/contact_us" element={<ContactUs/>} />
-                <Route path="/privacypolicy" element={<PrivacyPolicy/>} />
-                <Route path="/terms" element={<TermsAndConditions/>} />
-                <Route path="/payment" element={
-                  <ProtectedRoute>
-                    <PaymentPage/>
-                  </ProtectedRoute>
-                } />
-                <Route path="/listings" element={
-                  <ProtectedRoute>
-                    <Listings/>
-                  </ProtectedRoute>
-                } />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/search" element={<SearchResults />} />
-
-                <Route path="/notifications" element={
-                  <ProtectedRoute>
-                    <Notifications />
-                  </ProtectedRoute>
-                } />
-
-                {/* Supervisor Routes - Also protected */}
-                <Route path="/supervisor-dashboard" element={<ProtectedRoute><SupervisorDashboard /></ProtectedRoute>} />
-                <Route path="/supervisor/verify-listings" element={<ProtectedRoute><VerifyListings /></ProtectedRoute>} />
-                <Route path="/supervisor/manage-inventory" element={<ProtectedRoute><ManageInventory /></ProtectedRoute>} />
-                <Route path="/supervisor/statistics" element={<ProtectedRoute><Statistics /></ProtectedRoute>} />
-                <Route path="/supervisor/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-                
-                {/* Admin Routes - Also protected */}
-                <Route path="/admin-dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-                <Route path="/admin/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
-                <Route path="/admin/manage-supervisors" element={<ProtectedRoute><ManageSupervisors /></ProtectedRoute>} />
-                <Route path="*" element={<ErrorPage code={404} />} />
-              </Routes>
-            </main>
-          
-          </div>
+            </div>
+          </FirstVisitRedirect>
         </Router>
       </CartProvider>
     </Provider>
