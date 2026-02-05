@@ -175,7 +175,7 @@ const ManageInventory = () => {
         };
 
         // Add dynamic fields based on product type
-        if (selectedProduct.type === 'phone') {
+        if (selectedProduct.type === 'phones') {
             Object.assign(data, {
                 model: formData.get('model'),
                 color: formData.get('color'),
@@ -190,7 +190,7 @@ const ManageInventory = () => {
                 rom: formData.get('rom'),
                 condition: formData.get('condition')
             });
-        } else if (selectedProduct.type === 'laptop') {
+        } else if (selectedProduct.type === 'laptops') {
             Object.assign(data, {
                 series: formData.get('series'),
                 processor_name: formData.get('processor_name'),
