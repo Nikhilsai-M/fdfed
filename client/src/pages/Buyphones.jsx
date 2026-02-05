@@ -412,7 +412,7 @@ const fetchLatestProducts = async () => {
           ) : latestProducts.length === 0 ? (
             <p className="text-center text-gray-600 py-12">No new products available.</p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide">
               {latestProducts.map((product, index) => {
                 const finalPrice = calculateFinalPrice(product);
                 const originalPrice = product.base_price;
@@ -424,7 +424,16 @@ const fetchLatestProducts = async () => {
                 return (
                   <div
                     key={product.id}
-                    className={`bg-gradient-to-br from-white to-gray-50 p-6 rounded-2xl shadow-lg card-hover border-2 border-transparent hover:border-purple-300 animate-fade-in-up delay-${Math.min(index, 8)}00 relative group`}
+                    className="
+                        min-w-[350px] max-w-[400px]
+                        h-[450px]
+                        bg-gradient-to-br from-white to-gray-50
+                        p-7
+                        rounded-3xl
+                        shadow-xl
+                        card-hover
+                        border-2 border-transparent hover:border-purple-300
+                      "
                   >
                     <Link to={`/product/${product.id}`} className="block text-black no-underline">
                       <div className="relative overflow-hidden rounded-xl mb-4 bg-gradient-to-br from-gray-50 to-gray-100 p-4">

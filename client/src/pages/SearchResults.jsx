@@ -12,6 +12,7 @@ const SearchResults = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchInput, setSearchInput] = useState(query);
+
   const { updateCart } = useCart();
   const navigate = useNavigate();
 
@@ -19,16 +20,14 @@ const SearchResults = () => {
     try {
       setLoading(true);
       setError(null);
+
       const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch search results');
-      }
-      
+      if (!response.ok) throw new Error('Failed to fetch search results');
+
       const data = await response.json();
       setResults(data.results || []);
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Error fetching search results');
       console.error('Error fetching search results:', err);
     } finally {
       setLoading(false);
@@ -45,39 +44,64 @@ const SearchResults = () => {
     }
   }, [query, fetchSearchResults]);
 
-  const handleAddToCart = async (product) => {
+  const addToCart = async (product) => {
     try {
-      const user = JSON.parse(localStorage.getItem('user'));
-      if (!user) {
+      const profileRes = await fetch('/api/user/profile', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (!profileRes.ok) {
         navigate('/sign-in');
         return;
       }
 
-      const cartItem = {
-        productId: product.id,
-        productType: product.type,
+      const userData = await profileRes.json();
+      if (!userData?.success || !userData?.user) {
+        navigate('/sign-in');
+        return;
+      }
+
+      const userId = userData.user.user_id;
+      const userCartKey = `cart_user_${userId}`;
+
+      if (!product || !product.id) return;
+
+      const currentCart = JSON.parse(localStorage.getItem(userCartKey)) || [];
+
+      const cartProduct = {
+        id: product.id,
+        name: product.title || `${product.brand || ''} ${product.model || ''}`.trim(),
+        brand: product.brand || '',
+        model: product.model || '',
+        ram: product.ram || '',
+        rom: product.rom || '',
+        image: product.image,
+        price: Number(product.price ?? product.finalPrice ?? 0),
+        discount: Number(product.discount || 0),
         quantity: 1,
-        price: product.finalPrice,
+        type: product.type,
       };
 
-      const response = await fetch('/api/orders/cart', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(cartItem),
-      });
+      const existingIndex = currentCart.findIndex(
+        (item) => item.id === cartProduct.id && item.type === cartProduct.type
+      );
 
-      if (response.ok) {
-        updateCart();
-        alert('Product added to cart!');
+      let updatedCart;
+      if (existingIndex !== -1) {
+        updatedCart = [...currentCart];
+        updatedCart[existingIndex].quantity += 1;
       } else {
-        throw new Error('Failed to add to cart');
+        updatedCart = [...currentCart, cartProduct];
       }
+
+      localStorage.setItem(userCartKey, JSON.stringify(updatedCart));
+      updateCart(updatedCart, userId);
+
+      alert('Product added to cart!');
     } catch (err) {
       console.error('Error adding to cart:', err);
-      alert('Failed to add product to cart');
+      navigate('/sign-in');
     }
   };
 
@@ -107,7 +131,7 @@ const SearchResults = () => {
       earphone: 'Earphone',
       charger: 'Charger',
       mouse: 'Mouse',
-      smartwatch: 'Smartwatch'
+      smartwatch: 'Smartwatch',
     };
     return labels[type] || type;
   };
@@ -121,16 +145,13 @@ const SearchResults = () => {
   return (
     <>
       <Header />
+
       <div className="min-h-screen bg-gray-50 pt-8 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Search Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-4">
               {query ? `Search Results for "${query}"` : 'Search Products'}
             </h1>
-            
-            {/* Search Input */}
-          
 
             {results.length > 0 && query && (
               <p className="text-gray-600">
@@ -139,7 +160,6 @@ const SearchResults = () => {
             )}
           </div>
 
-          {/* Loading State */}
           {loading && (
             <div className="text-center py-12">
               <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -147,14 +167,12 @@ const SearchResults = () => {
             </div>
           )}
 
-          {/* Error State */}
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
               <p className="text-red-800">Error: {error}</p>
             </div>
           )}
 
-          {/* No Results */}
           {!loading && !error && results.length === 0 && query && (
             <div className="text-center py-12">
               <div className="text-6xl mb-4">🔍</div>
@@ -171,7 +189,6 @@ const SearchResults = () => {
             </div>
           )}
 
-          {/* Results Grid */}
           {!loading && !error && results.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {results.map((product) => (
@@ -190,32 +207,37 @@ const SearchResults = () => {
                         }}
                       />
                     </div>
+
                     <div className="p-4">
                       <div className="mb-2">
                         <span className="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-1 rounded">
                           {getProductTypeLabel(product.type)}
                         </span>
                       </div>
+
                       <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
                         {product.title}
                       </h3>
+
                       {product.brand && (
                         <p className="text-sm text-gray-600 mb-2">Brand: {product.brand}</p>
                       )}
+
                       {product.condition && (
                         <p className="text-sm text-gray-600 mb-2">Condition: {product.condition}</p>
                       )}
+
                       <div className="flex items-center justify-between mt-4">
                         <div>
-                          {product.discount > 0 && (
+                          {Number(product.discount || 0) > 0 && (
                             <p className="text-sm text-gray-500 line-through">
-                              ₹{product.price.toLocaleString()}
+                              ₹{Number(product.price || 0).toLocaleString()}
                             </p>
                           )}
                           <p className="text-xl font-bold text-blue-600">
-                            ₹{product.finalPrice.toLocaleString()}
+                            ₹{Number(product.finalPrice || product.price || 0).toLocaleString()}
                           </p>
-                          {product.discount > 0 && (
+                          {Number(product.discount || 0) > 0 && (
                             <p className="text-xs text-green-600 font-semibold">
                               {product.discount}% OFF
                             </p>
@@ -224,11 +246,13 @@ const SearchResults = () => {
                       </div>
                     </div>
                   </Link>
+
                   <div className="px-4 pb-4">
                     <button
                       onClick={(e) => {
                         e.preventDefault();
-                        handleAddToCart(product);
+                        e.stopPropagation();
+                        addToCart(product);
                       }}
                       className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition flex items-center justify-center gap-2"
                     >
@@ -242,10 +266,10 @@ const SearchResults = () => {
           )}
         </div>
       </div>
+
       <Footer />
     </>
   );
 };
 
 export default SearchResults;
-
