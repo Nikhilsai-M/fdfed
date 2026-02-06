@@ -332,7 +332,7 @@ const HomePage = () => {
                 return (
                   <div
                     key={product.id}
-                    className={`bg-white p-6 rounded-2xl shadow-lg min-w-[280px] card-hover border border-gray-100 animate-fade-in-up delay-${Math.min(index, 8)}00`}
+                    className={`bg-white p-6 rounded-2xl shadow-lg min-w-[280px] max-w-[350px] card-hover border border-gray-100 animate-fade-in-up delay-${Math.min(index, 8)}00`}
                   >
                     <Link 
                         to={product.series ? `/laptop/${product.id}` : `/product/${product.id}`} 

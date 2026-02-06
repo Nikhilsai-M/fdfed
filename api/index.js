@@ -2,12 +2,12 @@ import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
-import session from "express-session"; // ADD THIS
+import session from "express-session"; 
 import userRouter from "./routes/user.route.js";
 import authRouter from "./routes/auth.route.js";
 import supervisorAuthRouter from "./routes/supervisorAuth.route.js";
 import adminAuthRouter from "./routes/adminAuth.route.js";
-import adminRouter from "./routes/admin.route.js"; // ADD THIS
+import adminRouter from "./routes/admin.route.js"; 
 import supervisorRouter from "./routes/supervisor.route.js";
 import chargerRouter from "./routes/charger.route.js";
 import earphoneRouter from "./routes/earphone.route.js";
