@@ -15,7 +15,7 @@ export const sendMail = async ({ to, subject, text, html }) => {
       to,
       subject,
       text,
-      html: html || text, // Use html if provided, otherwise use text
+      html: html || text, 
     });
 
     console.log(`📧 Mail sent to ${to}`);
@@ -26,7 +26,7 @@ export const sendMail = async ({ to, subject, text, html }) => {
   }
 };
 
-// New function specifically for OTP emails
+
 export const sendOTPEmail = async (email, otp, purpose = "verification") => {
   const subject = purpose === "verification" 
     ? "SmartExchange - Verify Your Email" 
