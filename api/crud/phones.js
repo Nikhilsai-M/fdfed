@@ -12,7 +12,7 @@ export async function initPhones() {
           brand: 'APPLE',
           model: 'iphone 12',
           color: 'Black',
-          image: prefix + 'boat_airdopes.webp',
+          image: '../../client/src/assets/images/phones/iphone12.webp',
           processor: 'a 20 bionic',
           display: '4.9',
           battery: 1000,
