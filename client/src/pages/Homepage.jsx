@@ -334,7 +334,11 @@ const HomePage = () => {
                     key={product.id}
                     className={`bg-white p-6 rounded-2xl shadow-lg min-w-[280px] card-hover border border-gray-100 animate-fade-in-up delay-${Math.min(index, 8)}00`}
                   >
-                    <Link to={`/product/${product.id}`} className="block text-black no-underline">
+                    <Link 
+                        to={product.series ? `/laptop/${product.id}` : `/product/${product.id}`} 
+                        className="block text-black no-underline"
+                      >
+
                       <div className="relative overflow-hidden rounded-xl mb-4 bg-gray-50 p-4">
                         <img
                           src={product.image}
