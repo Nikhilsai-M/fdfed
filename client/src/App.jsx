@@ -47,6 +47,8 @@ import Analytics from './pages/admin/AdminAnalytics';
 import ManageSupervisors from './pages/admin/ManageSupervisors';
 import Notifications from './pages/Notifications.jsx';
 import RequestDevice from "./pages/RequestDevice";
+import SellerSignup from "./pages/seller/SellerSignup.jsx";
+import SellerLogin from "./pages/seller/SellerSignIn.jsx";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -172,6 +174,11 @@ function App() {
                   <Route path="/admin-dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
                   <Route path="/admin/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
                   <Route path="/admin/manage-supervisors" element={<ProtectedRoute><ManageSupervisors /></ProtectedRoute>} />
+
+
+                  {/* Seller Routes */}
+                  <Route path="/seller/signup" element={<SellerSignup />} />
+                  <Route path="/seller/login" element={<SellerLogin />} />
                 </Routes>
               </main>
             

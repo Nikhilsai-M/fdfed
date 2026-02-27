@@ -311,7 +311,7 @@ const HomePage = () => {
         </div>
       </div>
 
-      {/* Newly Added Products */}
+  
       <div id="products-section" data-animate className={`mb-16 ${isVisible['products-section'] ? 'scroll-reveal visible' : 'scroll-reveal'}`}>
         <div className="flex items-center justify-between ml-6 mr-6 mb-6">
           <h2 className="text-4xl font-bold text-gradient animate-slide-in-left">
@@ -332,7 +332,7 @@ const HomePage = () => {
                 return (
                   <div
                     key={product.id}
-                    className={`bg-white p-6 rounded-2xl shadow-lg min-w-[280px] card-hover border border-gray-100 animate-fade-in-up delay-${Math.min(index, 8)}00`}
+                    className={`bg-white p-6 rounded-2xl shadow-lg min-w-[280px] max-w-[350px] card-hover border border-gray-100 animate-fade-in-up delay-${Math.min(index, 8)}00`}
                   >
                     <Link 
                         to={product.series ? `/laptop/${product.id}` : `/product/${product.id}`} 
@@ -376,7 +376,7 @@ const HomePage = () => {
         </div>
       </div>
 
-      {/* Top Brands */}
+      
       <div id="brands-section" data-animate className={`mb-16 ${isVisible['brands-section'] ? 'scroll-reveal visible' : 'scroll-reveal'}`}>
         <div className="flex items-center justify-between ml-6 mr-6 mb-6">
           <h2 className="text-4xl font-bold text-gradient animate-slide-in-left">Top Brands</h2>
@@ -410,7 +410,7 @@ const HomePage = () => {
         </div>
       </div>
 
-      {/* Grade Information Cards */}
+      
       <div id="grades-section" data-animate className={`mb-16 ${isVisible['grades-section'] ? 'scroll-reveal visible' : 'scroll-reveal'}`}>
         <div className="flex items-center justify-between ml-6 mr-6 mb-8">
           <h2 className="text-4xl font-bold text-gradient animate-slide-in-left">Quality Grades</h2>
@@ -473,7 +473,7 @@ const HomePage = () => {
             Discover the best deals on refurbished devices with warranty
           </p>
           <div className="flex gap-4 justify-center relative z-10">
-            <Link to="/buy-phone" className="bg-white text-purple-600 px-8 py-4 rounded-full font-bold hover:bg-gray-100 transform hover:scale-105 transition-all duration-300 shadow-lg">
+            <Link to="/buyphones" className="bg-white text-purple-600 px-8 py-4 rounded-full font-bold hover:bg-gray-100 transform hover:scale-105 transition-all duration-300 shadow-lg">
               Shop Phones
             </Link>
             <Link to="/sell-phone" className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-full font-bold hover:bg-white hover:text-purple-600 transform hover:scale-105 transition-all duration-300">

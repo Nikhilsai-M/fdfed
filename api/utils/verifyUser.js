@@ -3,7 +3,7 @@ import { errorHandler } from './error.js';
 
 export const verifyToken = (req, res, next) => {
   try {
-    // Get token from cookie or Authorization header
+
     const token = req.cookies.access_token || 
                   req.headers.authorization?.split(' ')[1];
 
@@ -14,16 +14,14 @@ export const verifyToken = (req, res, next) => {
 
     console.log('🔑 Token found, verifying...');
 
-    // Verify token
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
       if (err) {
         console.log('❌ Token verification failed:', err.message);
         return next(errorHandler(403, 'Forbidden - Invalid token'));
       }
 
-      // Attach user info to request - prioritize user_id from token
       req.user = {
-        user_id: decoded.user_id,  // This should be the UUID from your database
+        user_id: decoded.user_id,  
         id: decoded.id,
         email: decoded.email,
         role: decoded.role
