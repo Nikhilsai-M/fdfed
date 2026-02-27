@@ -244,6 +244,7 @@ export default function SignIn() {
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
+              
             </div>
 
             {userType === "customer" && (
@@ -290,7 +291,17 @@ export default function SignIn() {
                 <>Sign In</>
               )}
             </button>
+             
+
           </form>
+          <Link to="/seller/login">
+           <button
+            className={`bg-gradient-to-r ${config.gradient} text-white p-4 rounded-xl font-semibold uppercase hover:shadow-xl transform transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2`}
+            >
+            Sign In As Seller
+            </button>
+          </Link>
+          
 
           {error && (
             <div className="bg-red-50 border-2 border-red-300 text-red-700 px-4 py-3 rounded-xl mt-4 animate-slideIn flex items-start gap-3">
