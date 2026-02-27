@@ -9,7 +9,7 @@ import { errorHandler } from "../utils/error.js";
 import DeviceRequest from "../models/deviceRequest.model.js";
 import Notification from "../models/notification.model.js";
 import { v4 as uuidv4 } from "uuid";
-// Dashboard Data
+
 export const getDashboardData = async (req, res, next) => {
   try {
     const pendingPhoneApps = await PhoneApplication.countDocuments({ status: 'pending' });
@@ -20,7 +20,7 @@ export const getDashboardData = async (req, res, next) => {
     const approvedLaptopApps = await LaptopApplication.countDocuments({ status: 'approved' });
     const totalApproved = approvedPhoneApps + approvedLaptopApps;
 
-    // Get recent activity
+    
     const recentActivity = await SupervisorActivity.find({ supervisor_id: req.user.user_id })
       .sort({ timestamp: -1 })
       .limit(5)
@@ -40,7 +40,7 @@ export const getDashboardData = async (req, res, next) => {
   }
 };
 
-// Statistics
+
 export const getStatistics = async (req, res, next) => {
   try {
     const totalPhoneApps = await PhoneApplication.countDocuments();
@@ -59,7 +59,6 @@ export const getStatistics = async (req, res, next) => {
     const pendingLaptopApps = await LaptopApplication.countDocuments({ status: 'pending' });
     const pendingListings = pendingPhoneApps + pendingLaptopApps;
 
-    // Get recent activity for statistics
     const recentActivity = await SupervisorActivity.find({ supervisor_id: req.user.user_id })
       .sort({ timestamp: -1 })
       .limit(10)
@@ -83,7 +82,6 @@ export const getStatistics = async (req, res, next) => {
   }
 };
 
-// Get applications for verification
 export const getVerifyApplications = async (req, res, next) => {
   try {
     const phoneApps = await PhoneApplication.find().sort({ created_at: -1 }).lean();
@@ -176,8 +174,7 @@ export const updateApplicationStatus = async (req, res, next) => {
   }
 };
 
-// Add to inventory
-// Add to inventory
+
 export const addToInventory = async (req, res, next) => {
   try {
     const { type, id } = req.params;
@@ -188,13 +185,13 @@ export const addToInventory = async (req, res, next) => {
     let productData;
     
     if (type === 'phone') {
-      // Get phone application
+   
       application = await PhoneApplication.findOne({ id: numericId });
       if (!application) {
         return next(errorHandler(404, 'Phone application not found'));
       }
       
-      // Update application status
+     
       const result = await PhoneApplication.updateOne(
         { id: numericId },
         { $set: { status: 'added_to_inventory' } }
@@ -204,12 +201,11 @@ export const addToInventory = async (req, res, next) => {
         return next(errorHandler(404, 'Failed to update application status'));
       }
 
-      // Create product data from application
       productData = {
         id: application.id,
         brand: application.brand,
         model: application.model,
-        color: '', // Default or extract from description if available
+        color: '', 
         image: application.image_path || '/default-phone.jpg',
         processor: application.processor,
         display: application.size || '',
@@ -226,7 +222,7 @@ export const addToInventory = async (req, res, next) => {
         created_at: new Date()
       };
 
-      // Add to Phone collection
+      
       const phone = new Phone(productData);
       await phone.save();
       console.log("🚀 Calling matchRequests after inventory add");
@@ -234,18 +230,17 @@ console.log("➡️ Brand:", phone.brand);
 console.log("➡️ Model:", phone.model);
 
       await matchRequests("phone", phone);
-      // 🔔 Notify users who requested this device
-
+      
 
 
     } else if (type === 'laptop') {
-      // Get laptop application
+      
       application = await LaptopApplication.findOne({ id: numericId });
       if (!application) {
         return next(errorHandler(404, 'Laptop application not found'));
       }
 
-      // Update application status
+      
       const result = await LaptopApplication.updateOne(
         { id: numericId },
         { $set: { status: 'added_to_inventory' } }
@@ -255,7 +250,7 @@ console.log("➡️ Model:", phone.model);
         return next(errorHandler(404, 'Failed to update application status'));
       }
 
-      // Create product data from application
+      
       productData = {
         id: application.id,
         brand: application.brand,
@@ -265,7 +260,7 @@ console.log("➡️ Model:", phone.model);
         base_price: application.price || 0,
         discount: parseInt(discount) || 0,
         ram: application.ram,
-        storage_type: 'SSD', // Default or extract from storage field
+        storage_type: 'SSD',
         storage_capacity: application.storage,
         display_size: parseFloat(application.display_size) || 14,
         weight: parseFloat(application.weight) || 1.5,
@@ -275,7 +270,6 @@ console.log("➡️ Model:", phone.model);
         created_at: new Date()
       };
 
-      // Add to Laptop collection
       const laptop = new Laptop(productData);
       await laptop.save();
       console.log("🚀 Calling matchRequests after inventory add");
@@ -288,7 +282,6 @@ console.log("➡️ Model:", phone.model);
       return next(errorHandler(400, 'Invalid application type'));
     }
 
-    // Log activity
     await SupervisorActivity.create({
       supervisor_id: req.user.user_id,
       action: `Added ${type} #${id} to inventory with condition: ${condition} and discount: ${discount}%`
@@ -301,7 +294,6 @@ console.log("➡️ Model:", phone.model);
   } catch (error) {
     console.error('Error adding to inventory:', error);
     
-    // Handle duplicate ID error
     if (error.code === 11000) {
       return next(errorHandler(400, 'Product with this ID already exists in inventory'));
     }
@@ -310,7 +302,6 @@ console.log("➡️ Model:", phone.model);
   }
 };
 
-// Get supervisor profile
 export const getSupervisorProfile = async (req, res, next) => {
   try {
     const supervisor = await Supervisor.findOne({ user_id: req.user.user_id }).select('-password');
@@ -329,13 +320,11 @@ export const getSupervisorProfile = async (req, res, next) => {
   }
 };
 
-// Update supervisor profile
 export const updateSupervisorProfile = async (req, res, next) => {
   try {
     const { first_name, last_name, email, phone, username } = req.body;
     const userId = req.user.user_id;
 
-    // Check if email or username already exists for another supervisor
     const emailCheck = await Supervisor.findOne({ email, user_id: { $ne: userId } });
     if (emailCheck) {
       return next(errorHandler(400, 'Email already in use by another supervisor'));
@@ -361,7 +350,6 @@ export const updateSupervisorProfile = async (req, res, next) => {
   }
 };
 
-// Update supervisor password
 export const updateSupervisorPassword = async (req, res, next) => {
   try {
     const { currentPassword, newPassword } = req.body;
@@ -394,7 +382,6 @@ export const updateSupervisorPassword = async (req, res, next) => {
   }
 };
 
-// Supervisor logout
 export const supervisorLogout = async (req, res, next) => {
   try {
     res.clearCookie('supervisor_access_token');

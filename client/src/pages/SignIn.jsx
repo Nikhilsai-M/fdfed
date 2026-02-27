@@ -25,7 +25,6 @@ export default function SignIn() {
     supervisorExists 
   } = useAppSelector((state) => state.auth);
 
-  // Auto-detect user type based on username patterns
   useEffect(() => {
     const detectUserType = async (username) => {
       if (!username || username.trim() === '') {
@@ -33,33 +32,29 @@ export default function SignIn() {
         return;
       }
       
-      // Check admin pattern first
       const adminPattern = /^ADMIN\d+$/i;
       if (adminPattern.test(username)) {
         dispatch(setUserType('admin'));
         return;
       }
       
-      // Check supervisor pattern
       const supervisorPattern = /^supervisor\d*@se\.com$/i;
       if (supervisorPattern.test(username)) {
         dispatch(setUserType('supervisor'));
         return;
       }
       
-      // For other usernames, check supervisor existence
       lastCheckedUsername.current = username;
       dispatch(checkSupervisorExists(username));
     };
 
     const username = formData.username;
     
-    // Clear previous debounce timer
     if (debounceTimer.current) {
       clearTimeout(debounceTimer.current);
     }
     
-    // Quick pattern-based detection
+    
     const adminPattern = /^ADMIN\d+$/i;
     const supervisorPattern = /^supervisor\d*@se\.com$/i;
     
@@ -70,21 +65,19 @@ export default function SignIn() {
     } else if (username.trim() === '') {
       dispatch(setUserType('customer'));
     } else {
-      // Reset to customer while waiting for debounce check
+    
       dispatch(setUserType('customer'));
       
-      // Debounce database check for supervisor
       debounceTimer.current = setTimeout(() => {
         detectUserType(username);
       }, 500);
     }
   }, [formData.username, dispatch]);
 
-  // Update userType based on supervisorExists
+
   useEffect(() => {
     if (supervisorExists && formData.username === lastCheckedUsername.current) {
-      // Only set to supervisor if the username matches the one we just checked
-      // and it doesn't match admin pattern
+
       const adminPattern = /^ADMIN\d+$/i;
       const supervisorPattern = /^supervisor\d*@se\.com$/i;
       
@@ -92,18 +85,16 @@ export default function SignIn() {
         dispatch(setUserType('supervisor'));
       }
     } else if (!supervisorExists && userType === 'supervisor') {
-      // Check if current username matches supervisor pattern
+      
       const supervisorPattern = /^supervisor\d*@se\.com$/i;
       const adminPattern = /^ADMIN\d+$/i;
       
-      // Only revert to customer if username doesn't match supervisor pattern
       if (!supervisorPattern.test(formData.username) && !adminPattern.test(formData.username)) {
         dispatch(setUserType('customer'));
       }
     }
   }, [supervisorExists, userType, formData.username, dispatch]);
 
-  // Cleanup debounce timer
   useEffect(() => {
     return () => {
       if (debounceTimer.current) {
@@ -116,7 +107,7 @@ export default function SignIn() {
     const { id, value } = e.target;
     setFormData({ ...formData, [id]: value });
     
-    // Clear error when user types
+
     if (error) {
       dispatch(clearError());
     }
@@ -126,8 +117,6 @@ export default function SignIn() {
     e.preventDefault();
     
     if (!formData.username || !formData.password) {
-      // Note: You might need to import setError from authSlice
-      // For now, we'll just return early
       console.error("Please fill in all fields");
       return;
     }
@@ -145,7 +134,7 @@ export default function SignIn() {
         userType
       })).unwrap();
 
-      // Navigation based on user role
+      
       if (result.role === "supervisor") {
         navigate("/supervisor-dashboard");
       } else if (result.role === "admin") {
@@ -154,7 +143,7 @@ export default function SignIn() {
         navigate("/");
       }
     } catch (error) {
-      // Error is already handled in the slice
+     
       console.error('Login error:', error);
     }
   };

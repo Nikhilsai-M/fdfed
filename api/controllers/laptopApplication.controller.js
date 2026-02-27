@@ -5,7 +5,7 @@ import fs from 'fs';
 import { uploadToCloudinary } from '../utils/cloudinary.js';
 import { unlink } from 'fs/promises';
 
-// Configure multer for temporary storage
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const uploadDir = 'uploads/laptops/';
@@ -24,7 +24,7 @@ const storage = multer.diskStorage({
 const upload = multer({ 
   storage: storage,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
+    fileSize: 5 * 1024 * 1024, 
   },
   fileFilter: (req, file, cb) => {
     const allowedTypes = /jpeg|jpg|png|gif|webp/;
@@ -63,7 +63,7 @@ export const submitLaptopApplication = async (req, res) => {
       phone
     } = req.body;
 
-    // Validate required fields
+    
     if (!brand || !model || !ram || !storage || !processor || !location || !description || !name || !email || !phone) {
       return res.status(400).json({
         success: false,
@@ -71,7 +71,7 @@ export const submitLaptopApplication = async (req, res) => {
       });
     }
 
-    // Validate email format
+    
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return res.status(400).json({
@@ -80,7 +80,7 @@ export const submitLaptopApplication = async (req, res) => {
       });
     }
 
-    // Validate phone number
+    
     const phoneRegex = /^[0-9]{10}$/;
     if (!phoneRegex.test(phone.replace(/\D/g, ''))) {
       return res.status(400).json({
@@ -96,22 +96,22 @@ export const submitLaptopApplication = async (req, res) => {
     let image_path = '';
     let cloudinary_public_id = '';
 
-    // Upload to Cloudinary if file exists
+  
     if (req.file) {
       try {
-        // Upload to Cloudinary
+      
         const cloudinaryResult = await uploadToCloudinary(req.file.path, 'laptops');
         
-        // Store Cloudinary URL in image_path (keeping the same field name)
+        
         image_path = cloudinaryResult.secure_url;
         cloudinary_public_id = cloudinaryResult.public_id;
         
-        // Clean up temporary file
+        
         await unlink(req.file.path);
         console.log('Temporary file cleaned up:', req.file.path);
       } catch (uploadError) {
         console.error('Error uploading to Cloudinary:', uploadError);
-        // Clean up temp file even if upload fails
+        
         if (req.file && req.file.path) {
           try {
             await unlink(req.file.path);
@@ -131,7 +131,7 @@ export const submitLaptopApplication = async (req, res) => {
       });
     }
 
-    // Create new application - image_path now contains Cloudinary URL
+   
     const newApplication = new LaptopApplication({
       id: nextId,
       user_id: req.user?.user_id || null,
@@ -151,8 +151,8 @@ export const submitLaptopApplication = async (req, res) => {
       name,
       email,
       phone,
-      image_path, // This now contains Cloudinary URL, not local path
-      cloudinary_public_id, // Store Cloudinary ID for future management
+      image_path, 
+      cloudinary_public_id, 
       status: 'pending'
     });
 

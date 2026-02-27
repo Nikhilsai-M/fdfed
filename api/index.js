@@ -2,12 +2,12 @@ import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
-import session from "express-session"; // ADD THIS
+import session from "express-session"; 
 import userRouter from "./routes/user.route.js";
 import authRouter from "./routes/auth.route.js";
 import supervisorAuthRouter from "./routes/supervisorAuth.route.js";
 import adminAuthRouter from "./routes/adminAuth.route.js";
-import adminRouter from "./routes/admin.route.js"; // ADD THIS
+import adminRouter from "./routes/admin.route.js"; 
 import supervisorRouter from "./routes/supervisor.route.js";
 import chargerRouter from "./routes/charger.route.js";
 import earphoneRouter from "./routes/earphone.route.js";
@@ -41,6 +41,10 @@ import { dirname } from "path";
 import deviceRequestRoutes from "./routes/deviceRequest.route.js";
 import notificationRoutes from "./routes/notification.route.js"
 import helmet from "helmet"
+import cors from "cors";
+import sellerAuthRouter from "./routes/sellerAuth.route.js";
+
+
 dotenv.config({ path: '../.env' });
 
 mongoose.connect(process.env.MONGO).then(async() => {
@@ -98,17 +102,15 @@ app.use(session({
   }
 }));
 
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'http://localhost:5173');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-  next();
-});
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
 
 
 app.use("/api/user", userRouter);
@@ -134,6 +136,7 @@ app.use("/api/search", searchRouter);
 app.use("/api/admin", adminStatisticsRouter);
 app.use("/api/device-requests", deviceRequestRoutes);
 app.use("/api/customer/notifications", notificationRoutes);
+app.use("/api/seller", sellerAuthRouter);
 
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;

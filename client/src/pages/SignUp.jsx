@@ -23,7 +23,6 @@ export default function SignUp() {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
-    // Regex patterns
     const nameRegex = /^[a-zA-Z\s-]+$/;
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     const phoneRegex = /^\d{10}$/;
@@ -181,14 +180,12 @@ export default function SignUp() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Validate all fields
         const errors = validateForm();
         if (Object.keys(errors).length > 0) {
             setError("Please fill in all required fields correctly");
             return;
         }
 
-        // Prepare data for submission
         const submitData = {
             username: formData.username.trim(),
             firstName: formData.firstName.trim(),
@@ -210,7 +207,6 @@ export default function SignUp() {
             setError(null);
             setFieldErrors({});
 
-            // Step 1: Initiate signup and send OTP
             const res = await fetch('/api/auth/signup/initiate', {
                 method: 'POST',
                 headers: {
@@ -233,10 +229,8 @@ export default function SignUp() {
             setLoading(false);
             setError(null);
             
-            // Store email for OTP verification
             localStorage.setItem("pendingRegistrationEmail", submitData.email);
             
-            // Navigate to OTP verification page
             navigate("/verify-otp", { 
                 state: { 
                     email: submitData.email,
@@ -254,7 +248,7 @@ export default function SignUp() {
             <h1 className="text-3xl text-center font-semibold my-7">Create Account</h1>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                {/* Account Information */}
+                
                 <h3 className="text-xl font-semibold mt-2">Account Information</h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -287,7 +281,7 @@ export default function SignUp() {
                     </div>
                 </div>
 
-                {/* Personal Information */}
+                
                 <h3 className="text-xl font-semibold mt-4">Personal Information</h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -411,7 +405,6 @@ export default function SignUp() {
                     </div>
                 </div>
 
-                {/* Password Section */}
                 <h3 className="text-xl font-semibold mt-4">Security</h3>
 
                 <div>
