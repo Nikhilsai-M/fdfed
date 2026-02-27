@@ -42,6 +42,9 @@ import deviceRequestRoutes from "./routes/deviceRequest.route.js";
 import notificationRoutes from "./routes/notification.route.js"
 import helmet from "helmet"
 import cors from "cors";
+import sellerAuthRouter from "./routes/sellerAuth.route.js";
+
+
 dotenv.config({ path: '../.env' });
 
 mongoose.connect(process.env.MONGO).then(async() => {
@@ -133,6 +136,7 @@ app.use("/api/search", searchRouter);
 app.use("/api/admin", adminStatisticsRouter);
 app.use("/api/device-requests", deviceRequestRoutes);
 app.use("/api/customer/notifications", notificationRoutes);
+app.use("/api/seller", sellerAuthRouter);
 
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
