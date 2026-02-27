@@ -17,20 +17,28 @@ export default function SellerLogin() {
     });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(""); // clear previous errors
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    try {
-      const res = await axios.post("/api/seller/login", form);
-      localStorage.setItem("sellerToken", res.data.token);
-      alert("Login successful");
-      // navigate('/seller/dashboard'); // Uncomment when dashboard is ready
-    } catch (err) {
-      setError(err.response?.data?.message || "An error occurred during login.");
-    }
-  };
+  try {
 
+    const res = await axios.post(
+      "http://localhost:3000/api/seller/login",
+      form
+    );
+
+    localStorage.setItem("sellerToken", res.data.token);
+
+    alert("Login successful");
+
+    navigate("/seller/dashboard");   // redirect here
+
+  } catch (err) {
+
+    alert(err.response?.data?.message);
+
+  }
+};
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg border border-gray-100">
