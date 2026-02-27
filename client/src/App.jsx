@@ -18,7 +18,7 @@ import AccessoryDetails from './pages/AccessoryDetails';
 import SupervisorDashboard from './pages/supervisor/SupervisorDashboard';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import VerifyListings from './pages/supervisor/VerifyListings';
-import ManageInventory from './pages/supervisor/ManageInventory';
+import ManageInventory from './pages/seller/ManageInventory.jsx';
 import Statistics from './pages/supervisor/Statistics';
 import Profile from './pages/supervisor/Profile';
 import { CartProvider } from './context/CartContent';
@@ -47,6 +47,7 @@ import Analytics from './pages/admin/AdminAnalytics';
 import ManageSupervisors from './pages/admin/ManageSupervisors';
 import Notifications from './pages/Notifications.jsx';
 import RequestDevice from "./pages/RequestDevice";
+import SellerDashboard from './pages/seller/Dashboard.jsx';
 import SellerSignup from "./pages/seller/SellerSignup.jsx";
 import SellerLogin from "./pages/seller/SellerSignIn.jsx";
 
@@ -108,6 +109,8 @@ function App() {
                   <Route path="/smartwatch/:id" element={<AccessoryDetails type="smartwatch" />} />
                   <Route path="/earphone/:id" element={<AccessoryDetails type="earphone" />} />
                   <Route path="/Accessories" element={<AccessoriesPage />} />
+                  <Route path="/seller-dashboard" element={<SellerDashboard/>}/>
+                  <Route path="/seller-manage-inventory" element={<ManageInventory/>}/>
                   <Route path="/myorders" element={
                     <ProtectedRoute>
                       <MyOrders />

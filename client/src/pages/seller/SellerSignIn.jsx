@@ -31,7 +31,7 @@ const handleSubmit = async (e) => {
 
     alert("Login successful");
 
-    navigate("/seller/dashboard");   // redirect here
+    navigate("/seller-dashboard");   // redirect here
 
   } catch (err) {
 
