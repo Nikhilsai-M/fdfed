@@ -296,3 +296,72 @@ export const getSupervisorListings = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+
+export const getRevenueAnalytics = async (req, res) => {
+  try {
+    const range = req.query.range || "all";
+
+    const now = new Date();
+    let startDate = null;
+
+    if (range === "7d") {
+      startDate = new Date();
+      startDate.setDate(now.getDate() - 7);
+    } else if (range === "30d") {
+      startDate = new Date();
+      startDate.setDate(now.getDate() - 30);
+    } else if (range === "3m") {
+      startDate = new Date();
+      startDate.setMonth(now.getMonth() - 3);
+    }
+
+    const matchStage = startDate
+      ? {
+          $match: {
+            created_at: { $gte: startDate, $lte: now },
+            status: { $in: ["paid", "completed", "delivered"] }
+          }
+        }
+      : {
+          $match: {
+            status: { $in: ["paid", "completed", "delivered"] }
+          }
+        };
+
+    const coalesceTotalExpr = {
+      $ifNull: [
+        "$total",
+        { $ifNull: ["$totalAmount", { $ifNull: ["$grandTotal", { $ifNull: ["$amount", 0] }] }] }
+      ]
+    };
+
+    const totalRevenueAgg = await Order.aggregate([
+      matchStage,
+      {
+        $group: {
+          _id: null,
+          totalRevenue: { $sum: coalesceTotalExpr }
+        }
+      }
+    ]);
+
+    const revenueByCategory = await Order.aggregate([
+      matchStage,
+      {
+        $group: {
+          _id: "$category",
+          revenue: { $sum: coalesceTotalExpr }
+        }
+      }
+    ]);
+
+    res.status(200).json({
+      totalRevenue: totalRevenueAgg[0]?.totalRevenue || 0,
+      revenueByCategory
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Revenue fetch failed" });
+  }
+};
