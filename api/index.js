@@ -45,6 +45,8 @@ import cors from "cors";
 import sellerAuthRouter from "./routes/sellerAuth.route.js";
 import sellerProductRoutes from "./routes/sellerProduct.route.js";
 import sellerDashboardRoutes from "./routes/sellerDashboard.route.js";
+import adminProductAnalyticsRouter from "./routes/adminProductAnalytics.route.js";
+import adminSalesAnalyticsRouter from "./routes/adminSalesAnalytics.route.js";
 
 
 dotenv.config({ path: '../.env' });
@@ -141,6 +143,8 @@ app.use("/api/customer/notifications", notificationRoutes);
 app.use("/api/seller", sellerAuthRouter);
 app.use("/api/seller", sellerProductRoutes);
 app.use("/api/seller", sellerDashboardRoutes);
+app.use("/api/admin/product-analytics", adminProductAnalyticsRouter);
+app.use("/api/admin/sales-analytics", adminSalesAnalyticsRouter);
 
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;

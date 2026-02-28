@@ -6,6 +6,7 @@ const orderItemSchema = new mongoose.Schema({
   quantity: { type: Number, required: true },
   amount: { type: Number, required: true },
   accessory: { type: Object, required: true },
+  created_at: { type: Date, default: Date.now }
 });
 const OrderItem = mongoose.model('OrderItem', orderItemSchema);
 

@@ -352,8 +352,8 @@ const ProductCard = ({ product, onAddToCart, onBuyNow }) => {
           )}
           <div className="laptop-condition-badge">{product.condition}</div>
         </div>
-        
-        <div className="laptop-product-details">
+      
+        <div c  lassName="laptop-product-details">
           <h4>{product.brand} {product.series}</h4>
           
           <div className="laptop-price-section">

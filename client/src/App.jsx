@@ -51,6 +51,7 @@ import RequestDevice from "./pages/RequestDevice";
 import SellerDashboard from './pages/seller/Dashboard.jsx';
 import SellerSignup from "./pages/seller/SellerSignup.jsx";
 import SellerLogin from "./pages/seller/SellerSignIn.jsx";
+import ProductAnalytics from "./pages/admin/ProductAnalytics";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -177,6 +178,7 @@ function App() {
                   <Route path="/admin-dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
                   <Route path="/admin/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
                   <Route path="/admin/manage-supervisors" element={<ProtectedRoute><ManageSupervisors /></ProtectedRoute>} />
+                  <Route path="/admin/product-analytics" element={<ProductAnalytics />} />
 
 
                   {/* Seller Routes */}

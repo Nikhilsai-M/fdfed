@@ -50,7 +50,7 @@ export const updateCustomerProfile = async (req, res, next) => {
         if (emailCheck) {
             return next(errorHandler(400, 'Email already in use by another user'));
         }
-
+        
         await User.updateOne(
             { user_id: userId },
             {
