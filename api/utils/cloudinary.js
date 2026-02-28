@@ -1,5 +1,5 @@
 import { v2 as cloudinary } from 'cloudinary';
-
+import streamifier from "streamifier";
 cloudinary.config({
   cloud_name: 'dqohkpeyp',
   api_key: '932324182493947',
@@ -38,6 +38,28 @@ export const uploadToCloudinary = async (filePath, folder = 'laptops') => {
     });
     throw new Error(`Failed to upload image to Cloudinary: ${error.message}`);
   }
+};
+
+export const uploadBufferToCloudinary = (buffer, folder = "seller-products") => {
+  return new Promise((resolve, reject) => {
+
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder: `electronic_trade/${folder}`,
+        resource_type: "auto",
+        transformation: [
+          { width: 800, height: 600, crop: "limit" },
+          { quality: "auto" }
+        ]
+      },
+      (error, result) => {
+        if (result) resolve(result);
+        else reject(error);
+      }
+    );
+
+    streamifier.createReadStream(buffer).pipe(stream);
+  });
 };
 
 export const deleteFromCloudinary = async (publicId) => {

@@ -328,8 +328,8 @@ export async function addSmartwatch(smartwatchData) {
       title,
       image: image.startsWith('/') ? image : prefix + image,  // ✅ Ensure new adds use prefix
       brand,
-      originalPrice: pricing.originalPrice,
-      discount: pricing.discount,
+      originalPrice: originalPrice,
+      discount: discount,
       displaySize,
       displayType,
       batteryRuntime,
@@ -361,8 +361,8 @@ export async function updateSmartwatch(id, smartwatchData) {
           title,
           image: image.startsWith('/') ? image : prefix + image,  // ✅ Ensure updates use prefix
           brand,
-          originalPrice: pricing.originalPrice,
-          discount: pricing.discount,
+          originalPrice: originalPrice,
+          discount: discount,
           displaySize,
           displayType,
           batteryRuntime,
