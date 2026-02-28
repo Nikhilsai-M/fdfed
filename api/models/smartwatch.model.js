@@ -10,6 +10,22 @@ const smartwatchSchema = new mongoose.Schema({
  displaySize: { type: String, required: true },
 displayType: { type: String, required: true },
  batteryRuntime: { type: String, required: true },
+
+ sellerId: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "Seller",
+  required: true
+},
+
+stock: {
+  type: Number,
+  default: 0
+},
+
+isActive: {
+  type: Boolean,
+  default: true
+},
 created_at: { type: Date, default: Date.now },
 });
 

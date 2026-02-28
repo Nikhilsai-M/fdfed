@@ -1,224 +1,335 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import axios from "axios";
 
-export default function SellerDashboard(){
+export default function SellerDashboard() {
 
-    // const [dashboardData, setDashboardData] = useState({
+  const [products, setProducts] = useState([]);
+  const [stats, setStats] = useState({
+    totalProducts: 0,
+    totalOrders: 0,
+    revenue: 0
+  });
 
-    //     itemsAdded: 0,
-    //     recentActivity: []
-    // });
-    // const [loading, setLoading] = useState(true);
+  const token = localStorage.getItem("sellerToken");
 
-    // useEffect(() => {
-    //     fetchDashboardData();
-    // }, []);
+  useEffect(() => {
+    fetchProducts();
+    fetchStats();
+  }, []);
 
-    // const fetchDashboardData = async () => {
-    //     try {
-    //         const res = await fetch('http://localhost:3000/api/supervisor/dashboard', {
-    //             credentials: 'include'
-    //         });
-    //         const data = await res.json();
-            
-    //         if (data.success) {
-    //             setDashboardData(data);
-    //         }
-    //     } catch (error) {
-    //         console.error('Error fetching dashboard data:', error);
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // };
+  const fetchProducts = async () => {
+    try {
 
-    // const currentDate = new Date().toLocaleDateString('en-IN', {
-    //     weekday: 'long',
-    //     year: 'numeric',
-    //     month: 'long',
-    //     day: 'numeric'
-    // });
+      const res = await axios.get(
+        "http://localhost:3000/api/seller/products",
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
 
-    // if (loading) {
-    //     return (
-    //         <SupervisorLayout>
-    //             <div className="flex justify-center items-center h-64">
-    //                 <div className="relative">
-    //                     <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600"></div>
-    //                     <div className="absolute inset-0 flex items-center justify-center">
-    //                         <div className="w-8 h-8 bg-blue-600 rounded-full animate-pulse"></div>
-    //                     </div>
-    //                 </div>
-    //             </div>
-    //         </SupervisorLayout>
-    //     );
-    // }
+      setProducts(res.data.products);
 
-    const currentDate = new Date().toLocaleDateString('en-IN', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
-return (
+  const fetchStats = async () => {
+    try {
 
-<div className="min-h-screen bg-gray-50 flex">
+      const res = await axios.get(
+        "http://localhost:3000/api/seller/dashboard",
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
 
-    {/* Sidebar */}
-    <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
-        <div className="h-16 flex items-center px-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900">
-                Seller Panel
-            </h2>
+      setStats(res.data.stats);
+
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const deleteProduct = async (id, category) => {
+
+    try {
+
+      await axios.delete(
+        `http://localhost:3000/api/seller/products/${id}`,
+        {
+          data: { category },
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      fetchProducts();
+
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+const logout = async () => {
+
+  try {
+
+    await axios.post("http://localhost:3000/api/seller/logout");
+
+  } catch (err) {
+    console.error(err);
+  }
+
+  localStorage.removeItem("sellerToken");
+  window.location.href = "/seller/login";
+
+};
+
+  return (
+
+    <div style={styles.page}>
+
+      {/* SIDEBAR */}
+
+      <div style={styles.sidebar}>
+
+        <h2 style={styles.logo}>Seller Panel</h2>
+
+        <button style={styles.navBtn}>Dashboard</button>
+
+        <button
+          style={styles.navBtn}
+          onClick={() => window.location.href = "/seller-manage-inventory"}
+        >
+          Manage Inventory
+        </button>
+
+        <button
+          style={styles.navBtn}
+          onClick={() => window.location.href = "/seller/add-product"}
+        >
+          Add Product
+        </button>
+
+        <button
+          style={styles.navBtn}
+          onClick={() => window.location.href = "/seller/orders"}
+        >
+          Orders
+        </button>
+
+        <button
+          style={styles.navBtn}
+          onClick={() => window.location.href = "/seller/profile"}
+        >
+          Profile
+        </button>
+
+        <button style={styles.logoutBtn} onClick={logout}>
+          Logout
+        </button>
+
+      </div>
+
+
+      {/* MAIN CONTENT */}
+
+      <div style={styles.main}>
+
+        <h1 style={styles.title}>Seller Dashboard</h1>
+
+        {/* DASHBOARD STATS */}
+
+        <div style={styles.stats}>
+
+          <div style={styles.card}>
+            <h3>Total Products</h3>
+            <p style={styles.number}>{stats.totalProducts}</p>
+          </div>
+
+          <div style={styles.card}>
+            <h3>Total Orders</h3>
+            <p style={styles.number}>{stats.totalOrders}</p>
+          </div>
+
+          <div style={styles.card}>
+            <h3>Total Revenue</h3>
+            <p style={styles.number}>₹{stats.revenue}</p>
+          </div>
+
         </div>
 
-        <nav className="flex-1 p-4 space-y-2">
-            <Link to="/seller/dashboard" className="flex items-center gap-3 px-4 py-2 rounded-lg bg-indigo-50 text-indigo-600 font-medium">
-                <i className="fas fa-chart-line text-sm"></i>
-                Dashboard
-            </Link>
 
-            <Link to="/seller/manage-products" className="flex items-center gap-3 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition">
-                <i className="fas fa-box text-sm"></i>
-                Products
-            </Link>
+        {/* PRODUCT TABLE */}
 
-            <Link to="/seller/orders" className="flex items-center gap-3 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition">
-                <i className="fas fa-shopping-cart text-sm"></i>
-                Orders
-            </Link>
+        <h2 style={styles.sectionTitle}>Your Products</h2>
 
-            <Link to="/seller/settings" className="flex items-center gap-3 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition">
-                <i className="fas fa-cog text-sm"></i>
-                Settings
-            </Link>
-        </nav>
-    </aside>
+        <table style={styles.table}>
 
+          <thead style={styles.thead}>
+            <tr>
+              <th>Title</th>
+              <th>Brand</th>
+              <th>Price</th>
+              <th>Stock</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
 
-    {/* Main Content */}
-    <div className="flex-1 flex flex-col">
+          <tbody>
 
-        {/* Top Navbar */}
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8">
-            <h1 className="text-lg font-semibold text-gray-900">
-                Seller Dashboard
-            </h1>
+            {products.map((p) => (
 
-            <div className="flex items-center gap-6">
-                <span className="text-sm text-gray-500">
-                    {currentDate}
-                </span>
+              <tr key={p.id} style={styles.row}>
 
-                <div className="w-9 h-9 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                    S
-                </div>
-            </div>
-        </header>
+                <td>{p.title}</td>
+                <td>{p.brand}</td>
+                <td>₹{p.originalPrice}</td>
+                <td>{p.stock}</td>
 
+                <td>
 
-        {/* Page Content */}
-        <main className="p-8 space-y-8">
+                  <button
+                    style={styles.editBtn}
+                    onClick={() =>
+                      window.location.href = `/seller/edit/${p.id}`
+                    }
+                  >
+                    Edit
+                  </button>
 
-            {/* Metrics */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <button
+                    style={styles.deleteBtn}
+                    onClick={() => deleteProduct(p.id, p.category)}
+                  >
+                    Delete
+                  </button>
 
-                <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition">
-                    <p className="text-sm font-medium text-gray-500">
-                        Total Products
-                    </p>
-                    <h2 className="text-4xl font-semibold text-gray-900 mt-2">
-                        128
-                    </h2>
-                    <p className="text-sm text-green-600 mt-2">
-                        ↑ 12% from last month
-                    </p>
-                </div>
+                </td>
 
-                <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition">
-                    <p className="text-sm font-medium text-gray-500">
-                        Monthly Revenue
-                    </p>
-                    <h2 className="text-4xl font-semibold text-gray-900 mt-2">
-                        ₹45,200
-                    </h2>
-                    <p className="text-sm text-green-600 mt-2">
-                        ↑ 8% growth
-                    </p>
-                </div>
+              </tr>
 
-                <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition">
-                    <p className="text-sm font-medium text-gray-500">
-                        Orders This Month
-                    </p>
-                    <h2 className="text-4xl font-semibold text-gray-900 mt-2">
-                        126
-                    </h2>
-                    <p className="text-sm text-red-500 mt-2">
-                        ↓ 3% decrease
-                    </p>
-                </div>
+            ))}
 
-            </div>
+          </tbody>
 
+        </table>
 
-            {/* Content Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-                <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-                    <div className="flex justify-between items-center mb-6">
-                        <h3 className="text-lg font-semibold text-gray-900">
-                            Recent Activity
-                        </h3>
-                        <button className="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
-                            View all
-                        </button>
-                    </div>
-
-                    <div className="text-center py-10">
-                        <p className="text-gray-400 text-sm">
-                            No recent activity yet.
-                        </p>
-                    </div>
-                </div>
-
-
-                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-6">
-                        Quick Actions
-                    </h3>
-
-                    <div className="space-y-4">
-                        <Link
-                            to="/seller/add-product"
-                            className="block w-full text-center py-3 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition"
-                        >
-                            Add New Product
-                        </Link>
-
-                        <Link
-                            to="/seller-manage-inventory"
-                            className="block w-full text-center py-3 rounded-lg border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition"
-                        >
-                            Manage Products
-                        </Link>
-
-                        <Link
-                            to="/seller/orders"
-                            className="block w-full text-center py-3 rounded-lg border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition"
-                        >
-                            View Orders
-                        </Link>
-                    </div>
-                </div>
-
-            </div>
-
-        </main>
+      </div>
 
     </div>
-
-</div>
-
-);
+  );
 }
+
+
+const styles = {
+
+  page: {
+    display: "flex",
+    minHeight: "100vh",
+    fontFamily: "Arial",
+    background: "#f4f6f9"
+  },
+
+  sidebar: {
+    width: "240px",
+    background: "#1e293b",
+    color: "white",
+    padding: "25px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "15px"
+  },
+
+  logo: {
+    marginBottom: "20px"
+  },
+
+  navBtn: {
+    background: "transparent",
+    border: "none",
+    color: "white",
+    textAlign: "left",
+    fontSize: "16px",
+    cursor: "pointer",
+    padding: "10px"
+  },
+
+  logoutBtn: {
+    marginTop: "auto",
+    padding: "10px",
+    background: "#ef4444",
+    color: "white",
+    border: "none",
+    borderRadius: "6px",
+    cursor: "pointer"
+  },
+
+  main: {
+    flex: 1,
+    padding: "40px"
+  },
+
+  title: {
+    marginBottom: "25px"
+  },
+
+  stats: {
+    display: "flex",
+    gap: "20px",
+    marginBottom: "40px"
+  },
+
+  card: {
+    background: "white",
+    padding: "25px",
+    borderRadius: "10px",
+    boxShadow: "0 3px 10px rgba(0,0,0,0.1)",
+    width: "180px"
+  },
+
+  number: {
+    fontSize: "22px",
+    fontWeight: "bold"
+  },
+
+  sectionTitle: {
+    marginBottom: "15px"
+  },
+
+  table: {
+    width: "100%",
+    background: "white",
+    borderRadius: "10px",
+    borderCollapse: "collapse",
+    boxShadow: "0 3px 10px rgba(0,0,0,0.1)"
+  },
+
+  thead: {
+    background: "#f1f5f9"
+  },
+
+  row: {
+    borderBottom: "1px solid #eee"
+  },
+
+  editBtn: {
+    marginRight: "10px",
+    padding: "6px 12px",
+    background: "#3b82f6",
+    color: "white",
+    border: "none",
+    borderRadius: "5px",
+    cursor: "pointer"
+  },
+
+  deleteBtn: {
+    padding: "6px 12px",
+    background: "#ef4444",
+    color: "white",
+    border: "none",
+    borderRadius: "5px",
+    cursor: "pointer"
+  }
+
+};

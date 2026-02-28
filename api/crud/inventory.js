@@ -220,9 +220,10 @@ export async function deleteLaptop(id) {
 }
 
 // ==================== EARPHONE FUNCTIONS ====================
+
 export async function getAllEarphones() {
   try {
-    const earphones = await Earphone.find().lean();
+    const earphones = await Earphone.find({ isActive: true }).lean();
 
     return earphones.map((earphone) => ({
       id: earphone.id,
@@ -233,16 +234,35 @@ export async function getAllEarphones() {
       discount: earphone.discount,
       design: earphone.design,
       batteryLife: earphone.batteryLife,
+      stock: earphone.stock,
     }));
+
   } catch (error) {
-    console.error('Error getting earphones:', error);
+    console.error("Error getting earphones:", error);
     throw error;
   }
 }
 
+
+export async function getSellerEarphones(sellerId) {
+  return await Earphone.find({ sellerId, isActive: true }).lean();
+}
+
+
 export async function addEarphone(earphoneData) {
   try {
-    const { id, title, image, brand, pricing, design, batteryLife } = earphoneData;
+
+    const {
+      id,
+      title,
+      image,
+      brand,
+      pricing,
+      design,
+      batteryLife,
+      sellerId,
+      stock
+    } = earphoneData;
 
     await Earphone.create({
       id,
@@ -253,18 +273,32 @@ export async function addEarphone(earphoneData) {
       discount: pricing.discount,
       design,
       batteryLife,
+      sellerId: sellerId || null,
+      stock: stock ?? 0,
+      isActive: true
     });
 
     return { success: true, id };
+
   } catch (error) {
-    console.error('Error adding earphone:', error);
+    console.error("Error adding earphone:", error);
     return { success: false, message: error.message };
   }
 }
 
+
 export async function updateEarphone(id, earphoneData) {
   try {
-    const { title, image, brand, pricing, design, batteryLife } = earphoneData;
+
+    const {
+      title,
+      image,
+      brand,
+      pricing,
+      design,
+      batteryLife,
+      stock
+    } = earphoneData;
 
     await Earphone.updateOne(
       { id },
@@ -277,33 +311,46 @@ export async function updateEarphone(id, earphoneData) {
           discount: pricing.discount,
           design,
           batteryLife,
+          stock
         },
       }
     );
 
     return { success: true };
+
   } catch (error) {
-    console.error('Error updating earphone:', error);
+    console.error("Error updating earphone:", error);
     return { success: false, message: error.message };
   }
 }
+
 
 export async function deleteEarphone(id) {
   try {
-    const result = await Earphone.deleteOne({ id });
-    return { success: result.deletedCount > 0 };
+
+    await Earphone.updateOne(
+      { id },
+      { $set: { isActive: false } }
+    );
+
+    return { success: true };
+
   } catch (error) {
-    console.error('Error deleting earphone:', error);
+    console.error("Error deleting earphone:", error);
     return { success: false, message: error.message };
   }
 }
 
+
+
 // ==================== CHARGER FUNCTIONS ====================
+
 export async function getAllChargers() {
   try {
-    const chargers = await Charger.find().lean();
-    
-    return chargers.map(charger => ({
+
+    const chargers = await Charger.find({ isActive: true }).lean();
+
+    return chargers.map((charger) => ({
       id: charger.id,
       title: charger.title,
       image: charger.image,
@@ -313,17 +360,37 @@ export async function getAllChargers() {
       originalPrice: charger.originalPrice,
       discount: charger.discount,
       outputCurrent: charger.outputCurrent,
+      stock: charger.stock
     }));
+
   } catch (error) {
-    console.error('Error getting chargers:', error);
+    console.error("Error getting chargers:", error);
     throw error;
   }
 }
 
+
+export async function getSellerChargers(sellerId) {
+  return await Charger.find({ sellerId, isActive: true }).lean();
+}
+
+
 export async function addCharger(chargerData) {
   try {
-    const { id, title, image, brand, wattage, type, pricing, outputCurrent } = chargerData;
-    
+
+    const {
+      id,
+      title,
+      image,
+      brand,
+      wattage,
+      type,
+      pricing,
+      outputCurrent,
+      sellerId,
+      stock
+    } = chargerData;
+
     await Charger.create({
       id,
       title,
@@ -334,19 +401,34 @@ export async function addCharger(chargerData) {
       originalPrice: pricing.originalPrice,
       discount: pricing.discount,
       outputCurrent,
+      sellerId: sellerId || null,
+      stock: stock ?? 0,
+      isActive: true
     });
-    
+
     return { success: true, id };
+
   } catch (error) {
-    console.error('Error adding charger:', error);
+    console.error("Error adding charger:", error);
     return { success: false, message: error.message };
   }
 }
 
+
 export async function updateCharger(id, chargerData) {
   try {
-    const { title, image, brand, wattage, type, pricing, outputCurrent } = chargerData;
-    
+
+    const {
+      title,
+      image,
+      brand,
+      wattage,
+      type,
+      pricing,
+      outputCurrent,
+      stock
+    } = chargerData;
+
     await Charger.updateOne(
       { id },
       {
@@ -359,31 +441,44 @@ export async function updateCharger(id, chargerData) {
           originalPrice: pricing.originalPrice,
           discount: pricing.discount,
           outputCurrent,
+          stock
         },
       }
     );
-    
+
     return { success: true };
+
   } catch (error) {
-    console.error('Error updating charger:', error);
+    console.error("Error updating charger:", error);
     return { success: false, message: error.message };
   }
 }
+
 
 export async function deleteCharger(id) {
   try {
-    const result = await Charger.deleteOne({ id });
-    return { success: result.deletedCount > 0 };
+
+    await Charger.updateOne(
+      { id },
+      { $set: { isActive: false } }
+    );
+
+    return { success: true };
+
   } catch (error) {
-    console.error('Error deleting charger:', error);
+    console.error("Error deleting charger:", error);
     return { success: false, message: error.message };
   }
 }
 
+
+
 // ==================== MOUSE FUNCTIONS ====================
+
 export async function getAllMouses() {
   try {
-    const mouses = await Mouse.find().lean();
+
+    const mouses = await Mouse.find({ isActive: true }).lean();
 
     return mouses.map((mouse) => ({
       id: mouse.id,
@@ -395,16 +490,36 @@ export async function getAllMouses() {
       type: mouse.type,
       connectivity: mouse.connectivity,
       resolution: mouse.resolution,
+      stock: mouse.stock
     }));
+
   } catch (error) {
-    console.error('Error getting mouses:', error);
+    console.error("Error getting mouses:", error);
     throw error;
   }
 }
 
+
+export async function getSellerMouses(sellerId) {
+  return await Mouse.find({ sellerId, isActive: true }).lean();
+}
+
+
 export async function addMouse(mouseData) {
   try {
-    const { id, title, image, brand, pricing, type, connectivity, resolution } = mouseData;
+
+    const {
+      id,
+      title,
+      image,
+      brand,
+      pricing,
+      type,
+      connectivity,
+      resolution,
+      sellerId,
+      stock
+    } = mouseData;
 
     await Mouse.create({
       id,
@@ -416,18 +531,33 @@ export async function addMouse(mouseData) {
       type,
       connectivity,
       resolution,
+      sellerId: sellerId || null,
+      stock: stock ?? 0,
+      isActive: true
     });
 
     return { success: true, id };
+
   } catch (error) {
-    console.error('Error adding mouse:', error);
+    console.error("Error adding mouse:", error);
     return { success: false, message: error.message };
   }
 }
 
+
 export async function updateMouse(id, mouseData) {
   try {
-    const { title, image, brand, pricing, type, connectivity, resolution } = mouseData;
+
+    const {
+      title,
+      image,
+      brand,
+      pricing,
+      type,
+      connectivity,
+      resolution,
+      stock
+    } = mouseData;
 
     await Mouse.updateOne(
       { id },
@@ -441,31 +571,44 @@ export async function updateMouse(id, mouseData) {
           type,
           connectivity,
           resolution,
+          stock
         },
       }
     );
 
     return { success: true };
+
   } catch (error) {
-    console.error('Error updating mouse:', error);
+    console.error("Error updating mouse:", error);
     return { success: false, message: error.message };
   }
 }
+
 
 export async function deleteMouse(id) {
   try {
-    const result = await Mouse.deleteOne({ id });
-    return { success: result.deletedCount > 0 };
+
+    await Mouse.updateOne(
+      { id },
+      { $set: { isActive: false } }
+    );
+
+    return { success: true };
+
   } catch (error) {
-    console.error('Error deleting mouse:', error);
+    console.error("Error deleting mouse:", error);
     return { success: false, message: error.message };
   }
 }
 
+
+
 // ==================== SMARTWATCH FUNCTIONS ====================
+
 export async function getAllSmartwatches() {
   try {
-    const smartwatches = await Smartwatch.find().lean();
+
+    const smartwatches = await Smartwatch.find({ isActive: true }).lean();
 
     return smartwatches.map((smartwatch) => ({
       id: smartwatch.id,
@@ -477,16 +620,36 @@ export async function getAllSmartwatches() {
       displaySize: smartwatch.displaySize,
       displayType: smartwatch.displayType,
       batteryRuntime: smartwatch.batteryRuntime,
+      stock: smartwatch.stock
     }));
+
   } catch (error) {
-    console.error('Error getting smartwatches:', error);
+    console.error("Error getting smartwatches:", error);
     throw error;
   }
 }
 
+
+export async function getSellerSmartwatches(sellerId) {
+  return await Smartwatch.find({ sellerId, isActive: true }).lean();
+}
+
+
 export async function addSmartwatch(smartwatchData) {
   try {
-    const { id, title, image, brand, pricing, displaySize, displayType, batteryRuntime } = smartwatchData;
+
+    const {
+      id,
+      title,
+      image,
+      brand,
+      pricing,
+      displaySize,
+      displayType,
+      batteryRuntime,
+      sellerId,
+      stock
+    } = smartwatchData;
 
     await Smartwatch.create({
       id,
@@ -498,18 +661,33 @@ export async function addSmartwatch(smartwatchData) {
       displaySize,
       displayType,
       batteryRuntime,
+      sellerId: sellerId || null,
+      stock: stock ?? 0,
+      isActive: true
     });
 
     return { success: true, id };
+
   } catch (error) {
-    console.error('Error adding smartwatch:', error);
+    console.error("Error adding smartwatch:", error);
     return { success: false, message: error.message };
   }
 }
 
+
 export async function updateSmartwatch(id, smartwatchData) {
   try {
-    const { title, image, brand, pricing, displaySize, displayType, batteryRuntime } = smartwatchData;
+
+    const {
+      title,
+      image,
+      brand,
+      pricing,
+      displaySize,
+      displayType,
+      batteryRuntime,
+      stock
+    } = smartwatchData;
 
     await Smartwatch.updateOne(
       { id },
@@ -523,23 +701,32 @@ export async function updateSmartwatch(id, smartwatchData) {
           displaySize,
           displayType,
           batteryRuntime,
+          stock
         },
       }
     );
 
     return { success: true };
+
   } catch (error) {
-    console.error('Error updating smartwatch:', error);
+    console.error("Error updating smartwatch:", error);
     return { success: false, message: error.message };
   }
 }
 
+
 export async function deleteSmartwatch(id) {
   try {
-    const result = await Smartwatch.deleteOne({ id });
-    return { success: result.deletedCount > 0 };
+
+    await Smartwatch.updateOne(
+      { id },
+      { $set: { isActive: false } }
+    );
+
+    return { success: true };
+
   } catch (error) {
-    console.error('Error deleting smartwatch:', error);
+    console.error("Error deleting smartwatch:", error);
     return { success: false, message: error.message };
   }
 }
