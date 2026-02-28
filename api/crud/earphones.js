@@ -194,10 +194,10 @@ export async function getEarphoneById(id) {
       title: earphone.title,
       image: earphone.image,
       brand: earphone.brand,
-      pricing: {
+      
         originalPrice: Number(earphone.originalPrice),
         discount: earphone.discount,
-      },
+      
       design: earphone.design,
       batteryLife: earphone.batteryLife,
     };
@@ -217,8 +217,8 @@ export async function addEarphone(earphoneData) {
       title,
       image: image.startsWith('/') ? image : prefix + image,  // ✅ Ensure new adds use correct prefix
       brand,
-      originalPrice: pricing.originalPrice,
-      discount: pricing.discount,
+      originalPrice: Number(originalPrice),
+      discount: Number(discount),
       design,
       batteryLife,
     });
@@ -241,8 +241,8 @@ export async function updateEarphone(id, earphoneData) {
           title,
           image: image.startsWith('/') ? image : prefix + image,  // ✅ Ensure updates use correct prefix
           brand,
-          originalPrice: pricing.originalPrice,
-          discount: pricing.discount,
+          originalPrice: Number(originalPrice),
+          discount: Number(discount),
           design,
           batteryLife,
         },

@@ -17,13 +17,34 @@ import {
   deleteSmartwatch
 } from "../crud/inventory.js";
 
-export const addProduct = async (req, res, next) => {
+import {
+  uploadBufferToCloudinary,
+  deleteFromCloudinary
+} from "../utils/cloudinary.js";
 
+/* ===============================
+   ADD PRODUCT
+=============================== */
+export const addProduct = async (req, res, next) => {
   try {
 
     const sellerId = req.user.id;
-
     const { category, ...data } = req.body;
+
+    if (!category) {
+      return res.status(400).json({ message: "Category is required" });
+    }
+
+    // Upload image if provided
+    if (req.file) {
+      const uploaded = await uploadBufferToCloudinary(
+        req.file.buffer,
+        `seller_${sellerId}`
+      );
+
+      data.image = uploaded.secure_url;
+      data.public_id = uploaded.public_id;
+    }
 
     let result;
 
@@ -48,11 +69,12 @@ export const addProduct = async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-
 };
 
+/* ===============================
+   GET SELLER PRODUCTS
+=============================== */
 export const getSellerProducts = async (req, res, next) => {
-
   try {
 
     const sellerId = req.user.id;
@@ -77,33 +99,48 @@ export const getSellerProducts = async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-
 };
 
-
+/* ===============================
+   UPDATE PRODUCT
+=============================== */
 export const updateProduct = async (req, res, next) => {
-
   try {
 
+    const sellerId = req.user.id;
     const { id } = req.params;
     const { category } = req.body;
+
+    let updateData = { ...req.body };
+
+    // If new image uploaded
+    if (req.file) {
+
+      const uploaded = await uploadBufferToCloudinary(
+        req.file.buffer,
+        `seller_${sellerId}`
+      );
+
+      updateData.image = uploaded.secure_url;
+      updateData.public_id = uploaded.public_id;
+    }
 
     let result;
 
     if (category === "earphone") {
-      result = await updateEarphone(id, req.body);
+      result = await updateEarphone(id, updateData, sellerId);
     }
 
     if (category === "charger") {
-      result = await updateCharger(id, req.body);
+      result = await updateCharger(id, updateData, sellerId);
     }
 
     if (category === "mouse") {
-      result = await updateMouse(id, req.body);
+      result = await updateMouse(id, updateData, sellerId);
     }
 
     if (category === "smartwatch") {
-      result = await updateSmartwatch(id, req.body);
+      result = await updateSmartwatch(id, updateData, sellerId);
     }
 
     res.json(result);
@@ -111,33 +148,34 @@ export const updateProduct = async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-
 };
 
-
+/* ===============================
+   DELETE PRODUCT (SOFT DELETE)
+=============================== */
 export const deleteProduct = async (req, res, next) => {
-
   try {
 
+    const sellerId = req.user.id;
     const { id } = req.params;
     const { category } = req.body;
 
     let result;
 
     if (category === "earphone") {
-      result = await deleteEarphone(id);
+      result = await deleteEarphone(id, sellerId);
     }
 
     if (category === "charger") {
-      result = await deleteCharger(id);
+      result = await deleteCharger(id, sellerId);
     }
 
     if (category === "mouse") {
-      result = await deleteMouse(id);
+      result = await deleteMouse(id, sellerId);
     }
 
     if (category === "smartwatch") {
-      result = await deleteSmartwatch(id);
+      result = await deleteSmartwatch(id, sellerId);
     }
 
     res.json(result);
@@ -145,5 +183,4 @@ export const deleteProduct = async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-
 };

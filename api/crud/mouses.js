@@ -184,10 +184,10 @@ export async function getMouseById(id) {
       title: mouse.title,
       image: mouse.image,
       brand: mouse.brand,
-      pricing: {
+      
         originalPrice: Number(mouse.originalPrice),
         discount: mouse.discount,
-      },
+      
       type: mouse.type,
       connectivity: mouse.connectivity,
       resolution: mouse.resolution,
@@ -208,8 +208,8 @@ export async function addMouse(mouseData) {
       title,
       image: image.startsWith('/') ? image : prefix + image,  // ✅ Ensure new adds use prefix
       brand,
-      originalPrice: pricing.originalPrice,
-      discount: pricing.discount,
+      originalPrice:originalPrice,
+      discount:discount,
       type,
       connectivity,
       resolution,
@@ -234,8 +234,8 @@ export async function updateMouse(id, mouseData) {
           title,
           image: image.startsWith('/') ? image : prefix + image,  // ✅ Ensure updates use prefix
           brand,
-          originalPrice: pricing.originalPrice,
-          discount: pricing.discount,
+          originalPrice: originalPrice,
+          discount: discount,
           type,
           connectivity,
           resolution,

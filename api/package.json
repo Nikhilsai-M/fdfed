@@ -30,6 +30,7 @@
     "nodemailer": "^7.0.10",
     "parser": "^0.1.4",
     "rotating-file-stream": "^3.2.7",
+    "streamifier": "^0.1.1",
     "uuid": "^13.0.0"
   },
   "devDependencies": {
