@@ -9,6 +9,22 @@ const chargerSchema = new mongoose.Schema({
   originalPrice: { type: Number, required: true },
   discount: { type: Number, required: true },
   outputCurrent: { type: String, required: true },
+
+  sellerId: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "Seller",
+  required: true
+},
+
+stock: {
+  type: Number,
+  default: 0
+},
+
+isActive: {
+  type: Boolean,
+  default: true
+},
   created_at: { type: Date, default: Date.now },
 });
 const Charger = mongoose.model("Charger", chargerSchema);

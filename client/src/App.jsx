@@ -48,6 +48,9 @@ import Analytics from './pages/admin/AdminAnalytics';
 import ManageSupervisors from './pages/admin/ManageSupervisors';
 import Notifications from './pages/Notifications.jsx';
 import RequestDevice from "./pages/RequestDevice";
+import SellerDashboard from './pages/seller/Dashboard.jsx';
+import SellerSignup from "./pages/seller/SellerSignup.jsx";
+import SellerLogin from "./pages/seller/SellerSignIn.jsx";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -163,23 +166,29 @@ function App() {
                       </ProtectedRoute>
                     } />
 
-                    {/* Supervisor Routes - Also protected */}
-                    <Route path="/supervisor-dashboard" element={<ProtectedRoute><SupervisorDashboard /></ProtectedRoute>} />
-                    <Route path="/supervisor/verify-listings" element={<ProtectedRoute><VerifyListings /></ProtectedRoute>} />
-                    <Route path="/supervisor/manage-inventory" element={<ProtectedRoute><ManageInventory /></ProtectedRoute>} />
-                    <Route path="/supervisor/statistics" element={<ProtectedRoute><Statistics /></ProtectedRoute>} />
-                    <Route path="/supervisor/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-                    
-                    {/* Admin Routes - Also protected */}
-                    <Route path="/admin-dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-                    <Route path="/admin/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
-                    <Route path="/admin/manage-supervisors" element={<ProtectedRoute><ManageSupervisors /></ProtectedRoute>} />
-                  </Routes>
-                </main>
-              
-              </div>
-            </FirstVisitRedirect>
-          </Router>
+                  {/* Supervisor Routes - Also protected */}
+                  <Route path="/supervisor-dashboard" element={<ProtectedRoute><SupervisorDashboard /></ProtectedRoute>} />
+                  <Route path="/supervisor/verify-listings" element={<ProtectedRoute><VerifyListings /></ProtectedRoute>} />
+                  <Route path="/supervisor/manage-inventory" element={<ProtectedRoute><ManageInventory /></ProtectedRoute>} />
+                  <Route path="/supervisor/statistics" element={<ProtectedRoute><Statistics /></ProtectedRoute>} />
+                  <Route path="/supervisor/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                  
+                  {/* Admin Routes - Also protected */}
+                  <Route path="/admin-dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+                  <Route path="/admin/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+                  <Route path="/admin/manage-supervisors" element={<ProtectedRoute><ManageSupervisors /></ProtectedRoute>} />
+
+
+                  {/* Seller Routes */}
+                  <Route path="/seller/signup" element={<SellerSignup />} />
+                  <Route path="/seller/login" element={<SellerLogin />} />
+                  <Route path="/seller/dashboard" element={<SellerDashboard />} />
+                </Routes>
+              </main>
+            
+            </div>
+          </FirstVisitRedirect>
+        </Router>
         </NotificationProvider>
       </CartProvider>
     </Provider>

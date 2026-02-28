@@ -3,7 +3,9 @@ import jwt from "jsonwebtoken";
 import { findOne, create } from "../models/seller.model.js";
 
 export const sellerSignup = async (req, res) => {
+
   try {
+
     const { name, email, password, phoneNumber, storeName, businessAddress } = req.body;
 
     const existingSeller = await findOne({ email });
@@ -21,21 +23,28 @@ export const sellerSignup = async (req, res) => {
       phoneNumber,
       storeName,
       businessAddress,
+      role: "seller"
     });
+
+    const { password: _, ...sellerData } = seller._doc;
 
     res.status(201).json({
       success: true,
       message: "Seller registered successfully",
-      seller,
+      seller: sellerData
     });
 
   } catch (error) {
+
     res.status(500).json({ message: error.message });
+
   }
+
 };
 
 
 export const sellerLogin = async (req, res) => {
+
   try {
 
     const { email, password } = req.body;
@@ -54,17 +63,33 @@ export const sellerLogin = async (req, res) => {
 
     const token = jwt.sign(
       { id: seller._id, role: seller.role },
-      "SECRETKEY",
+      process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
+
+    const { password: _, ...sellerData } = seller._doc;
 
     res.json({
       success: true,
       token,
-      seller,
+      seller: sellerData
     });
 
   } catch (error) {
+
     res.status(500).json({ message: error.message });
+
   }
+
+};
+
+export const sellerLogout = (req, res) => {
+
+  res.clearCookie("access_token");
+
+  res.status(200).json({
+    success: true,
+    message: "Seller logged out"
+  });
+
 };

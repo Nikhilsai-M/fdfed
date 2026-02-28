@@ -43,6 +43,8 @@ import notificationRoutes from "./routes/notification.route.js"
 import helmet from "helmet"
 import cors from "cors";
 import sellerAuthRouter from "./routes/sellerAuth.route.js";
+import sellerProductRoutes from "./routes/sellerProduct.route.js";
+import sellerDashboardRoutes from "./routes/sellerDashboard.route.js";
 
 
 dotenv.config({ path: '../.env' });
@@ -137,6 +139,8 @@ app.use("/api/admin", adminStatisticsRouter);
 app.use("/api/device-requests", deviceRequestRoutes);
 app.use("/api/customer/notifications", notificationRoutes);
 app.use("/api/seller", sellerAuthRouter);
+app.use("/api/seller", sellerProductRoutes);
+app.use("/api/seller", sellerDashboardRoutes);
 
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
