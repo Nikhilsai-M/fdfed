@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../../assets/images/icons/logo1.png";
 import cartIcon from "../../assets/images/icons/cart-icon.png";
@@ -6,7 +6,7 @@ import profileIcon from "../../assets/images/icons/profile-icon.png";
 import { useCart } from "../../context/CartContent"; 
 import { useAppDispatch, useAppSelector } from "../../hooks/redux";
 import { logout } from "../../store/slices/authSlice";
-import axios from "axios";
+import { useNotifications } from "../../context/NotificationContext";
 
 const Header = () => {
   const { user } = useAppSelector((state) => state.auth);
@@ -14,37 +14,17 @@ const Header = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   
-  const [notifications, setNotifications] = useState([]);
-  const [notificationCount, setNotificationCount] = useState(0);
-  const [loadingNotifications, setLoadingNotifications] = useState(false);
+  const { 
+    notifications, 
+    notificationCount, 
+    markAsRead 
+  } = useNotifications();
 
   useEffect(() => {
     fetchCartCount();
-    if (user) {
-      fetchNotifications();
-    }
-  }, [user]);
+  }, [fetchCartCount]);
 
-  const fetchNotifications = async () => {
-    try {
-      setLoadingNotifications(true);
-      const response = await axios.get('/api/customer/notifications', {
-        withCredentials: true,
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (response.data.success) {
-        setNotifications(response.data.notifications.slice(0, 5)); // Show only latest 5
-        setNotificationCount(response.data.unreadCount);
-      }
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-    } finally {
-      setLoadingNotifications(false);
-    }
-  };
+
 
   const handleLogout = () => {
     dispatch(logout());
@@ -53,17 +33,7 @@ const Header = () => {
 
   const handleNotificationClick = async (notificationId) => {
     try {
-      await axios.put(`/api/customer/notifications/${notificationId}/read`, {}, {
-        withCredentials: true
-      });
-      
-      // Update local state
-      setNotifications(notifications.map(notif => 
-        notif.id === notificationId ? { ...notif, read: true } : notif
-      ));
-      setNotificationCount(prev => Math.max(0, prev - 1));
-      
-      // Navigate to listings page
+      await markAsRead(notificationId);
       navigate('/listings');
     } catch (error) {
       console.error('Error marking notification as read:', error);
@@ -83,6 +53,9 @@ const Header = () => {
   const getDeviceIcon = (deviceType) => {
     return deviceType === 'phone' ? 'fa-solid fa-mobile-screen' : 'fa-solid fa-laptop';
   };
+
+  // Get only the latest 5 notifications for the dropdown
+  const recentNotifications = notifications.slice(0, 5);
 
   return (
     <>
@@ -147,19 +120,15 @@ const Header = () => {
                   </div>
                   
                   <div className="overflow-y-auto max-h-64">
-                    {loadingNotifications ? (
-                      <div className="px-4 py-8 text-center">
-                        <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                        <p className="text-sm text-gray-500 mt-2">Loading...</p>
-                      </div>
-                    ) : notifications.length > 0 ? (
-                      notifications.map((notification) => {
+                    {recentNotifications.length > 0 ? (
+                      recentNotifications.map((notification) => {
                         const statusColor = getStatusColor(notification.status);
+                        const notificationId = notification.id || notification._id || notification.notification_id;
                         
                         return (
                           <div
-                            key={notification.id}
-                            onClick={() => handleNotificationClick(notification.id)}
+                            key={notificationId}
+                            onClick={() => handleNotificationClick(notificationId)}
                             className={`px-4 py-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors ${
                               !notification.read ? 'bg-blue-50' : ''
                             }`}
@@ -182,23 +151,13 @@ const Header = () => {
                                     <p className="text-sm text-gray-600">
                                       <span className="font-medium">{notification.brand} {notification.model}</span>
                                     </p>
-                                    <p className={`text-sm mt-1 ${statusColor.text}`}>
-                                      <span className="font-medium capitalize">{notification.status}</span>
-                                      {notification.status === 'rejected' && notification.rejection_reason && 
-                                        ` - ${notification.rejection_reason}`
-                                      }
+                                    <p className="text-xs text-gray-500 mt-1">
+                                      {notification.message?.substring(0, 60)}...
                                     </p>
                                   </div>
-                                  <div className="text-right flex-shrink-0">
-                                    <span className="text-xs text-gray-400 block">
-                                      {notification.time}
-                                    </span>
-                                    {notification.price && notification.status === 'approved' && (
-                                      <span className="text-xs font-semibold text-green-600 mt-1 block">
-                                        ₹{notification.price.toLocaleString()}
-                                      </span>
-                                    )}
-                                  </div>
+                                  {!notification.read && (
+                                    <span className="ml-2 w-2 h-2 bg-blue-600 rounded-full"></span>
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -206,34 +165,33 @@ const Header = () => {
                         );
                       })
                     ) : (
-                      <div className="px-4 py-8 text-center text-gray-500">
-                        <i className="fa-regular fa-bell text-3xl mb-2"></i>
-                        <p>No listing updates</p>
-                        <p className="text-sm mt-1">You'll get notified here when your listings are updated</p>
+                      <div className="px-4 py-8 text-center">
+                        <i className="fa-regular fa-bell text-3xl text-gray-300 mb-2"></i>
+                        <p className="text-sm text-gray-500">No notifications</p>
                       </div>
                     )}
                   </div>
                   
-                  {notifications.length > 0 && (
-                    <div className="px-4 py-3 border-t border-gray-200 text-center">
+                  {recentNotifications.length > 0 && (
+                    <div className="px-4 py-3 border-t border-gray-200">
                       <Link
                         to="/notifications"
-                        className="text-blue-600 hover:text-blue-800 font-medium text-sm"
-                        onClick={(e) => e.stopPropagation()}
+                        className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center justify-center gap-2"
                       >
-                        View all listing notifications
+                        View All Notifications
+                        <i className="fa-solid fa-arrow-right"></i>
                       </Link>
                     </div>
                   )}
                 </div>
               </div>
             )}
-            
 
-            {/* Cart */}
+            {/* Cart Icon */}
             <Link
-              to={user ? "/cart" : "/sign-in"}
-              className="relative flex items-center gap-2 text-gray-700 hover:text-blue-600 transition"
+              to="/cart"
+              className="relative p-2 text-gray-700 hover:text-blue-600 transition"
+              aria-label="Cart"
             >
               <img src={cartIcon} alt="Cart" className="w-6 h-6" />
               {cartCount > 0 && (
@@ -343,13 +301,12 @@ const Header = () => {
   </div>
 </li>
 
-            {/* Buy Phone Dropdown - FIXED */}
+            {/* Buy Phone Dropdown */}
             <li className="relative group">
               <div className="cursor-pointer hover:text-gray-300 py-2">
                 <Link to='/buyphones' className="hover:text-gray-300">
                   Buy Phone ▾
                 </Link>
-                {/* Dropdown positioned directly below with no gap */}
                 <div className="absolute left-0 top-full mt-0 bg-white text-gray-800 rounded-md shadow-lg w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 border border-gray-200">
                   {["Apple", "Samsung", "OnePlus"].map((brand) => (
                     <Link
@@ -364,13 +321,12 @@ const Header = () => {
               </div>
             </li>
 
-            {/* Buy Laptop Dropdown - FIXED */}
+            {/* Buy Laptop Dropdown */}
             <li className="relative group">
               <div className="cursor-pointer hover:text-gray-300 py-2">
                 <Link to='/buylaptops' className="hover:text-gray-300">
                   Buy Laptop ▾
                 </Link>
-                {/* Dropdown positioned directly below with no gap */}
                 <div className="absolute left-0 top-full mt-0 bg-white text-gray-800 rounded-md shadow-lg w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 border border-gray-200">
                   {["Dell", "HP", "Apple", "Lenovo", "Asus"].map((brand) => (
                     <Link
@@ -385,13 +341,12 @@ const Header = () => {
               </div>
             </li>
 
-            {/* Accessories Dropdown - FIXED */}
+            {/* Accessories Dropdown */}
             <li className="relative group">
               <div className="cursor-pointer hover:text-gray-300 py-2">
                 <Link to="/Accessories" className="hover:text-gray-300">
                   Accessories ▾
                 </Link>
-                {/* Dropdown positioned directly below with no gap */}
                 <div className="absolute left-0 top-full mt-0 bg-white text-gray-800 rounded-md shadow-lg w-52 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 border border-gray-200">
                   {["Smartwatches", "Chargers", "Earphones", "Mouses"].map(
                     (item) => (
