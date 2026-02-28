@@ -99,7 +99,7 @@ const logout = async () => {
 
         <button
           style={styles.navBtn}
-          onClick={() => window.location.href = "/seller-manage-inventory"}
+          onClick={() => window.location.href = "/seller/manage-inventory"}
         >
           Manage Inventory
         </button>

@@ -160,8 +160,8 @@ export async function addCharger(chargerData) {
       brand,
       wattage,
       type,
-      originalPrice: pricing.originalPrice,
-      discount: pricing.discount,
+      originalPrice: originalPrice,
+      discount: discount,
       outputCurrent,
     });
     
@@ -185,8 +185,8 @@ export async function updateCharger(id, chargerData) {
           brand,
           wattage,
           type,
-          originalPrice: pricing.originalPrice,
-          discount: pricing.discount,
+          originalPrice: originalPrice,
+          discount: discount,
           outputCurrent,
         },
       }

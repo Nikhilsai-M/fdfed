@@ -41,7 +41,7 @@ export async function getAllPhones() {
 
 export async function addPhone(phoneData) {
   try {
-    let Base_Price = (phoneData.pricing.originalPrice * 1.2) / (1 - phoneData.pricing.discount / 100);
+    let Base_Price = (phoneData.originalPrice * 1.2) / (1 - phoneData.discount / 100);
     
     await Phone.create({
       id: phoneData.id,
@@ -59,7 +59,7 @@ export async function addPhone(phoneData) {
       ram: phoneData.ram,
       rom: phoneData.rom,
       base_price: Base_Price,
-      discount: phoneData.pricing.discount,
+      discount: phoneData.discount,
       condition: phoneData.condition,
     });
     
@@ -90,7 +90,7 @@ export async function updatePhone(id, phoneData) {
           ram: phoneData.ram,
           rom: phoneData.rom,
           base_price: phoneData.pricing.basePrice,
-          discount: phoneData.pricing.discount,
+          discount: phoneData.discount,
           condition: phoneData.condition,
         },
       }
@@ -151,7 +151,7 @@ export async function getAllLaptops() {
 
 export async function addLaptop(laptopData) {
   try {
-    let Base_Price = (laptopData.pricing.originalPrice * 1.2) / (1 - laptopData.pricing.discount / 100);
+    let Base_Price = (laptopData.originalPrice * 1.2) / (1 - laptopData.discount / 100);
 
     await Laptop.create({
       id: laptopData.id,
@@ -160,7 +160,7 @@ export async function addLaptop(laptopData) {
       processor_name: laptopData.processor.name,
       processor_generation: laptopData.processor.generation,
       base_price: Base_Price.toFixed(0),
-      discount: laptopData.pricing.discount,
+      discount: laptopData.discount,
       ram: laptopData.memory.ram,
       storage_type: laptopData.memory.storage.type,
       storage_capacity: laptopData.memory.storage.capacity,
@@ -189,7 +189,7 @@ export async function updateLaptop(id, laptopData) {
           processor_name: laptopData.processor.name,
           processor_generation: laptopData.processor.generation,
           base_price: laptopData.pricing.basePrice,
-          discount: laptopData.pricing.discount,
+          discount: laptopData.discount,
           ram: laptopData.memory.ram,
           storage_type: laptopData.memory.storage.type,
           storage_capacity: laptopData.memory.storage.capacity,
@@ -252,93 +252,62 @@ export async function getSellerEarphones(sellerId) {
 export async function addEarphone(earphoneData) {
   try {
 
+    console.log("🟡 addEarphone received:", earphoneData);
+
     const {
       id,
       title,
       image,
       brand,
-      pricing,
+      originalPrice,
+      discount,
       design,
       batteryLife,
       sellerId,
       stock
     } = earphoneData;
 
+    console.log("🟢 Extracted values:");
+    console.log("originalPrice:", originalPrice);
+    console.log("discount:", discount);
+    console.log("sellerId:", sellerId);
+
     await Earphone.create({
       id,
       title,
       image,
       brand,
-      originalPrice: pricing.originalPrice,
-      discount: pricing.discount,
+      originalPrice: Number(originalPrice),
+      discount: Number(discount),
       design,
       batteryLife,
-      sellerId: sellerId || null,
+      sellerId,
       stock: stock ?? 0,
       isActive: true
     });
 
+    console.log("✅ Earphone created successfully");
+
     return { success: true, id };
 
   } catch (error) {
-    console.error("Error adding earphone:", error);
+    console.error("❌ Error adding earphone:", error);
     return { success: false, message: error.message };
   }
 }
 
-
-export async function updateEarphone(id, earphoneData) {
-  try {
-
-    const {
-      title,
-      image,
-      brand,
-      pricing,
-      design,
-      batteryLife,
-      stock
-    } = earphoneData;
-
-    await Earphone.updateOne(
-      { id },
-      {
-        $set: {
-          title,
-          image,
-          brand,
-          originalPrice: pricing.originalPrice,
-          discount: pricing.discount,
-          design,
-          batteryLife,
-          stock
-        },
-      }
-    );
-
-    return { success: true };
-
-  } catch (error) {
-    console.error("Error updating earphone:", error);
-    return { success: false, message: error.message };
-  }
+export async function updateEarphone(id, data, sellerId) {
+  return await Earphone.updateOne(
+    { id, sellerId },
+    { $set: data }
+  );
 }
 
-
-export async function deleteEarphone(id) {
-  try {
-
-    await Earphone.updateOne(
-      { id },
-      { $set: { isActive: false } }
-    );
-
-    return { success: true };
-
-  } catch (error) {
-    console.error("Error deleting earphone:", error);
-    return { success: false, message: error.message };
-  }
+export async function deleteEarphone(id, sellerId) {
+  return await Earphone.updateOne(
+    { id, sellerId },
+    { $set: { isActive: false } }
+  );
 }
 
 
@@ -398,8 +367,8 @@ export async function addCharger(chargerData) {
       brand,
       wattage,
       type,
-      originalPrice: pricing.originalPrice,
-      discount: pricing.discount,
+      originalPrice:Number( originalPrice),
+      discount: Number(discount),
       outputCurrent,
       sellerId: sellerId || null,
       stock: stock ?? 0,
@@ -415,60 +384,18 @@ export async function addCharger(chargerData) {
 }
 
 
-export async function updateCharger(id, chargerData) {
-  try {
-
-    const {
-      title,
-      image,
-      brand,
-      wattage,
-      type,
-      pricing,
-      outputCurrent,
-      stock
-    } = chargerData;
-
-    await Charger.updateOne(
-      { id },
-      {
-        $set: {
-          title,
-          image,
-          brand,
-          wattage,
-          type,
-          originalPrice: pricing.originalPrice,
-          discount: pricing.discount,
-          outputCurrent,
-          stock
-        },
-      }
-    );
-
-    return { success: true };
-
-  } catch (error) {
-    console.error("Error updating charger:", error);
-    return { success: false, message: error.message };
-  }
+export async function updateCharger(id, data, sellerId) {
+  return await Charger.updateOne(
+    { id, sellerId },
+    { $set: data }
+  );
 }
 
-
-export async function deleteCharger(id) {
-  try {
-
-    await Charger.updateOne(
-      { id },
-      { $set: { isActive: false } }
-    );
-
-    return { success: true };
-
-  } catch (error) {
-    console.error("Error deleting charger:", error);
-    return { success: false, message: error.message };
-  }
+export async function deleteCharger(id, sellerId) {
+  return await Charger.updateOne(
+    { id, sellerId },
+    { $set: { isActive: false } }
+  );
 }
 
 
@@ -526,8 +453,8 @@ export async function addMouse(mouseData) {
       title,
       image,
       brand,
-      originalPrice: pricing.originalPrice,
-      discount: pricing.discount,
+      originalPrice:Number(originalPrice),
+      discount: Number(discount),
       type,
       connectivity,
       resolution,
@@ -545,60 +472,18 @@ export async function addMouse(mouseData) {
 }
 
 
-export async function updateMouse(id, mouseData) {
-  try {
-
-    const {
-      title,
-      image,
-      brand,
-      pricing,
-      type,
-      connectivity,
-      resolution,
-      stock
-    } = mouseData;
-
-    await Mouse.updateOne(
-      { id },
-      {
-        $set: {
-          title,
-          image,
-          brand,
-          originalPrice: pricing.originalPrice,
-          discount: pricing.discount,
-          type,
-          connectivity,
-          resolution,
-          stock
-        },
-      }
-    );
-
-    return { success: true };
-
-  } catch (error) {
-    console.error("Error updating mouse:", error);
-    return { success: false, message: error.message };
-  }
+export async function updateMouse(id, data, sellerId) {
+  return await Mouse.updateOne(
+    { id, sellerId },
+    { $set: data }
+  );
 }
 
-
-export async function deleteMouse(id) {
-  try {
-
-    await Mouse.updateOne(
-      { id },
-      { $set: { isActive: false } }
-    );
-
-    return { success: true };
-
-  } catch (error) {
-    console.error("Error deleting mouse:", error);
-    return { success: false, message: error.message };
-  }
+export async function deleteMouse(id, sellerId) {
+  return await Mouse.updateOne(
+    { id, sellerId },
+    { $set: { isActive: false } }
+  );
 }
 
 
@@ -656,8 +541,8 @@ export async function addSmartwatch(smartwatchData) {
       title,
       image,
       brand,
-      originalPrice: pricing.originalPrice,
-      discount: pricing.discount,
+      originalPrice: Number(originalPrice),
+      discount:Number(discount),
       displaySize,
       displayType,
       batteryRuntime,
@@ -674,59 +559,16 @@ export async function addSmartwatch(smartwatchData) {
   }
 }
 
-
-export async function updateSmartwatch(id, smartwatchData) {
-  try {
-
-    const {
-      title,
-      image,
-      brand,
-      pricing,
-      displaySize,
-      displayType,
-      batteryRuntime,
-      stock
-    } = smartwatchData;
-
-    await Smartwatch.updateOne(
-      { id },
-      {
-        $set: {
-          title,
-          image,
-          brand,
-          originalPrice: pricing.originalPrice,
-          discount: pricing.discount,
-          displaySize,
-          displayType,
-          batteryRuntime,
-          stock
-        },
-      }
-    );
-
-    return { success: true };
-
-  } catch (error) {
-    console.error("Error updating smartwatch:", error);
-    return { success: false, message: error.message };
-  }
+export async function updateSmartwatch(id, data, sellerId) {
+  return await Smartwatch.updateOne(
+    { id, sellerId },
+    { $set: data }
+  );
 }
 
-
-export async function deleteSmartwatch(id) {
-  try {
-
-    await Smartwatch.updateOne(
-      { id },
-      { $set: { isActive: false } }
-    );
-
-    return { success: true };
-
-  } catch (error) {
-    console.error("Error deleting smartwatch:", error);
-    return { success: false, message: error.message };
-  }
+export async function deleteSmartwatch(id, sellerId) {
+  return await Smartwatch.updateOne(
+    { id, sellerId },
+    { $set: { isActive: false } }
+  );
 }

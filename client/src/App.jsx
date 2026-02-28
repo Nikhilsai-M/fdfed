@@ -52,6 +52,9 @@ import SellerDashboard from './pages/seller/Dashboard.jsx';
 import SellerSignup from "./pages/seller/SellerSignup.jsx";
 import SellerLogin from "./pages/seller/SellerSignIn.jsx";
 import ProductAnalytics from "./pages/admin/ProductAnalytics";
+import ManageInventorySeller from './pages/seller/ManageInventory.jsx';
+import AddProduct from './pages/seller/AddProduct.jsx';
+import SellerOrders from './pages/seller/SellerOrders.jsx';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -185,6 +188,9 @@ function App() {
                   <Route path="/seller/signup" element={<SellerSignup />} />
                   <Route path="/seller/login" element={<SellerLogin />} />
                   <Route path="/seller/dashboard" element={<SellerDashboard />} />
+                  <Route path="/seller/manage-inventory" element={<ManageInventorySeller />} />
+                  <Route path="/seller/add-product" element={<AddProduct/>}/>
+                  <Route path="/seller/orders" element={<SellerOrders/>}/>
                 </Routes>
               </main>
             
