@@ -12,6 +12,7 @@ export default function VerifyListings() {
     const [price, setPrice] = useState('');
     const [discount, setDiscount] = useState('0');
     const [condition, setCondition] = useState('Good');
+    const [supervisorType, setSupervisorType] = useState(null); // 'phone' or 'laptop'
 
     useEffect(() => {
         fetchApplications();
@@ -27,9 +28,10 @@ export default function VerifyListings() {
                 credentials: 'include'
             });
             const data = await res.json();
-            
+
             if (data.success) {
                 setApplications(data.applications);
+                setSupervisorType(data.supervisorType); // set from response
             }
         } catch (error) {
             console.error('Error fetching applications:', error);
@@ -40,7 +42,7 @@ export default function VerifyListings() {
 
     const filterApplications = () => {
         let filtered = applications;
-        
+
         if (activeFilter !== 'all') {
             filtered = applications.filter(app => {
                 switch (activeFilter) {
@@ -53,7 +55,7 @@ export default function VerifyListings() {
                 }
             });
         }
-        
+
         setFilteredApplications(filtered);
     };
 
@@ -63,7 +65,7 @@ export default function VerifyListings() {
                 credentials: 'include'
             });
             const data = await res.json();
-            
+
             if (data.success) {
                 setSelectedApplication({ ...data.application, type: data.type });
                 setModalOpen(true);
@@ -76,10 +78,10 @@ export default function VerifyListings() {
 
     const updateStatus = async (status) => {
         if (!selectedApplication) return;
-        
+
         setActionLoading(true);
         let rejectionReason = null;
-        
+
         if (status === 'rejected') {
             rejectionReason = prompt('Please provide a reason for rejection (optional):');
             if (rejectionReason === null) {
@@ -103,9 +105,9 @@ export default function VerifyListings() {
                     body: JSON.stringify(payload)
                 }
             );
-            
+
             const data = await res.json();
-            
+
             if (data.success) {
                 alert(`Status updated to ${status} successfully!`);
                 setModalOpen(false);
@@ -123,9 +125,9 @@ export default function VerifyListings() {
 
     const addToInventory = async () => {
         if (!selectedApplication) return;
-        
+
         setActionLoading(true);
-        
+
         try {
             const res = await fetch(
                 `http://localhost:3000/api/supervisor/add-to-inventory/${selectedApplication.type}/${selectedApplication.id}`,
@@ -136,9 +138,9 @@ export default function VerifyListings() {
                     body: JSON.stringify({ discount: parseInt(discount) || 0, condition })
                 }
             );
-            
+
             const data = await res.json();
-            
+
             if (data.success) {
                 alert('Item added to inventory successfully!');
                 setModalOpen(false);
@@ -163,6 +165,12 @@ export default function VerifyListings() {
         { key: 'rejected', label: 'Rejected', icon: 'fas fa-times', color: 'red' }
     ];
 
+    const typeIcon = supervisorType === 'phone' ? 'fa-mobile-alt' : 'fa-laptop';
+    const typeLabel = supervisorType === 'phone' ? 'Phone' : 'Laptop';
+    const typeBadge = supervisorType === 'phone'
+        ? 'bg-blue-100 text-blue-700 border-blue-200'
+        : 'bg-violet-100 text-violet-700 border-violet-200';
+
     if (loading) {
         return (
             <SupervisorLayout>
@@ -184,10 +192,20 @@ export default function VerifyListings() {
             <div className="mb-8">
                 <div className="flex justify-between items-center flex-wrap gap-4">
                     <div>
-                        <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
-                            Verify Product Listings
-                        </h1>
-                        <p className="text-gray-600">Review and approve product submissions.</p>
+                        <div className="flex items-center gap-3 mb-2">
+                            <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                                Verify {typeLabel} Listings
+                            </h1>
+                            {supervisorType && (
+                                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold border ${typeBadge}`}>
+                                    <i className={`fas ${typeIcon} text-xs`}></i>
+                                    {typeLabel} Supervisor
+                                </span>
+                            )}
+                        </div>
+                        <p className="text-gray-600">
+                            Review and approve <strong>{typeLabel}</strong> submissions from sellers.
+                        </p>
                     </div>
                     <div className="flex items-center bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-200">
                         <i className="far fa-calendar-alt mr-2 text-blue-600"></i>
@@ -228,7 +246,7 @@ export default function VerifyListings() {
                         <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 mb-6">
                             <i className="fas fa-info-circle text-4xl text-gray-400"></i>
                         </div>
-                        <p className="text-gray-500 text-xl font-semibold mb-2">No applications found</p>
+                        <p className="text-gray-500 text-xl font-semibold mb-2">No {typeLabel} applications found</p>
                         <p className="text-gray-400">Try adjusting your filters to see more results.</p>
                     </div>
                 ) : (
@@ -237,9 +255,9 @@ export default function VerifyListings() {
                             <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center">
                                     <div className={`p-3 rounded-xl mr-3 ${
-                                        app.type === 'phone' 
-                                            ? 'bg-gradient-to-br from-blue-500 to-indigo-600' 
-                                            : 'bg-gradient-to-br from-purple-500 to-pink-600'
+                                        app.type === 'phone'
+                                            ? 'bg-gradient-to-br from-blue-500 to-indigo-600'
+                                            : 'bg-gradient-to-br from-violet-500 to-purple-600'
                                     } text-white shadow-md`}>
                                         <i className={`fas ${app.type === 'phone' ? 'fa-mobile-alt' : 'fa-laptop'} text-xl`}></i>
                                     </div>
@@ -251,7 +269,7 @@ export default function VerifyListings() {
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div className="space-y-3 mb-5">
                                 <div className="flex items-center text-gray-700">
                                     <i className="fas fa-tag w-5 mr-2 text-gray-400"></i>
@@ -269,7 +287,7 @@ export default function VerifyListings() {
                                         <span className="font-semibold mr-2 text-gray-700">Status:</span>
                                     </div>
                                     <span className={`px-3 py-1 rounded-lg text-xs font-semibold shadow-sm ${
-                                        app.status === 'rejected' 
+                                        app.status === 'rejected'
                                             ? 'bg-red-100 text-red-700 border border-red-200'
                                             : app.status === 'approved'
                                             ? 'bg-green-100 text-green-700 border border-green-200'
@@ -295,7 +313,7 @@ export default function VerifyListings() {
                                     </div>
                                 )}
                             </div>
-                            
+
                             <button
                                 onClick={() => showApplicationDetails(app)}
                                 className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 flex items-center justify-center font-medium shadow-md hover:shadow-lg group-hover:scale-105"
@@ -309,7 +327,7 @@ export default function VerifyListings() {
                 )}
             </div>
 
-            {/* Modal */}
+            {/* Modal - unchanged from original */}
             {modalOpen && selectedApplication && (
                 <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn">
                     <div className="bg-white rounded-3xl max-w-5xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
@@ -334,9 +352,8 @@ export default function VerifyListings() {
                                 </button>
                             </div>
                         </div>
-                        
+
                         <div className="p-8">
-                            {/* Image Display Section */}
                             {selectedApplication.image_path && (
                                 <div className="mb-8 flex justify-center">
                                     <div className="max-w-md w-full">
@@ -352,15 +369,12 @@ export default function VerifyListings() {
                                                 }}
                                             />
                                         </div>
-                                        <p className="text-sm text-gray-500 text-center mt-2">
-                                            Image provided by seller
-                                        </p>
+                                        <p className="text-sm text-gray-500 text-center mt-2">Image provided by seller</p>
                                     </div>
                                 </div>
                             )}
-                            
+
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                                {/* Basic Info */}
                                 <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl border border-gray-200">
                                     <p className="text-gray-600 text-sm mb-1">Brand</p>
                                     <p className="font-bold text-gray-900">{selectedApplication.brand}</p>
@@ -373,7 +387,7 @@ export default function VerifyListings() {
                                     <p className="text-gray-600 text-sm mb-1">RAM</p>
                                     <p className="font-bold text-gray-900">{selectedApplication.ram}</p>
                                 </div>
-                                
+
                                 {selectedApplication.type === 'phone' ? (
                                     <>
                                         <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl border border-gray-200">
@@ -400,8 +414,6 @@ export default function VerifyListings() {
                                             <p className="text-gray-600 text-sm mb-1">Network</p>
                                             <p className="font-bold text-gray-900">{selectedApplication.network}</p>
                                         </div>
-                                        
-                                        {/* Phone-specific condition fields */}
                                         <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl border border-gray-200 md:col-span-2">
                                             <p className="text-gray-600 text-sm mb-1">Device Age</p>
                                             <p className="font-bold text-gray-900">{selectedApplication.device_age}</p>
@@ -457,8 +469,6 @@ export default function VerifyListings() {
                                             <p className="text-gray-600 text-sm mb-1">OS</p>
                                             <p className="font-bold text-gray-900">{selectedApplication.os || 'N/A'}</p>
                                         </div>
-                                        
-                                        {/* Laptop-specific fields */}
                                         <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl border border-gray-200">
                                             <p className="text-gray-600 text-sm mb-1">Device Age</p>
                                             <p className="font-bold text-gray-900">{selectedApplication.device_age || 'N/A'}</p>
@@ -475,7 +485,7 @@ export default function VerifyListings() {
                                         )}
                                     </>
                                 )}
-                                
+
                                 <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl border border-gray-200">
                                     <p className="text-gray-600 text-sm mb-1">Location</p>
                                     <p className="font-bold text-gray-900">{selectedApplication.location}</p>
@@ -491,7 +501,7 @@ export default function VerifyListings() {
                                 <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl border border-gray-200">
                                     <p className="text-gray-600 text-sm mb-1">Status</p>
                                     <span className={`inline-block px-3 py-1 rounded-lg text-sm font-bold ${
-                                        selectedApplication.status === 'rejected' 
+                                        selectedApplication.status === 'rejected'
                                             ? 'bg-red-100 text-red-700'
                                             : selectedApplication.status === 'approved'
                                             ? 'bg-green-100 text-green-700'
@@ -544,9 +554,7 @@ export default function VerifyListings() {
                                             Reject Application
                                         </button>
                                         <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-2xl border-2 border-green-200">
-                                            <label className="block text-sm font-bold text-gray-700 mb-3">
-                                                Set Price (₹):
-                                            </label>
+                                            <label className="block text-sm font-bold text-gray-700 mb-3">Set Price (₹):</label>
                                             <input
                                                 type="number"
                                                 value={price}
@@ -576,9 +584,7 @@ export default function VerifyListings() {
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                                             <div>
-                                                <label className="block text-sm font-bold text-gray-700 mb-2">
-                                                    Discount (%):
-                                                </label>
+                                                <label className="block text-sm font-bold text-gray-700 mb-2">Discount (%):</label>
                                                 <input
                                                     type="number"
                                                     value={discount}
@@ -590,9 +596,7 @@ export default function VerifyListings() {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-bold text-gray-700 mb-2">
-                                                    Condition:
-                                                </label>
+                                                <label className="block text-sm font-bold text-gray-700 mb-2">Condition:</label>
                                                 <select
                                                     value={condition}
                                                     onChange={(e) => setCondition(e.target.value)}

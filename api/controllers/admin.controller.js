@@ -4,6 +4,8 @@ import Charger from '../models/charger.model.js';
 import Earphone from '../models/earphone.model.js';
 import Mouse from '../models/mouse.model.js';
 import Smartwatch from '../models/smartwatch.model.js';
+import { v4 as uuidv4 } from 'uuid';
+import { errorHandler } from '../utils/error.js';
 
 
 import Order from '../models/order.model.js';
@@ -119,48 +121,48 @@ totalSales,
 }
 };
 
-
-export const addSupervisor = async (req, res) => {
+export const addSupervisor = async (req, res, next) => {
   try {
-    const { firstName, lastName, email, phone, username, password } = req.body;
-    const userId = `supervisor_${Date.now()}`;
-    
-    console.log('Creating new supervisor:', { firstName, lastName, email, username });
-    
+    const { firstName, lastName, email, phone, username, password, type } = req.body;
+
+    // Validate type
+    if (!type || !['phone', 'laptop'].includes(type)) {
+      return next(errorHandler(400, 'Supervisor type must be "phone" or "laptop"'));
+    }
+
+    // Check for duplicates
+    const existing = await Supervisor.findOne({
+      $or: [{ email }, { username }, { phone }]
+    });
+    if (existing) {
+      if (existing.email === email)       return next(errorHandler(400, 'Email already in use'));
+      if (existing.username === username) return next(errorHandler(400, 'Username already in use'));
+      if (existing.phone === phone)       return next(errorHandler(400, 'Phone number already in use'));
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
-    
-    const newSupervisor = await Supervisor.create({
-      user_id: userId,
+
+    const supervisor = new Supervisor({
+      user_id: `supervisor_${uuidv4().slice(0, 8)}`,
       first_name: firstName,
       last_name: lastName,
-      email: email.toLowerCase().trim(),
+      email,
       phone,
-      username: username.trim(),
+      username,
       password: hashedPassword,
-      role: 'supervisor', 
-      created_at: new Date(),
+      role: 'supervisor',
+      type,           // ← this is what was missing
     });
-    
-    console.log('Supervisor created successfully:', {
-      user_id: newSupervisor.user_id,
-      username: newSupervisor.username,
-      email: newSupervisor.email,
-      role: newSupervisor.role
-    });
-    
-    res.json({ success: true, message: 'Supervisor added successfully' });
+
+    await supervisor.save();
+
+    res.status(201).json({ success: true, message: 'Supervisor added successfully' });
   } catch (error) {
     console.error('Error adding supervisor:', error);
     if (error.code === 11000) {
-      
-      const field = Object.keys(error.keyPattern)[0];
-      res.status(400).json({ 
-        success: false, 
-        message: `${field} already exists` 
-      });
-    } else {
-      res.status(500).json({ success: false, message: 'Failed to add supervisor' });
+      return next(errorHandler(400, 'A supervisor with that email, username, or phone already exists'));
     }
+    next(errorHandler(500, 'Error adding supervisor'));
   }
 };
 

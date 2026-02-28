@@ -51,6 +51,12 @@ const supervisorSchema = new mongoose.Schema({
     type: String,
     default: 'supervisor'
   },
+  // NEW: defines what type of listings this supervisor handles
+  type: {
+    type: String,
+    enum: ['phone', 'laptop'],
+    required: true,
+  },
   created_at: {
     type: Date,
     default: Date.now

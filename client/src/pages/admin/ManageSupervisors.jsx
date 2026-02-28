@@ -28,7 +28,8 @@ const ManageSupervisors = () => {
     email: '',
     phone: '',
     username: '',
-    password: ''
+    password: '',
+    type: 'phone'   // ✅ NEW
   });
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
@@ -209,6 +210,7 @@ const ManageSupervisors = () => {
       formData.phone &&
       formData.username &&
       formData.password &&
+      formData.type &&
       Object.keys(errors).length === 0 &&
       validateField('firstName', formData.firstName) === '' &&
       validateField('lastName', formData.lastName) === '' &&
@@ -282,7 +284,8 @@ const ManageSupervisors = () => {
           email: '',
           phone: '',
           username: '',
-          password: ''
+          password: '',
+          type: 'phone'   // ✅ NEW
         });
         setErrors({});
         setTouched({});
@@ -757,6 +760,26 @@ const ManageSupervisors = () => {
                     </p>
                   )}
                 </div>
+                <div className="space-y-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                  <i className="fas fa-layer-group text-blue-600"></i>
+                  Supervisor Type <span className="text-red-500">*</span>
+                </label>
+
+                <select
+                  name="type"
+                  value={formData.type}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                >
+                  <option value="phone">Phone Supervisor</option>
+                  <option value="laptop">Laptop Supervisor</option>
+                </select>
+
+                <p className="text-xs text-gray-500">
+                  Determines which sellers this supervisor manages
+                </p>
+              </div>
               </div>
               <div className="pt-4 border-t border-gray-200">
                 <div className="flex items-center justify-between gap-4">

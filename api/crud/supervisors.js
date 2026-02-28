@@ -4,40 +4,59 @@ import bcrypt from 'bcryptjs';
 export async function initializeSupervisors() {
   try {
     const supervisorCount = await Supervisor.countDocuments();
+
     if (supervisorCount === 0) {
       const password1 = await bcrypt.hash('Supervisor@123', 10);
       const password2 = await bcrypt.hash('Supervisor@456', 10);
-      
+
       await Supervisor.insertMany([
         {
           user_id: 'supervisor_1',
           first_name: 'Nikhil',
           last_name: 'Sai',
-          email: 'supervisor@se.com', // Changed to match your pattern
+          email: 'supervisor@se.com',
           phone: '1234567890',
-          username: 'supervisor@se.com', // Using email as username for pattern matching
+          username: 'supervisor@se.com',
           password: password1,
-          role: 'supervisor'
+          role: 'supervisor',
+          type: 'phone',
         },
         {
           user_id: 'supervisor_2',
           first_name: 'John',
           last_name: 'Doe',
-          email: 'supervisor1@se.com', // Changed to match your pattern
+          email: 'supervisor1@se.com',
           phone: '0987654321',
-          username: 'supervisor1@se.com', // Using email as username
+          username: 'supervisor1@se.com',
           password: password2,
-          role: 'supervisor'
+          role: 'supervisor',
+          type: 'laptop',
         },
       ]);
-      console.log('Test supervisors added to database');
+      console.log('✅ Test supervisors seeded');
+
     } else {
-      console.log('Supervisors already exist in database');
+      // ── MIGRATION: patch any existing records missing the `type` field ──
+      const migrated1 = await Supervisor.updateOne(
+        { email: 'supervisor@se.com', type: { $exists: false } },
+        { $set: { type: 'phone' } }
+      );
+      const migrated2 = await Supervisor.updateOne(
+        { email: 'supervisor1@se.com', type: { $exists: false } },
+        { $set: { type: 'laptop' } }
+      );
+
+      if (migrated1.modifiedCount || migrated2.modifiedCount) {
+        console.log('✅ Migrated existing supervisors with missing type field');
+      } else {
+        console.log('ℹ️  Supervisors already exist and are up to date');
+      }
     }
   } catch (error) {
     console.error('Error initializing supervisors:', error);
   }
 }
+
 
 export async function getAllSupervisors() {
   try {
@@ -48,6 +67,7 @@ export async function getAllSupervisors() {
     throw error;
   }
 }
+
 
 export async function deleteSupervisor(userId) {
   try {
