@@ -25,7 +25,7 @@ const PaymentPage = () => {
       return item.price - (item.price * item.discountPercentage) / 100;
     return item.price || passedPrice || 0;
   };
-
+  const discount = product?.discountPercentage || 0;
   const actualPrice = getDiscountPrice(product);
 
   const { subtotal, shipping, discountAmount, total } = useMemo(() => {
@@ -111,26 +111,31 @@ const PaymentPage = () => {
     delete sanitized.price;
     delete sanitized.discount;
 
-    const orderData = {
-      orderId,
-      userId: userId || "guest",
-      items: [
-        {
-          type,
-          id,
-          accessory: sanitized,
-          quantity: 1,
-          amount: actualPrice,
-        },
-      ],
-      subtotal,
-      discountPercent,
-      discountAmount,
-      shipping,
-      totalAmount: total,
-      paymentMethod: selectedMethod,
-      timestamp: new Date().toISOString(),
-    };
+const orderData = {
+  orderId,
+  userId: userId || "guest",
+
+  items: [
+    {
+      type,
+      id,
+      seller_id: product?.sellerId, // ⭐ REQUIRED
+      accessory: sanitized,
+      quantity: 1,
+      amount: actualPrice,
+    },
+  ],
+
+  subtotal: actualPrice,
+  discountPercent: discount,
+  discountAmount: (originalPrice * discount) / 100,
+  shipping: 0,
+
+  totalAmount: actualPrice,
+  paymentMethod: selectedMethod,
+
+  timestamp: new Date().toISOString(),
+};
 
     try {
       const res = await fetch("/api/orders", {

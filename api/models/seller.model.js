@@ -41,7 +41,7 @@ const sellerSchema = new mongoose.Schema(
 { timestamps: true }
 );
 
-const Seller = mongoose.model("Seller", sellerSchema);
+export const Seller = mongoose.model("Seller", sellerSchema);
 
 export const create = (data) => Seller.create(data);
 export const findOne = (query) => Seller.findOne(query);

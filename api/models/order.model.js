@@ -13,22 +13,6 @@ const orderSchema = new mongoose.Schema({
     required: true
   },
 
-  product_id: {
-    type: String,
-    required: true
-  },
-
-  seller_id: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Seller",
-    required: true
-  },
-
-  quantity: {
-    type: Number,
-    default: 1
-  },
-
   total_amount: {
     type: Number,
     required: true
@@ -50,7 +34,6 @@ const orderSchema = new mongoose.Schema({
   }
 
 });
-
 const Order = mongoose.model("Order", orderSchema);
 
 export default Order;

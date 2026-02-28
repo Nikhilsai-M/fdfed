@@ -22,6 +22,7 @@ export async function createOrder(userId, totalAmount, paymentMethod, items) {
       { $inc: { seq: 1 } },
       { new: true, upsert: true }
     );
+
     const orderId = `order_${counter.seq}`;
 
     const orderItems = [];
@@ -40,21 +41,27 @@ export async function createOrder(userId, totalAmount, paymentMethod, items) {
         case "phone":
           product = await Phone.findOne({ id: itemId });
           break;
+
         case "laptop":
           product = await Laptop.findOne({ id: itemId });
           break;
+
         case "charger":
           product = await Charger.findOne({ id: itemId });
           break;
+
         case "earphone":
           product = await Earphone.findOne({ id: itemId });
           break;
+
         case "mouse":
           product = await Mouse.findOne({ id: itemId });
           break;
+
         case "smartwatch":
           product = await Smartwatch.findOne({ id: itemId });
           break;
+
         default:
           return { success: false, message: `Invalid item type: ${item.type}` };
       }
@@ -63,10 +70,12 @@ export async function createOrder(userId, totalAmount, paymentMethod, items) {
         return { success: false, message: `${type} with ID ${itemId} not found` };
       }
 
+      // ⭐ FIX: include seller_id
       orderItems.push({
         order_id: orderId,
         item_type: type,
         item_id: itemId,
+        seller_id: product.sellerId || null,
         quantity: item.quantity,
         amount: item.amount,
         accessory: item.accessory || {},
@@ -92,17 +101,48 @@ export async function createOrder(userId, totalAmount, paymentMethod, items) {
       const type = item.type.toLowerCase();
       const itemId = String(item.id);
 
-      if (type === "phone") {
-        await Phone.deleteOne({ id: itemId });
-      } else if (type === "laptop") {
-        await Laptop.deleteOne({ id: itemId });
-      }
+    if (type === "phone") {
+  await Phone.deleteOne({ id: itemId });
+}
+
+else if (type === "laptop") {
+  await Laptop.deleteOne({ id: itemId });
+}
+
+else if (type === "charger") {
+  await Charger.updateOne(
+    { id: itemId },
+    { $inc: { stock: -item.quantity } }
+  );
+}
+
+else if (type === "earphone") {
+  await Earphone.updateOne(
+    { id: itemId },
+    { $inc: { stock: -item.quantity } }
+  );
+}
+
+else if (type === "mouse") {
+  await Mouse.updateOne(
+    { id: itemId },
+    { $inc: { stock: -item.quantity } }
+  );
+}
+
+else if (type === "smartwatch") {
+  await Smartwatch.updateOne(
+    { id: itemId },
+    { $inc: { stock: -item.quantity } }
+  );
+}
     }
 
     // increment user's order count
     await User.updateOne({ user_id: userId }, { $inc: { orders_count: 1 } });
 
     return { success: true, orderId };
+
   } catch (error) {
     console.error("❌ Error creating order:", error);
     return { success: false, message: "Failed to create order: " + error.message };
@@ -116,6 +156,7 @@ export async function getOrdersByUserId(userId) {
       .lean();
 
     const orderIds = orders.map((order) => order.order_id);
+
     const orderItems = await OrderItem.find({ order_id: { $in: orderIds } }).lean();
 
     return orders.map((order) => ({
@@ -133,6 +174,7 @@ export async function getOrdersByUserId(userId) {
           accessory: item.accessory,
         })),
     }));
+
   } catch (error) {
     console.error("❌ Error in getOrdersByUserId:", error);
     return [];
@@ -142,7 +184,9 @@ export async function getOrdersByUserId(userId) {
 export async function getAllOrders() {
   try {
     const orders = await Order.find().sort({ created_at: -1 }).lean();
+
     const orderIds = orders.map((order) => order.order_id);
+
     const orderItems = await OrderItem.find({ order_id: { $in: orderIds } }).lean();
 
     return orders.map((order) => ({
@@ -160,6 +204,7 @@ export async function getAllOrders() {
           accessory: item.accessory,
         })),
     }));
+
   } catch (error) {
     console.error("❌ Error in getAllOrders:", error);
     return [];
