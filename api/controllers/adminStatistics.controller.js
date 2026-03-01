@@ -3,6 +3,7 @@ import LaptopApplication from "../models/laptopApplication.model.js";
 import Phone from "../models/phone.model.js";
 import Laptop from "../models/laptop.model.js";
 import Order from "../models/order.model.js";
+import OrderItem from "../models/orderItem.model.js";
 
 const pct = (cur, prev) => {
   if (!prev) return cur ? 100 : 0;
@@ -299,8 +300,7 @@ export const getSupervisorListings = async (req, res) => {
 
 export const getRevenueAnalytics = async (req, res) => {
   try {
-    const range = req.query.range || "all";
-
+    const range = req.query.range;
     const now = new Date();
     let startDate = null;
 
@@ -310,58 +310,137 @@ export const getRevenueAnalytics = async (req, res) => {
     } else if (range === "30d") {
       startDate = new Date();
       startDate.setDate(now.getDate() - 30);
-    } else if (range === "3m") {
+    } else if (range === "90d") {
       startDate = new Date();
-      startDate.setMonth(now.getMonth() - 3);
+      startDate.setDate(now.getDate() - 90);
     }
 
-    const matchStage = startDate
-      ? {
-          $match: {
-            created_at: { $gte: startDate, $lte: now },
-            status: { $in: ["paid", "completed", "delivered"] }
-          }
-        }
-      : {
-          $match: {
-            status: { $in: ["paid", "completed", "delivered"] }
-          }
-        };
-
-    const coalesceTotalExpr = {
-      $ifNull: [
-        "$total",
-        { $ifNull: ["$totalAmount", { $ifNull: ["$grandTotal", { $ifNull: ["$amount", 0] }] }] }
-      ]
-    };
+    const match = startDate
+      ? { created_at: { $gte: startDate, $lte: now } }
+      : {};
 
     const totalRevenueAgg = await Order.aggregate([
-      matchStage,
+      { $match: match },
       {
         $group: {
           _id: null,
-          totalRevenue: { $sum: coalesceTotalExpr }
+          totalRevenue: { $sum: "$total_amount" }
         }
       }
     ]);
 
-    const revenueByCategory = await Order.aggregate([
-      matchStage,
-      {
-        $group: {
-          _id: "$category",
-          revenue: { $sum: coalesceTotalExpr }
-        }
-      }
-    ]);
+    const totalRevenue = totalRevenueAgg[0]?.totalRevenue || 0;
 
     res.status(200).json({
-      totalRevenue: totalRevenueAgg[0]?.totalRevenue || 0,
-      revenueByCategory
+      totalRevenue,
+      revenueByCategory: [] // your Order model doesn't have category
     });
 
   } catch (error) {
-    console.error(error);
+    console.error("Revenue error:", error);
     res.status(500).json({ message: "Revenue fetch failed" });
+  }
+};
+
+export const getCategoryRevenueAnalytics = async (req, res) => {
+  try {
+    const range = req.query.range || "90d";
+    const now = new Date();
+    let startDate = new Date();
+
+    if (range === "7d") startDate.setDate(now.getDate() - 7);
+    else if (range === "30d") startDate.setDate(now.getDate() - 30);
+    else startDate.setDate(now.getDate() - 90);
+
+    /* =========================
+       CATEGORY REVENUE
+    ========================== */
+    const categoryRevenue = await OrderItem.aggregate([
+      {
+        $match: {
+          created_at: { $gte: startDate, $lte: now }
+        }
+      },
+      {
+        $addFields: {
+          normalizedType: {
+            $toLower: { $ifNull: ["$item_type", "other"] }
+          }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            $switch: {
+              branches: [
+                { case: { $eq: ["$normalizedType", "phone"] }, then: "PHONE" },
+                { case: { $eq: ["$normalizedType", "laptop"] }, then: "LAPTOP" },
+                { case: { $eq: ["$normalizedType", "charger"] }, then: "CHARGER" },
+                { case: { $eq: ["$normalizedType", "earphone"] }, then: "EARPHONE" },
+                { case: { $eq: ["$normalizedType", "mouse"] }, then: "MOUSE" },
+                { case: { $eq: ["$normalizedType", "smartwatch"] }, then: "SMARTWATCH" }
+              ],
+              default: "OTHER"
+            }
+          },
+          revenue: {
+            $sum: { $multiply: ["$quantity", "$amount"] }
+          }
+        }
+      },
+      { $sort: { revenue: -1 } }
+    ]);
+
+    /* =========================
+       BRAND REVENUE (SAFE)
+    ========================== */
+    const brandRevenue = await OrderItem.aggregate([
+      {
+        $match: {
+          created_at: { $gte: startDate, $lte: now }
+        }
+      },
+      {
+        $addFields: {
+          safeBrand: {
+            $ifNull: [
+              { $ifNull: ["$accessory.brand", null] },
+              "Unknown"
+            ]
+          }
+        }
+      },
+      {
+        $group: {
+          _id: "$safeBrand",
+          revenue: {
+            $sum: { $multiply: ["$quantity", "$amount"] }
+          }
+        }
+      },
+      { $sort: { revenue: -1 } }
+    ]);
+
+    return res.json({
+      success: true,
+      categoryRevenue,
+      brandRevenue
+    });
+
+  } catch (error) {
+    console.error("Revenue Category Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+export const debugOrderItems = async (req, res) => {
+  try {
+    const items = await OrderItem.find().limit(5);
+    res.json(items);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };

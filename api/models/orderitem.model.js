@@ -43,6 +43,8 @@ const orderItemSchema = new mongoose.Schema({
   }
 
 });
-const OrderItem = mongoose.model('OrderItem', orderItemSchema);
+const OrderItem =
+  mongoose.models.OrderItem ||
+  mongoose.model("OrderItem", orderItemSchema);
 
 export default OrderItem;   

@@ -1,6 +1,6 @@
 import Counter from "../models/counter.model.js";
 import Order from "../models/order.model.js";
-import OrderItem from "../models/orderitem.model.js";
+import OrderItem from "../models/orderItem.model.js";
 import User from "../models/user.model.js";
 
 import Charger from "../models/charger.model.js";
