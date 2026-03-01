@@ -26,14 +26,12 @@ export default function RevenueAnalytics() {
   const [categoryRevenue, setCategoryRevenue] = useState([]);
   const [brandRevenue, setBrandRevenue] = useState([]);
 
-  // Destroy charts safely
   const destroyCharts = () => {
     revenueChart.current?.destroy();
     categoryChart.current?.destroy();
     brandChart.current?.destroy();
   };
 
-  // Fetch total revenue by range
   const fetchRevenueByRange = async (days) => {
     const res = await fetch(`/api/admin/revenue?range=${days}d`, {
       credentials: "include",
@@ -43,15 +41,12 @@ export default function RevenueAnalytics() {
     return data.totalRevenue || 0;
   };
 
-  // Fetch category + brand revenue
   const fetchCategoryRevenue = async () => {
     const res = await fetch(`/api/admin/revenue/categories?range=90d`, {
       credentials: "include",
     });
     const data = await res.json();
-    if (!res.ok || !data.success)
-      throw new Error(data.message || "Category revenue fetch failed");
-
+    if (!res.ok) throw new Error(data.message || "Category revenue fetch failed");
     return data;
   };
 
@@ -65,27 +60,22 @@ export default function RevenueAnalytics() {
 
       const catData = await fetchCategoryRevenue();
 
-      setRangeRevenue({
-        7: r7,
-        30: r30,
-        90: r90,
-      });
-
+      setRangeRevenue({ 7: r7, 30: r30, 90: r90 });
       setCategoryRevenue(catData.categoryRevenue || []);
       setBrandRevenue(catData.brandRevenue || []);
 
-      renderRevenueChart({ 7: r7, 30: r30, 90: r90 });
-      renderCategoryChart(catData.categoryRevenue || []);
-      renderBrandChart(catData.brandRevenue || []);
-
       setLastUpdated(new Date().toLocaleString());
     } catch (err) {
+      console.error(err);
       setError(err.message);
     }
   };
 
-  // Line chart (7 / 30 / 90 comparison)
-  const renderRevenueChart = (data) => {
+  /* ------------------ CHART RENDERING ------------------ */
+
+  useEffect(() => {
+    if (!revenueRef.current) return;
+
     revenueChart.current?.destroy();
 
     revenueChart.current = new Chart(revenueRef.current, {
@@ -95,7 +85,11 @@ export default function RevenueAnalytics() {
         datasets: [
           {
             label: "Revenue (₹)",
-            data: [data[7], data[30], data[90]],
+            data: [
+              rangeRevenue[7],
+              rangeRevenue[30],
+              rangeRevenue[90],
+            ],
             borderWidth: 3,
             tension: 0.4,
           },
@@ -106,20 +100,16 @@ export default function RevenueAnalytics() {
         maintainAspectRatio: false,
       },
     });
-  };
 
-  // Category revenue chart
-  const renderCategoryChart = (rows) => {
+  }, [rangeRevenue]);
+
+  useEffect(() => {
+    if (!categoryRef.current || !categoryRevenue.length) return;
+
     categoryChart.current?.destroy();
 
-    if (!rows.length) return;
-
-    const labels = rows
-  .filter(r => r && r._id)
-  .map(r => r._id);
-    const values = rows
-  .filter(r => r && r._id)
-  .map(r => r.revenue || 0);
+    const labels = categoryRevenue.map(r => r._id);
+    const values = categoryRevenue.map(r => r.revenue);
 
     categoryChart.current = new Chart(categoryRef.current, {
       type: "bar",
@@ -137,16 +127,16 @@ export default function RevenueAnalytics() {
         maintainAspectRatio: false,
       },
     });
-  };
 
-  // Brand revenue chart
-  const renderBrandChart = (rows) => {
+  }, [categoryRevenue]);
+
+  useEffect(() => {
+    if (!brandRef.current || !brandRevenue.length) return;
+
     brandChart.current?.destroy();
 
-    if (!rows.length) return;
-
-    const labels = rows.map((r) => r._id || "Unknown");
-    const values = rows.map((r) => r.revenue);
+    const labels = brandRevenue.map(r => r._id || "Unknown");
+    const values = brandRevenue.map(r => r.revenue);
 
     brandChart.current = new Chart(brandRef.current, {
       type: "bar",
@@ -164,13 +154,15 @@ export default function RevenueAnalytics() {
         maintainAspectRatio: false,
       },
     });
-  };
+
+  }, [brandRevenue]);
 
   useEffect(() => {
     init();
     return () => destroyCharts();
-    // eslint-disable-next-line
   }, []);
+
+  /* ------------------ UI ------------------ */
 
   return (
     <div className="flex min-h-screen bg-gray-100">
@@ -196,7 +188,7 @@ export default function RevenueAnalytics() {
           </div>
         )}
 
-        {/* Revenue Summary Cards */}
+        {/* Revenue Summary */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white rounded-xl shadow p-6 border">
             <div className="text-gray-500 text-sm">Last 90 Days</div>
@@ -220,14 +212,14 @@ export default function RevenueAnalytics() {
           </div>
         </section>
 
-        {/* Revenue Comparison */}
+        {/* Revenue Line Chart */}
         <section className="bg-white rounded-2xl p-6 shadow border mb-8">
           <div className="h-[400px]">
             <canvas ref={revenueRef} />
           </div>
         </section>
 
-        {/* Category Revenue */}
+        {/* Category Chart */}
         <section className="bg-white rounded-2xl p-6 shadow border mb-8">
           {categoryRevenue.length === 0 ? (
             <div className="text-center text-gray-500 py-20">
@@ -240,7 +232,7 @@ export default function RevenueAnalytics() {
           )}
         </section>
 
-        {/* Brand Revenue */}
+        {/* Brand Chart */}
         <section className="bg-white rounded-2xl p-6 shadow border">
           {brandRevenue.length === 0 ? (
             <div className="text-center text-gray-500 py-20">

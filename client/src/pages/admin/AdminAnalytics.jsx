@@ -3,238 +3,240 @@ import { Chart, registerables } from "chart.js";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 Chart.register(...registerables);
 
-const fmtINR = (n) => new Intl.NumberFormat("en-IN").format(Math.round(n || 0));
-
-export default function AdminAnalytics() {
-  const [stats, setStats] = useState(null);
-  const [lastUpdated, setLastUpdated] = useState("Never");
-  const [range, setRange] = useState(7);
-  const [autoRefresh, setAutoRefresh] = useState(false);
+export default function SupervisorAnalytics() {
+  const [data, setData] = useState(null);
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const [error, setError] = useState("");
-  const [supervisorListings, setSupervisorListings] = useState(null);
+  const [lastUpdated, setLastUpdated] = useState("Never");
+  const [listingStats, setListingStats] = useState(null);
 
-  const statusRef = useRef(null);
-  const statusChart = useRef(null);
-  const timerRef = useRef(null);
+  const barRef = useRef(null);
+  const pieRef = useRef(null);
+  const activityRef = useRef(null);
 
-  const fetchSupervisorListings = async (rangeDays = 7) => {
-    try {
-      const res = await fetch(`/api/admin/supervisor-listings?range=${rangeDays}`, {
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        console.warn("Failed to fetch supervisor listings:", data.message || `HTTP ${res.status}`);
-        return null;
-      }
+  const barChart = useRef(null);
+  const pieChart = useRef(null);
+  const activityChart = useRef(null);
 
-      
-      const statusCounts = data.statusCounts || {
-        phone: { pending: 0, approved: 0, addedToInventory: 0, rejected: 0 },
-        laptop: { pending: 0, approved: 0, addedToInventory: 0, rejected: 0 },
-      };
-
-      const result = {
-        statusCounts,
-        totalAddedToInventory: data.totalAddedToInventory || 0,
-        trendAddedToInventory: data.trendAddedToInventory ?? 0
-      };
-      
-      setSupervisorListings(result);
-      return result;
-    } catch (err) {
-      console.error("Error fetching supervisor listings:", err);
-      return null;
-    }
-  };
-
-  const fetchStatistics = async () => {
+  /* ================= FETCH DATA ================= */
+  const fetchData = async () => {
     try {
       setError("");
-      const res = await fetch(`/api/admin/statistics?range=${range}`, {
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success)
-        throw new Error(data.message || `HTTP ${res.status}`);
 
-      setStats(data.statistics);
+      // Supervisor analytics
+      const supRes = await fetch("/api/admin/supervisor-analytics", {
+        credentials: "include",
+      });
+      const supJson = await supRes.json();
+      if (!supRes.ok || !supJson.success)
+        throw new Error("Supervisor analytics failed");
+
+      setData(supJson.data.supervisors);
+
+      // Old listing activity stats
+      const listRes = await fetch("/api/admin/supervisor-listings", {
+        credentials: "include",
+      });
+      const listJson = await listRes.json();
+      if (!listRes.ok || !listJson.success)
+        throw new Error("Listing stats failed");
+
+      setListingStats(listJson.statusCounts);
+
       setLastUpdated(new Date().toLocaleString());
-      
-      
-      
-    
-      const supervisorData = await fetchSupervisorListings(range);
-      renderCharts(data.statistics, supervisorData?.statusCounts || null);
     } catch (err) {
       console.error(err);
-      setError(err.message || "Failed to load statistics");
+      setError(err.message);
     }
   };
 
-  const renderCharts = (s, supervisorData = null) => {
-    
-    statusChart.current?.destroy();
+  /* ================= BAR GRAPH ================= */
+  const renderBarChart = (supervisors) => {
+    barChart.current?.destroy();
 
-    
-    const statusData = supervisorData || {
-      phone: { pending: 0, approved: 0, addedToInventory: 0, rejected: 0 },
-      laptop: { pending: 0, approved: 0, addedToInventory: 0, rejected: 0 },
-    };
+    barChart.current = new Chart(barRef.current, {
+      type: "bar",
+      data: {
+        labels: supervisors.map((s) => s.name),
+        datasets: [
+          {
+            label: "Listings Done",
+            data: supervisors.map((s) => s.approved),
+            backgroundColor: "#22c55e",
+          },
+          {
+            label: "Listings Rejected",
+            data: supervisors.map((s) => s.rejected),
+            backgroundColor: "#ef4444",
+          },
+        ],
+      },
+      options: { responsive: true, maintainAspectRatio: false },
+    });
+  };
 
-    const doughnutData = {
-      labels: [
-        "Phone Pending",
-        "Phone Approved",
-        "Phone Added to Inventory",
-        "Phone Rejected",
-        "Laptop Pending",
-        "Laptop Approved",
-        "Laptop Added to Inventory",
-        "Laptop Rejected",
-      ],
-      datasets: [
-        {
-          data: [
-            statusData.phone.pending || 0,
-            statusData.phone.approved || 0,
-            statusData.phone.addedToInventory || 0,
-            statusData.phone.rejected || 0,
-            statusData.laptop.pending || 0,
-            statusData.laptop.approved || 0,
-            statusData.laptop.addedToInventory || 0,
-            statusData.laptop.rejected || 0,
-          ],
-          backgroundColor: [
-            "#ef4444", 
-            "#22c55e", 
-            "#10b981", 
-            "#eab308", 
-            "#3b82f6",
-            "#a855f7", 
-            "#06b6d4", 
-            "#f97316", 
-          ],
-          borderWidth: 2,
-          hoverOffset: 15,
-        },
-      ],
-    };
+  /* ================= SUPERVISOR PIE ================= */
+  const renderPieChart = (supervisor) => {
+    pieChart.current?.destroy();
 
-    statusChart.current = new Chart(statusRef.current, {
+    pieChart.current = new Chart(pieRef.current, {
+      type: "pie",
+      data: {
+        labels: ["Accepted", "Rejected", "Pending"],
+        datasets: [
+          {
+            data: [
+              supervisor.approved,
+              supervisor.rejected,
+              supervisor.pending,
+            ],
+            backgroundColor: ["#22c55e", "#ef4444", "#f59e0b"],
+          },
+        ],
+      },
+      options: { responsive: true, maintainAspectRatio: false },
+    });
+  };
+
+  /* ================= OLD ACTIVITY DOUGHNUT ================= */
+  const renderActivityChart = (stats) => {
+    activityChart.current?.destroy();
+
+    const data = [
+      stats.phone.pending || 0,
+      stats.phone.approved || 0,
+      stats.phone.addedToInventory || 0,
+      stats.phone.rejected || 0,
+      stats.laptop.pending || 0,
+      stats.laptop.approved || 0,
+      stats.laptop.addedToInventory || 0,
+      stats.laptop.rejected || 0,
+    ];
+
+    activityChart.current = new Chart(activityRef.current, {
       type: "doughnut",
-      data: doughnutData,
+      data: {
+        labels: [
+          "Phone Pending",
+          "Phone Approved",
+          "Phone Added",
+          "Phone Rejected",
+          "Laptop Pending",
+          "Laptop Approved",
+          "Laptop Added",
+          "Laptop Rejected",
+        ],
+        datasets: [
+          {
+            data,
+            backgroundColor: [
+              "#ef4444",
+              "#22c55e",
+              "#10b981",
+              "#eab308",
+              "#3b82f6",
+              "#a855f7",
+              "#06b6d4",
+              "#f97316",
+            ],
+          },
+        ],
+      },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { position: "right", labels: { boxWidth: 20 } },
-          title: { display: false },
+          legend: { position: "right" },
         },
       },
     });
   };
 
-  
+  /* ================= EFFECT ================= */
   useEffect(() => {
-    fetchStatistics();
-    if (autoRefresh) {
-      timerRef.current = setInterval(fetchStatistics, 15000);
-    }
-    return () => clearInterval(timerRef.current);
-  }, [range, autoRefresh]);
-
- 
-  useEffect(() => {
+    fetchData();
     return () => {
-      statusChart.current?.destroy();
+      barChart.current?.destroy();
+      pieChart.current?.destroy();
+      activityChart.current?.destroy();
     };
   }, []);
 
-  const exportCSV = () => {
-    if (!stats) return;
-    const rows = [
-      ["Metric", "Value"],
-      ["Total Sales (orders)", stats.totalSales],
-      ["Total Listings", stats.totalListings],
-      ["Approved Listings", stats.approvedListings],
-      ["Sales Revenue (INR)", stats.totalSalesRevenue],
-      ["Phones", stats.salesByCategory?.phones || 0],
-      ["Laptops", stats.salesByCategory?.laptops || 0],
-      ["Chargers", stats.salesByCategory?.chargers || 0],
-      ["Earphones", stats.salesByCategory?.earphones || 0],
-      ["Mouses", stats.salesByCategory?.mouses || 0],
-      ["Smartwatches", stats.salesByCategory?.smartwatches || 0],
-    ];
-    const csv = rows.map((r) => r.join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `analytics-${Date.now()}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+  useEffect(() => {
+    if (data) renderBarChart(data);
+  }, [data]);
 
-  const Card = ({ title, value, trend }) => (
-    <div className="bg-white rounded-xl p-6 shadow hover:shadow-xl transition-shadow duration-200 border border-gray-100 hover:scale-[1.01] transform">
-      <div className="text-xs tracking-wider text-gray-500 font-semibold">
-        {title}
-      </div>
-      <div className="text-3xl font-extrabold text-gray-900 mt-2">
-        {typeof value === "number" ? fmtINR(value) : value}
-      </div>
-      <div
-        className={`mt-2 text-sm font-medium ${
-          trend > 0
-            ? "text-emerald-600"
-            : trend < 0
-            ? "text-rose-600"
-            : "text-gray-400"
-        }`}
-      >
-        {trend > 0
-          ? `+${trend}% ↑`
-          : trend < 0
-          ? `${trend}% ↓`
-          : "No Change"}
-      </div>
-    </div>
-  );
+  useEffect(() => {
+    if (data) renderPieChart(data[selectedIndex]);
+  }, [selectedIndex]);
+
+  useEffect(() => {
+    if (listingStats) renderActivityChart(listingStats);
+  }, [listingStats]);
 
   return (
     <div className="flex min-h-screen bg-gray-100">
       <AdminSidebar />
-
       <main className="flex-1 p-6 sm:p-8">
-        <header className="flex flex-wrap justify-between items-center gap-4 mb-6">
-          <h1 className="text-3xl font-extrabold text-gray-800 flex items-center gap-3">
-            Supervisor Dashboard
-          </h1>
-                  </header>
+        <h1 className="text-3xl font-extrabold text-gray-800 mb-6">
+          👨‍💼 Supervisor Analytics
+        </h1>
 
         {error && (
-          <div className="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-rose-700">
+          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
             {error}
           </div>
         )}
-    
-        <section className="bg-white rounded-2xl p-6 shadow border border-gray-100 mb-8">
-          <h2 className="text-2xl font-semibold text-indigo-700 mb-4">
-            Listings Overview
+
+        {/* BAR GRAPH */}
+        <section className="bg-white rounded-2xl p-6 shadow border mb-8">
+          <h2 className="text-xl font-semibold mb-4">
+            Listings Done vs Rejected
           </h2>
-          <div className="grid grid-cols-1 gap-8">
-            <div className="h-[340px] rounded-xl border p-4 shadow-sm hover:shadow-md transition">
-              <canvas ref={statusRef} />
-            </div>
+          <div className="h-[350px]">
+            <canvas ref={barRef} />
           </div>
         </section>
 
-        <div className="text-right text-gray-500 text-sm">
-          Last Updated: <span className="font-medium">{lastUpdated}</span>
-        </div>
+        {/* SUPERVISOR PIE */}
+        {data && (
+          <>
+            <select
+              className="mb-6 px-4 py-2 border rounded-lg"
+              onChange={(e) => setSelectedIndex(Number(e.target.value))}
+            >
+              {data.map((s, i) => (
+                <option key={i} value={i}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+
+            <section className="bg-white rounded-2xl p-6 shadow border mb-8">
+              <h2 className="text-xl font-semibold mb-4">
+                Supervisor Breakdown
+              </h2>
+              <div className="h-[350px]">
+                <canvas ref={pieRef} />
+              </div>
+              <div className="mt-4 text-center font-medium">
+                Total Listings: {data[selectedIndex].total}
+              </div>
+            </section>
+          </>
+        )}
+
+        {/* OLD LISTING ACTIVITY DOUGHNUT */}
+        {listingStats && (
+          <section className="bg-white rounded-2xl p-6 shadow border">
+            <h2 className="text-xl font-semibold mb-4">
+              Overall Listings Activity
+            </h2>
+            <div className="h-[400px]">
+              <canvas ref={activityRef} />
+            </div>
+          </section>
+        )}
       </main>
     </div>
   );

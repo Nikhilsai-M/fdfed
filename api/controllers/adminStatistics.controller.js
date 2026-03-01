@@ -444,3 +444,68 @@ export const debugOrderItems = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+import { Supervisor } from "../models/supervisor.model.js";
+
+export const getSupervisorAnalytics = async (req, res) => {
+  try {
+    const supervisors = await Supervisor.find().lean();
+
+    const result = [];
+
+    for (const sup of supervisors) {
+      let approved = 0;
+      let rejected = 0;
+      let pending = 0;
+
+      if (sup.type === "phone") {
+        approved = await PhoneApplication.countDocuments({
+          status: { $in: ["approved", "added_to_inventory"] }
+        });
+
+        rejected = await PhoneApplication.countDocuments({
+          status: "rejected"
+        });
+
+        pending = await PhoneApplication.countDocuments({
+          status: "pending"
+        });
+
+      } else if (sup.type === "laptop") {
+        approved = await LaptopApplication.countDocuments({
+          status: { $in: ["approved", "added_to_inventory"] }
+        });
+
+        rejected = await LaptopApplication.countDocuments({
+          status: "rejected"
+        });
+
+        pending = await LaptopApplication.countDocuments({
+          status: "pending"
+        });
+      }
+
+      result.push({
+        name: `${sup.first_name} ${sup.last_name}`,
+        approved,
+        rejected,
+        pending,
+        total: approved + rejected + pending
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        supervisors: result
+      }
+    });
+
+  } catch (err) {
+    console.error("Supervisor analytics error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch supervisor analytics"
+    });
+  }
+};
