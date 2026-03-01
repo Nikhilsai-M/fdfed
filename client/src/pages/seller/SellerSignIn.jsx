@@ -90,9 +90,15 @@ const handleSubmit = async (e) => {
             >
               Sign In
             </button>
+            
           </div>
         </form>
-
+        <Link to="/sign-in"><button
+             
+              className="group relative w-full flex justify-center py-2.5 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+            >
+              Sign In As Customer
+            </button></Link>
         <div className="text-center text-sm">
           <span className="text-gray-600">Don't have a seller account? </span>
           <Link to="/seller/signup" className="font-medium text-blue-600 hover:text-blue-500">
