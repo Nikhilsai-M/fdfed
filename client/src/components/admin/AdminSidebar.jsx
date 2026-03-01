@@ -39,30 +39,41 @@ export default function AdminSidebar() {
       }
     } catch (error) {
       console.error('Logout error:', error);
-      alert(`Error during logout. Please check the backend connection or status: ${error.message}`);
+      alert(`Error during logout: ${error.message}`);
     }
   };
 
   return (
     <div className="w-64 bg-gradient-to-b from-blue-900 to-blue-800 text-white flex flex-col">
+      
+      {/* Logo */}
       <div className="p-6 border-b border-blue-700">
         <Link to="/admin-dashboard" className="block">
-          <img src={logo} alt="Smart Exchange Logo" className="w-36 md:w-48 object-contain" />
+          <img
+            src={logo}
+            alt="Smart Exchange Logo"
+            className="w-36 md:w-48 object-contain"
+          />
         </Link>
       </div>
 
+      {/* Navigation */}
       <nav className="flex-1 p-4">
         <div className="space-y-2">
+
           <SidebarLink
             to="/admin-dashboard"
             iconClass="fas fa-house"
             label="Dashboard"
-            isActive={currentPath.startsWith('/admin-dashboard') || currentPath === '/admin/home'}
+            isActive={
+              currentPath.startsWith('/admin-dashboard') ||
+              currentPath === '/admin/home'
+            }
           />
 
           <SidebarLink
             to="/admin/manage-supervisors"
-            iconClass="fas fa-box"
+            iconClass="fas fa-users"
             label="Manage supervisors"
             isActive={currentPath.startsWith('/admin/manage-supervisors')}
           />
@@ -74,20 +85,29 @@ export default function AdminSidebar() {
             isActive={currentPath.startsWith('/admin/analytics')}
           />
 
-          {/* ✅ NEW: Product Analytics */}
           <SidebarLink
             to="/admin/product-analytics"
             iconClass="fas fa-chart-column"
             label="Product Analytics"
             isActive={currentPath.startsWith('/admin/product-analytics')}
           />
-          <SidebarLink
-  to="/admin/revenue"
-  iconClass="fas fa-coins"
-  label="Revenue Analytics"
-  isActive={currentPath.startsWith('/admin/revenue')}
-/>
 
+          <SidebarLink
+            to="/admin/revenue"
+            iconClass="fas fa-coins"
+            label="Revenue Analytics"
+            isActive={currentPath.startsWith('/admin/revenue')}
+          />
+
+          {/* ✅ NEW SELLER ACTIVITY MENU */}
+          <SidebarLink
+            to="/admin/seller-activity"
+            iconClass="fas fa-store"
+            label="Seller Activity"
+            isActive={currentPath.startsWith('/admin/seller-activity')}
+          />
+
+          {/* Logout */}
           <button
             onClick={handleLogout}
             className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blue-700 transition-colors w-full text-left"
@@ -95,6 +115,7 @@ export default function AdminSidebar() {
             <i className="fas fa-sign-out-alt"></i>
             <span>Logout</span>
           </button>
+
         </div>
       </nav>
     </div>
