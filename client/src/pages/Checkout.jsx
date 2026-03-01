@@ -239,7 +239,7 @@ const Checkout = () => {
 
       setTimeout(() => {
 
-        navigate(`/orders/${result.orderId}`);
+        navigate(`/myorders`);
 
       }, 1500);
 
