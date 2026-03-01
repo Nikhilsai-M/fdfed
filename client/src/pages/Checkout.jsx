@@ -17,14 +17,14 @@ const Checkout = () => {
   useEffect(() => {
 
     const allKeys = Object.keys(localStorage);
-    const cartKey = allKeys.find((key) => key.startsWith("cart_"));
+    const cartKey = allKeys.find((key) => key.startsWith("cart_user_"));
 
     if (!cartKey) {
       navigate("/sign-in");
       return;
     }
 
-    const extractedUserId = cartKey.replace("cart_", "");
+    const extractedUserId = cartKey.replace("cart_user_", "");
     setUserId(extractedUserId);
 
     try {
@@ -226,8 +226,7 @@ const Checkout = () => {
         throw new Error(result.message || "Order creation failed");
       }
 
-      const userCartKey = `cart_${userId}`;
-
+      const userCartKey = `cart_user_${userId}`;
       localStorage.setItem(userCartKey, JSON.stringify([]));
 
       setCart([]);
