@@ -230,7 +230,21 @@ const EarbudsPage = () => {
 
                       {/*  Reusable Add-to-cart button */}
                       <div className="px-5 pb-5">
-                        <AddToCartButton product={earbud} />
+                        {earbud.stock > 0 ? (
+                          <AddToCartButton
+                            product={{
+                              ...earbud,
+                              seller_id: earbud.sellerId,
+                              price:
+                                earbud.originalPrice -
+                                earbud.originalPrice * (earbud.discount / 100),
+                            }}
+                          />
+                        ) : (
+                          <div className="text-red-600 font-semibold text-center py-2">
+                            Currently Out of Stock
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
