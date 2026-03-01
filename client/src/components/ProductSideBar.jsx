@@ -27,19 +27,34 @@ const ProductSidebar = ({ product, type }) => {
     return null;
   };
 
-  const getPriceData = () => {
-    if (type === 'phone' || type === 'laptop') {
-      return {
-        originalPrice: product.pricing?.basePrice || product.base_price,
-        discount: product.pricing?.discount || product.discount
-      };
-    } else {
-      return {
-        originalPrice: product.pricing?.originalPrice,
-        discount: product.pricing?.discount
-      };
-    }
+ const getPriceData = () => {
+
+  // DO NOT TOUCH PHONES / LAPTOPS
+  if (type === "phone" || type === "laptop") {
+    return {
+      originalPrice: product.pricing?.basePrice || product.base_price,
+      discount: product.pricing?.discount || product.discount
+    };
+  }
+
+  // NEW ACCESSORY SCHEMA
+  if (
+    type === "charger" ||
+    type === "mouse" ||
+    type === "smartwatch" ||
+    type === "earphone"
+  ) {
+    return {
+      originalPrice: product.originalPrice,
+      discount: product.discount
+    };
+  }
+
+  return {
+    originalPrice: 0,
+    discount: 0
   };
+};
 
   const getPhoneSpecs = () => (
     <ul className="space-y-3 text-gray-700">

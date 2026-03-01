@@ -81,6 +81,12 @@ export default function AdminSidebar() {
             label="Product Analytics"
             isActive={currentPath.startsWith('/admin/product-analytics')}
           />
+          <SidebarLink
+  to="/admin/revenue"
+  iconClass="fas fa-coins"
+  label="Revenue Analytics"
+  isActive={currentPath.startsWith('/admin/revenue')}
+/>
 
           <button
             onClick={handleLogout}

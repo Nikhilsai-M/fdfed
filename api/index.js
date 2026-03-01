@@ -47,8 +47,8 @@ import sellerProductRoutes from "./routes/sellerProduct.route.js";
 import sellerDashboardRoutes from "./routes/sellerDashboard.route.js";
 import adminProductAnalyticsRouter from "./routes/adminProductAnalytics.route.js";
 import adminSalesAnalyticsRouter from "./routes/adminSalesAnalytics.route.js";
-
-
+import SellerOrderRoutes from "./routes/sellerOrders.route.js"
+import SellerProfileRoutes from "./routes/sellerProfile.route.js"
 dotenv.config({ path: '../.env' });
 
 mongoose.connect(process.env.MONGO).then(async() => {
@@ -143,6 +143,8 @@ app.use("/api/customer/notifications", notificationRoutes);
 app.use("/api/seller", sellerAuthRouter);
 app.use("/api/seller", sellerProductRoutes);
 app.use("/api/seller", sellerDashboardRoutes);
+app.use("/api/seller",SellerOrderRoutes);
+app.use("/api/seller",SellerProfileRoutes);
 app.use("/api/admin/product-analytics", adminProductAnalyticsRouter);
 app.use("/api/admin/sales-analytics", adminSalesAnalyticsRouter);
 

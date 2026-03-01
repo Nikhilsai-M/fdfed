@@ -211,92 +211,19 @@ export default function AdminAnalytics() {
       <main className="flex-1 p-6 sm:p-8">
         <header className="flex flex-wrap justify-between items-center gap-4 mb-6">
           <h1 className="text-3xl font-extrabold text-gray-800 flex items-center gap-3">
-            📈 Admin Analytics Dashboard
+            Supervisor Dashboard
           </h1>
-          <div className="flex items-center gap-3">
-            <select
-              value={range}
-              onChange={(e) => setRange(Number(e.target.value))}
-              className="px-3 py-2 rounded-lg border bg-white text-sm shadow hover:shadow-md transition"
-              title="Time range"
-            >
-              <option value={7}>Last 7 days</option>
-              <option value={30}>Last 30 days</option>
-              <option value={90}>Last 90 days</option>
-            </select>
-
-            <button
-              onClick={fetchStatistics}
-              className="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold shadow hover:bg-indigo-700 active:scale-95 transition"
-            >
-              Refresh
-            </button>
-
-            <button
-              onClick={exportCSV}
-              className="px-4 py-2 rounded-lg bg-white border text-sm shadow hover:shadow-md transition"
-            >
-              Export CSV
-            </button>
-
-            <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={autoRefresh}
-                onChange={(e) => setAutoRefresh(e.target.checked)}
-                className="accent-indigo-600"
-              />
-              Auto-refresh
-            </label>
-          </div>
-        </header>
+                  </header>
 
         {error && (
           <div className="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-rose-700">
             {error}
           </div>
         )}
-
-     
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-6 mb-8">
-          <Card
-            title="INVENTORY ITEMS COUNT"
-            value={
-              (stats?.salesByCategory?.phones || 0) +
-              (stats?.salesByCategory?.laptops || 0) +
-              (stats?.salesByCategory?.chargers || 0) +
-              (stats?.salesByCategory?.earphones || 0) +
-              (stats?.salesByCategory?.mouses || 0) +
-              (stats?.salesByCategory?.smartwatches || 0)
-            }
-            trend={stats?.trends?.totalListings ?? 0}
-          />
-          <Card
-            title="TOTAL LISTINGS"
-            value={stats?.totalListings ?? 0}
-            trend={stats?.trends?.totalListings ?? 0}
-          />
-          <Card
-            title="APPROVED LISTINGS"
-            value={stats?.approvedListings ?? 0}
-            trend={stats?.trends?.approvedListings ?? 0}
-          />
-          <Card
-            title="ITEMS ADDED TO INVENTORY"
-            value={supervisorListings?.totalAddedToInventory ?? 0}
-            trend={supervisorListings?.trendAddedToInventory ?? 0}
-          />
-          <Card
-            title="SALES REVENUE"
-            value={`₹ ${fmtINR(stats?.totalSalesRevenue || 0)}`}
-            trend={stats?.trends?.totalSalesRevenue ?? 0}
-          />
-        </div>
-
-     
+    
         <section className="bg-white rounded-2xl p-6 shadow border border-gray-100 mb-8">
           <h2 className="text-2xl font-semibold text-indigo-700 mb-4">
-            Analytics Overview
+            Listings Overview
           </h2>
           <div className="grid grid-cols-1 gap-8">
             <div className="h-[340px] rounded-xl border p-4 shadow-sm hover:shadow-md transition">

@@ -21,55 +21,81 @@ const AddToCartButton = ({ product }) => {
       }
 
       const userData = await response.json();
-      if (!userData.success || !userData.user) {
+      const userId = userData?.user?.user_id;
+
+      if (!userId) {
         navigate("/sign-in");
         return;
       }
 
-      const userId = userData.user.user_id;
-      const userCartKey = `cart_user_${userId}`;
+      const cartKey = `cart_${userId}`;
+      const existingCart = JSON.parse(localStorage.getItem(cartKey)) || [];
 
-      if (!product || !product.id) {
-        setMessage("Item added to cart");
-        return;
+      const index = existingCart.findIndex((item) => item.id === product.id);
+
+      const discountedPrice =
+        product.originalPrice -
+        (product.originalPrice * product.discount) / 100;
+
+      // base cart item
+      const cartItem = {
+        id: product.id,
+        seller_id: product.sellerId || product.seller_id,
+
+        title: product.title,
+        brand: product.brand,
+        image: product.image,
+
+        price: discountedPrice,
+        originalPrice: product.originalPrice,
+        discount: product.discount,
+
+        quantity: 1,
+      };
+
+      // Charger
+      if (product.wattage && product.outputCurrent) {
+        cartItem.wattage = product.wattage;
+        cartItem.outputCurrent = product.outputCurrent;
+        cartItem.type = product.type;
       }
 
-      let currentCart = JSON.parse(localStorage.getItem(userCartKey)) || [];
-      const existingIndex = currentCart.findIndex((item) => item.id === product.id);
+      // Earphones
+      if (product.design && product.batteryLife) {
+        cartItem.design = product.design;
+        cartItem.batteryLife = product.batteryLife;
+      }
+
+      // Smartwatch
+      if (product.displaySize && product.displayType && product.batteryRuntime) {
+        cartItem.displaySize = product.displaySize;
+        cartItem.displayType = product.displayType;
+        cartItem.batteryRuntime = product.batteryRuntime;
+      }
+
+      // Mouse
+      if (product.resolution && product.connectivity && product.type) {
+        cartItem.resolution = product.resolution;
+        cartItem.connectivity = product.connectivity;
+        cartItem.type = product.type;
+      }
 
       let updatedCart;
 
-      if (existingIndex !== -1) {
-        updatedCart = [...currentCart];
-        updatedCart[existingIndex].quantity += 1;
+      if (index !== -1) {
+        updatedCart = [...existingCart];
+        updatedCart[index].quantity += 1;
       } else {
-        updatedCart = [
-          ...currentCart,
-          {
-            id: product.id,
-            title: product.title,
-            brand: product.brand,
-            image: product.image,
-            wattage: product.wattage,
-            type: product.type,
-            outputCurrent: product.outputCurrent,
-            price: parseFloat(product.originalPrice),
-            discountPercentage: parseFloat(product.discount),
-            discountPrice:
-              parseFloat(product.originalPrice) -
-              (parseFloat(product.originalPrice) * parseFloat(product.discount)) / 100,
-            quantity: 1,
-            type: "charger",
-          },
-        ];
+        updatedCart = [...existingCart, cartItem];
       }
 
-      localStorage.setItem(userCartKey, JSON.stringify(updatedCart));
+      localStorage.setItem(cartKey, JSON.stringify(updatedCart));
+
       updateCart(updatedCart, userId);
 
-      //  Simplified message
       setMessage("Item added to cart");
       setTimeout(() => setMessage(null), 2500);
+
     } catch (error) {
       console.error("Cart error:", error);
       navigate("/sign-in");
@@ -81,8 +107,6 @@ const AddToCartButton = ({ product }) => {
       {message && (
         <div className="fixed bottom-6 right-6 bg-green-500 text-white px-6 py-4 rounded-lg shadow-2xl z-50 flex items-center gap-3">
           <Check className="w-5 h-5" />
-          
-          {/*  Simplified popup text */}
           <span className="flex-1">Item added to cart</span>
 
           <Link to="/cart" className="underline text-white">

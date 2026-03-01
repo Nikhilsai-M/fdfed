@@ -55,6 +55,8 @@ import ProductAnalytics from "./pages/admin/ProductAnalytics";
 import ManageInventorySeller from './pages/seller/ManageInventory.jsx';
 import AddProduct from './pages/seller/AddProduct.jsx';
 import SellerOrders from './pages/seller/SellerOrders.jsx';
+import RevenueAnalytics from "./pages/admin/RevenueAnalytics";
+import SellerProfile from './pages/seller/SellerProfile.jsx';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -182,7 +184,7 @@ function App() {
                   <Route path="/admin/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
                   <Route path="/admin/manage-supervisors" element={<ProtectedRoute><ManageSupervisors /></ProtectedRoute>} />
                   <Route path="/admin/product-analytics" element={<ProductAnalytics />} />
-
+                  <Route path="/admin/revenue" element={<ProtectedRoute><RevenueAnalytics /></ProtectedRoute>}/>
 
                   {/* Seller Routes */}
                   <Route path="/seller/signup" element={<SellerSignup />} />
@@ -191,6 +193,7 @@ function App() {
                   <Route path="/seller/manage-inventory" element={<ManageInventorySeller />} />
                   <Route path="/seller/add-product" element={<AddProduct/>}/>
                   <Route path="/seller/orders" element={<SellerOrders/>}/>
+                  <Route path="/seller/profile" element={<SellerProfile/>}/>
                 </Routes>
               </main>
             

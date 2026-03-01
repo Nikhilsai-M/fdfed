@@ -1,18 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import PropTypes from 'prop-types';
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import PropTypes from "prop-types";
 
-import ProductSidebar from '../components/ProductSideBar';
-import ProductImage from '../components/ProductImage';
-import ProductContent from '../components/ProductContent';
-import ProductActions from '../components/ProductActions';
-import CartMessage from '../components/CartMessage';
-import Header from '../components/common/Header';
-import Footer from '../components/common/Footer';
+import ProductSidebar from "../components/ProductSideBar";
+import ProductImage from "../components/ProductImage";
+import ProductContent from "../components/ProductContent";
+import ProductActions from "../components/ProductActions";
+import CartMessage from "../components/CartMessage";
+import Header from "../components/common/Header";
+import Footer from "../components/common/Footer";
 
-import { useCart } from '../context/CartContent';
+import { useCart } from "../context/CartContent";
 
 const AccessoryDetails = ({ type }) => {
+  console.log("AccessoryDetails component loaded");
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -23,52 +24,46 @@ const AccessoryDetails = ({ type }) => {
 
   const { updateCart } = useCart();
 
-  // API endpoint by type
   const getApiEndpoint = () => {
     switch (type) {
-      case 'charger': return `/api/Accessories/chargers/${id}`;
-      case 'mouse': return `/api/Accessories/mouses/${id}`;
-      case 'smartwatch': return `/api/Accessories/smartwatches/${id}`;
-      case 'earphone': return `/api/Accessories/earphones/${id}`;
-      default: return '';
+      case "charger":
+        return `/api/Accessories/chargers/${id}`;
+      case "mouse":
+        return `/api/Accessories/mouses/${id}`;
+      case "smartwatch":
+        return `/api/Accessories/smartwatches/${id}`;
+      case "earphone":
+        return `/api/Accessories/earphones/${id}`;
+      default:
+        return "";
     }
   };
 
-  // Calculate discounted price
   const getDiscountedPrice = (p) => {
-    const price = parseFloat(p.pricing.originalPrice || p.pricing.basePrice || 0);
-    const discount = parseFloat(p.pricing.discount || 0);
-    return price - (price * discount / 100);
+    const price = parseFloat(p.originalPrice || 0);
+    const discount = parseFloat(p.discount || 0);
+    return price - (price * discount) / 100;
   };
 
-  // Format cart item structure
   const getCartItemFields = (productData) => {
-    const originalPrice = parseFloat(
-      productData.pricing.originalPrice || productData.pricing.basePrice || 0
-    );
-  
-    const discount = parseFloat(productData.pricing.discount || 0);
-  
-    const discountedPrice = Number(
-      originalPrice - (originalPrice * discount) / 100
-    ).toFixed(2);
-  
+    const originalPrice = parseFloat(productData.originalPrice || 0);
+    const discount = parseFloat(productData.discount || 0);
+
+    const discountedPrice =
+      originalPrice - (originalPrice * discount) / 100;
+
     const base = {
       id: productData.id,
+      seller_id: productData.sellerId,
       brand: productData.brand,
       title: productData.title,
       image: productData.image,
-  
-      // FINAL price saved correctly
       price: Number(discountedPrice),
-  
-      // ORIGINAL price saved correctly
       originalPrice: originalPrice,
-  
       discount: discount,
       quantity: 1,
     };
-  
+
     switch (type) {
       case "charger":
         return {
@@ -77,7 +72,7 @@ const AccessoryDetails = ({ type }) => {
           type: productData.type,
           outputCurrent: productData.outputCurrent,
         };
-  
+
       case "mouse":
         return {
           ...base,
@@ -85,7 +80,7 @@ const AccessoryDetails = ({ type }) => {
           resolution: productData.resolution,
           type: productData.type,
         };
-  
+
       case "smartwatch":
         return {
           ...base,
@@ -93,21 +88,19 @@ const AccessoryDetails = ({ type }) => {
           displayType: productData.displayType,
           batteryRuntime: productData.batteryRuntime,
         };
-  
+
       case "earphone":
         return {
           ...base,
           design: productData.design,
           batteryLife: productData.batteryLife,
         };
-  
+
       default:
         return base;
     }
   };
-  
 
-  // Fetch product details
   useEffect(() => {
     const fetchProduct = async () => {
       try {
@@ -115,10 +108,16 @@ const AccessoryDetails = ({ type }) => {
         setError(null);
 
         const response = await fetch(getApiEndpoint());
-        if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
 
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        console.log(getApiEndpoint(), "API endpoint called");
         const data = await response.json();
-        if (!data || !data.id) throw new Error(`Invalid ${type} data`);
+        console.log("PRODUCT FROM API:", data); 
+        if (!data || !data.id) {
+          throw new Error(`Invalid ${type} data`);
+        }
 
         setProduct(data);
       } catch (err) {
@@ -132,25 +131,28 @@ const AccessoryDetails = ({ type }) => {
     if (id && type) fetchProduct();
   }, [id, type]);
 
-  // Add to Cart
   const addToCart = async () => {
     try {
-      const response = await fetch('/api/user/profile', {
-        method: 'GET',
-        credentials: 'include'
+      const response = await fetch("/api/user/profile", {
+        method: "GET",
+        credentials: "include",
       });
 
-      if (!response.ok) return navigate('/sign-in');
+      if (!response.ok) return navigate("/sign-in");
 
       const userData = await response.json();
       const userId = userData?.user?.user_id;
 
-      if (!userId) return navigate('/sign-in');
+      if (!userId) return navigate("/sign-in");
 
-      const cartKey = `cart_user_${userId}`;
-      const existingCart = JSON.parse(localStorage.getItem(cartKey)) || [];
+      const cartKey = `cart_${userId}`;
+      const existingCart =
+        JSON.parse(localStorage.getItem(cartKey)) || [];
 
-      const index = existingCart.findIndex((item) => item.id === product.id);
+      const index = existingCart.findIndex(
+        (item) => item.id === product.id
+      );
+
       let updatedCart;
 
       if (index !== -1) {
@@ -163,26 +165,27 @@ const AccessoryDetails = ({ type }) => {
       updateCart(updatedCart, userId);
 
       setCartMessage(`${product.title} added to cart!`);
-      setTimeout(() => setCartMessage(null), 3500);
+      setTimeout(() => setCartMessage(null), 3000);
     } catch (error) {
-      console.error('Add to cart error:', error);
-      navigate('/sign-in');
+      console.error("Add to cart error:", error);
+      navigate("/sign-in");
     }
   };
 
-  // Buy Now
   const buyNow = async () => {
     try {
-      const response = await fetch('/api/user/profile', { credentials: 'include' });
-      if (!response.ok) return navigate('/sign-in');
+      const response = await fetch("/api/user/profile", {
+        credentials: "include",
+      });
+
+      if (!response.ok) return navigate("/sign-in");
 
       const userData = await response.json();
       const userId = userData?.user?.user_id;
-      if (!userId) return navigate('/sign-in');
 
-      const original = parseFloat(product.pricing.originalPrice || product.pricing.basePrice || 0);
-      const discount = parseFloat(product.pricing.discount || 0);
-      const finalPrice = original - (original * discount / 100);
+      if (!userId) return navigate("/sign-in");
+
+      const finalPrice = getDiscountedPrice(product);
 
       const paymentData = {
         price: finalPrice,
@@ -192,31 +195,35 @@ const AccessoryDetails = ({ type }) => {
         userId: userId,
       };
 
-      navigate('/payment', { state: paymentData });
+      navigate("/payment", { state: paymentData });
     } catch (error) {
-      console.error('Buy now error:', error);
-      navigate('/sign-in');
+      console.error("Buy now error:", error);
+      navigate("/sign-in");
     }
   };
 
-  // Loading UI
+const outOfStock =
+  ["charger", "mouse", "earphone", "smartwatch"].includes(type) &&
+  Number(product?.stock ?? 0) <= 0;
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-lg text-gray-600 animate-pulse">Loading {type} details...</div>
+      <div className="min-h-screen flex items-center justify-center">
+        Loading {type} details...
       </div>
     );
   }
 
-  // Error UI
   if (error || !product || !product.id) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="text-lg text-red-600 mb-2">{error || `${type} not found`}</div>
+          <div className="text-red-600 mb-4">
+            {error || `${type} not found`}
+          </div>
           <button
             onClick={() => window.location.reload()}
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            className="bg-blue-500 text-white px-4 py-2 rounded"
           >
             Retry
           </button>
@@ -227,38 +234,63 @@ const AccessoryDetails = ({ type }) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+
       <Header />
 
       <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8 animate-fade-in">
-          <ProductImage image={product.image} brand={product.brand} title={product.title} />
-          <div className="space-y-6">
-            <ProductSidebar product={product} type={type} />
-          </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+
+          <ProductImage
+            image={product.image}
+            brand={product.brand}
+            title={product.title}
+          />
+
+          <ProductSidebar product={product} type={type} />
+
         </div>
 
-        <div className="mb-12 w-full">
-          <ProductActions
-            onAddToCart={addToCart}
-            onBuyNow={buyNow}
-            productId={product.id}
-          />
-        </div>
+        {outOfStock ? (
+          <div className="mb-12 text-center">
+            <div className="bg-red-50 border border-red-300 text-red-600 font-semibold py-4 rounded-lg">
+              Currently Not Available in Stock
+            </div>
+          </div>
+        ) : (
+          <div className="mb-12 w-full">
+            <ProductActions
+              onAddToCart={addToCart}
+              onBuyNow={buyNow}
+              productId={product.id}
+            />
+          </div>
+        )}
 
         <ProductContent product={product} type={type} />
+
       </div>
 
       {cartMessage && (
-        <CartMessage message={cartMessage} onClose={() => setCartMessage(null)} />
+        <CartMessage
+          message={cartMessage}
+          onClose={() => setCartMessage(null)}
+        />
       )}
 
       <Footer />
+
     </div>
   );
 };
 
 AccessoryDetails.propTypes = {
-  type: PropTypes.oneOf(['charger', 'mouse', 'smartwatch', 'earphone']).isRequired,
+  type: PropTypes.oneOf([
+    "charger",
+    "mouse",
+    "smartwatch",
+    "earphone",
+  ]).isRequired,
 };
 
 export default AccessoryDetails;
