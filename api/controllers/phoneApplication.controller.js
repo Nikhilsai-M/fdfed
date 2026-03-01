@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { uploadToCloudinary } from '../utils/cloudinary.js';
 import { unlink } from 'fs/promises';
+import { getNextSupervisorId } from '../services/supervisorAssignment.service.js';
 
 // Configure multer for temporary storage
 const storage = multer.diskStorage({
@@ -138,6 +139,8 @@ export const submitPhoneApplication = async (req, res) => {
       });
     }
 
+    const assignedSupervisorId = await getNextSupervisorId('phone');
+
     // Create new application - image_path now contains Cloudinary URL
     const newApplication = new PhoneApplication({
       id: nextId,
@@ -165,7 +168,9 @@ export const submitPhoneApplication = async (req, res) => {
       phone,
       image_path, // This now contains Cloudinary URL, not local path
       cloudinary_public_id, // Store Cloudinary ID for future management
-      status: 'pending'
+      status: 'pending',
+      assigned_supervisor_id: assignedSupervisorId,
+      assigned_at: assignedSupervisorId ? new Date() : null
     });
 
     await newApplication.save();

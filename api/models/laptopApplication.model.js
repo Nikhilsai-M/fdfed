@@ -21,6 +21,8 @@ const laptopApplicationSchema = new mongoose.Schema({
   image_path: { type: String },
   cloudinary_public_id: { type: String, default: '' },
   status: { type: String, default: 'pending' },
+  assigned_supervisor_id: { type: String, default: null },
+  assigned_at: { type: Date, default: null },
   rejection_reason: { type: String },
   price: { type: Number },
   created_at: { type: Date, default: Date.now },
