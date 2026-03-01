@@ -9,12 +9,10 @@ export const supervisorSignin = async (req, res, next) => {
   try {
     console.log(`Attempting to authenticate supervisor with username: ${username}`);
     
-    // Validate input
     if (!username || !password) {
       return next(errorHandler(400, 'Username and password are required'));
     }
 
-    // Find supervisor by username (email) or email
     const supervisor = await Supervisor.findOne({
       $or: [
         { username: username },
@@ -29,13 +27,11 @@ export const supervisorSignin = async (req, res, next) => {
     
     console.log(`Supervisor found: ${supervisor.first_name} ${supervisor.last_name}`);
     
-    // Verify password
     const passwordMatch = await bcrypt.compare(password, supervisor.password);
     
     if (!passwordMatch) {
       console.log(`Password does not match for username: ${username}`);
       
-      // Log failed attempt
       await SupervisorActivity.create({
         supervisor_id: supervisor.user_id,
         action: 'Failed login attempt'
@@ -46,30 +42,28 @@ export const supervisorSignin = async (req, res, next) => {
     
     console.log(`Authentication successful for username: ${username}`);
     
-    // Log successful login
     await SupervisorActivity.create({
       supervisor_id: supervisor.user_id,
       action: 'Successful login'
     });
 
-    // Generate JWT token
+    // ✅ CRITICAL CHANGE — supervisorType added
     const token = jwt.sign(
-      { 
-        id: supervisor._id, 
+      {
         user_id: supervisor.user_id,
-        role: 'supervisor' 
-      }, 
+        username: supervisor.username,
+        role: 'supervisor',
+        supervisorType: supervisor.type   // ← NEW
+      },
       process.env.JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: '1d' }
     );
     
-    // Remove password from response
     const { password: pass, ...supervisorData } = supervisor;
 
-    // Send response with cookie
     res.cookie('supervisor_access_token', token, {
-      httpOnly: true,
-      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+      httpOnly: true
+      // secure: true  ← enable in production
     }).status(200).json({
       success: true,
       supervisor: supervisorData,
@@ -82,7 +76,8 @@ export const supervisorSignin = async (req, res, next) => {
   }
 }
 
-// Check if username/email exists as supervisor (for detection)
+
+// Check if username/email exists as supervisor
 export const checkSupervisorExists = async (req, res, next) => {
   const { username } = req.query;
   
@@ -99,6 +94,7 @@ export const checkSupervisorExists = async (req, res, next) => {
     }).select('username email').lean();
     
     res.json({ exists: !!supervisor });
+
   } catch (error) {
     console.error('Error checking supervisor:', error);
     res.json({ exists: false });

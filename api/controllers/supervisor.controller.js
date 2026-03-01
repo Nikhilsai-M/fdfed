@@ -10,17 +10,25 @@ import DeviceRequest from "../models/deviceRequest.model.js";
 import Notification from "../models/notification.model.js";
 import { v4 as uuidv4 } from "uuid";
 
+// Helper: return the correct Application model based on supervisor type
+const getApplicationModel = (supervisorType) => {
+  if (supervisorType === 'phone') return PhoneApplication;
+  if (supervisorType === 'laptop') return LaptopApplication;
+  return null;
+};
+
 export const getDashboardData = async (req, res, next) => {
   try {
-    const pendingPhoneApps = await PhoneApplication.countDocuments({ status: 'pending' });
-    const pendingLaptopApps = await LaptopApplication.countDocuments({ status: 'pending' });
-    const totalPending = pendingPhoneApps + pendingLaptopApps;
+    const supervisorType = req.user.supervisorType; // 'phone' or 'laptop'
+    const ApplicationModel = getApplicationModel(supervisorType);
 
-    const approvedPhoneApps = await PhoneApplication.countDocuments({ status: 'approved' });
-    const approvedLaptopApps = await LaptopApplication.countDocuments({ status: 'approved' });
-    const totalApproved = approvedPhoneApps + approvedLaptopApps;
+    if (!ApplicationModel) {
+      return next(errorHandler(400, 'Invalid supervisor type'));
+    }
 
-    
+    const pendingCount = await ApplicationModel.countDocuments({ status: 'pending' });
+    const approvedCount = await ApplicationModel.countDocuments({ status: { $in: ['approved', 'added_to_inventory'] } });
+
     const recentActivity = await SupervisorActivity.find({ supervisor_id: req.user.user_id })
       .sort({ timestamp: -1 })
       .limit(5)
@@ -30,8 +38,9 @@ export const getDashboardData = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      pendingListings: totalPending,
-      itemsAdded: totalApproved,
+      supervisorType,
+      pendingListings: pendingCount,
+      itemsAdded: approvedCount,
       recentActivity: activityMessages.length > 0 ? activityMessages : ['No recent activity']
     });
   } catch (error) {
@@ -40,24 +49,20 @@ export const getDashboardData = async (req, res, next) => {
   }
 };
 
-
 export const getStatistics = async (req, res, next) => {
   try {
-    const totalPhoneApps = await PhoneApplication.countDocuments();
-    const totalLaptopApps = await LaptopApplication.countDocuments();
-    const totalItemsAdded = totalPhoneApps + totalLaptopApps;
+    const supervisorType = req.user.supervisorType;
+    const ApplicationModel = getApplicationModel(supervisorType);
 
-    const verifiedPhoneApps = await PhoneApplication.countDocuments({ 
-      status: { $in: ['approved', 'added_to_inventory'] } 
-    });
-    const verifiedLaptopApps = await LaptopApplication.countDocuments({ 
-      status: { $in: ['approved', 'added_to_inventory'] } 
-    });
-    const listingsVerified = verifiedPhoneApps + verifiedLaptopApps;
+    if (!ApplicationModel) {
+      return next(errorHandler(400, 'Invalid supervisor type'));
+    }
 
-    const pendingPhoneApps = await PhoneApplication.countDocuments({ status: 'pending' });
-    const pendingLaptopApps = await LaptopApplication.countDocuments({ status: 'pending' });
-    const pendingListings = pendingPhoneApps + pendingLaptopApps;
+    const totalItemsAdded = await ApplicationModel.countDocuments();
+    const listingsVerified = await ApplicationModel.countDocuments({
+      status: { $in: ['approved', 'added_to_inventory'] }
+    });
+    const pendingListings = await ApplicationModel.countDocuments({ status: 'pending' });
 
     const recentActivity = await SupervisorActivity.find({ supervisor_id: req.user.user_id })
       .sort({ timestamp: -1 })
@@ -84,16 +89,19 @@ export const getStatistics = async (req, res, next) => {
 
 export const getVerifyApplications = async (req, res, next) => {
   try {
-    const phoneApps = await PhoneApplication.find().sort({ created_at: -1 }).lean();
-    const laptopApps = await LaptopApplication.find().sort({ created_at: -1 }).lean();
+    const supervisorType = req.user.supervisorType;
+    const ApplicationModel = getApplicationModel(supervisorType);
 
-    const applications = [
-      ...phoneApps.map(app => ({ ...app, type: 'phone' })),
-      ...laptopApps.map(app => ({ ...app, type: 'laptop' }))
-    ];
+    if (!ApplicationModel) {
+      return next(errorHandler(400, 'Invalid supervisor type'));
+    }
+
+    const apps = await ApplicationModel.find().sort({ created_at: -1 }).lean();
+    const applications = apps.map(app => ({ ...app, type: supervisorType }));
 
     res.status(200).json({
       success: true,
+      supervisorType,
       applications
     });
   } catch (error) {
@@ -102,20 +110,19 @@ export const getVerifyApplications = async (req, res, next) => {
   }
 };
 
-// Get application details
 export const getApplicationDetails = async (req, res, next) => {
   try {
     const { type, id } = req.params;
-    const numericId = parseInt(id);
+    const supervisorType = req.user.supervisorType;
 
-    let application;
-    if (type === 'phone') {
-      application = await PhoneApplication.findOne({ id: numericId }).lean();
-    } else if (type === 'laptop') {
-      application = await LaptopApplication.findOne({ id: numericId }).lean();
-    } else {
-      return next(errorHandler(400, 'Invalid application type'));
+    // Prevent a phone supervisor from accessing laptop applications and vice versa
+    if (type !== supervisorType) {
+      return next(errorHandler(403, `You are not authorized to view ${type} applications`));
     }
+
+    const numericId = parseInt(id);
+    const ApplicationModel = getApplicationModel(supervisorType);
+    const application = await ApplicationModel.findOne({ id: numericId }).lean();
 
     if (!application) {
       return next(errorHandler(404, 'Application not found'));
@@ -132,33 +139,28 @@ export const getApplicationDetails = async (req, res, next) => {
   }
 };
 
-// Update application status
 export const updateApplicationStatus = async (req, res, next) => {
   try {
     const { type, id } = req.params;
+    const supervisorType = req.user.supervisorType;
+
+    if (type !== supervisorType) {
+      return next(errorHandler(403, `You are not authorized to update ${type} applications`));
+    }
+
     const { status, rejectionReason, price } = req.body;
     const numericId = parseInt(id);
+    const ApplicationModel = getApplicationModel(supervisorType);
 
-    let result;
-    if (type === 'phone') {
-      result = await PhoneApplication.updateOne(
-        { id: numericId },
-        { $set: { status, rejection_reason: rejectionReason, price } }
-      );
-    } else if (type === 'laptop') {
-      result = await LaptopApplication.updateOne(
-        { id: numericId },
-        { $set: { status, rejection_reason: rejectionReason, price } }
-      );
-    } else {
-      return next(errorHandler(400, 'Invalid application type'));
-    }
+    const result = await ApplicationModel.updateOne(
+      { id: numericId },
+      { $set: { status, rejection_reason: rejectionReason, price } }
+    );
 
     if (result.modifiedCount === 0) {
       return next(errorHandler(404, 'Application not found'));
     }
 
-    // Log activity
     await SupervisorActivity.create({
       supervisor_id: req.user.user_id,
       action: `Updated ${type} application #${id} to ${status}${price ? ` with price ₹${price}` : ''}`
@@ -174,38 +176,37 @@ export const updateApplicationStatus = async (req, res, next) => {
   }
 };
 
-
 export const addToInventory = async (req, res, next) => {
   try {
     const { type, id } = req.params;
+    const supervisorType = req.user.supervisorType;
+
+    if (type !== supervisorType) {
+      return next(errorHandler(403, `You are not authorized to add ${type} items to inventory`));
+    }
+
     const { discount, condition } = req.body;
     const numericId = parseInt(id);
 
-    let application;
-    let productData;
-    
-    if (type === 'phone') {
-   
-      application = await PhoneApplication.findOne({ id: numericId });
+    if (supervisorType === 'phone') {
+      const application = await PhoneApplication.findOne({ id: numericId });
       if (!application) {
         return next(errorHandler(404, 'Phone application not found'));
       }
-      
-     
+
       const result = await PhoneApplication.updateOne(
         { id: numericId },
         { $set: { status: 'added_to_inventory' } }
       );
-
       if (result.modifiedCount === 0) {
         return next(errorHandler(404, 'Failed to update application status'));
       }
 
-      productData = {
+      const productData = {
         id: application.id,
         brand: application.brand,
         model: application.model,
-        color: '', 
+        color: '',
         image: application.image_path || '/default-phone.jpg',
         processor: application.processor,
         display: application.size || '',
@@ -222,36 +223,25 @@ export const addToInventory = async (req, res, next) => {
         created_at: new Date()
       };
 
-      
       const phone = new Phone(productData);
       await phone.save();
-      console.log("🚀 Calling matchRequests after inventory add");
-console.log("➡️ Brand:", phone.brand);
-console.log("➡️ Model:", phone.model);
-
       await matchRequests("phone", phone);
-      
 
-
-    } else if (type === 'laptop') {
-      
-      application = await LaptopApplication.findOne({ id: numericId });
+    } else if (supervisorType === 'laptop') {
+      const application = await LaptopApplication.findOne({ id: numericId });
       if (!application) {
         return next(errorHandler(404, 'Laptop application not found'));
       }
 
-      
       const result = await LaptopApplication.updateOne(
         { id: numericId },
         { $set: { status: 'added_to_inventory' } }
       );
-
       if (result.modifiedCount === 0) {
         return next(errorHandler(404, 'Failed to update application status'));
       }
 
-      
-      productData = {
+      const productData = {
         id: application.id,
         brand: application.brand,
         series: application.model,
@@ -272,14 +262,7 @@ console.log("➡️ Model:", phone.model);
 
       const laptop = new Laptop(productData);
       await laptop.save();
-      console.log("🚀 Calling matchRequests after inventory add");
-console.log("➡️ Brand:", phone.brand);
-console.log("➡️ Model:", phone.model);
-
       await matchRequests("laptop", laptop);
-
-  } else {
-      return next(errorHandler(400, 'Invalid application type'));
     }
 
     await SupervisorActivity.create({
@@ -293,11 +276,9 @@ console.log("➡️ Model:", phone.model);
     });
   } catch (error) {
     console.error('Error adding to inventory:', error);
-    
     if (error.code === 11000) {
       return next(errorHandler(400, 'Product with this ID already exists in inventory'));
     }
-    
     next(errorHandler(500, 'Error adding to inventory'));
   }
 };
@@ -305,15 +286,10 @@ console.log("➡️ Model:", phone.model);
 export const getSupervisorProfile = async (req, res, next) => {
   try {
     const supervisor = await Supervisor.findOne({ user_id: req.user.user_id }).select('-password');
-    
     if (!supervisor) {
       return next(errorHandler(404, 'Supervisor not found'));
     }
-
-    res.status(200).json({
-      success: true,
-      supervisor
-    });
+    res.status(200).json({ success: true, supervisor });
   } catch (error) {
     console.error('Error fetching supervisor profile:', error);
     next(errorHandler(500, 'Error fetching supervisor profile'));
@@ -340,10 +316,7 @@ export const updateSupervisorProfile = async (req, res, next) => {
       { $set: { first_name, last_name, email, phone, username } }
     );
 
-    res.status(200).json({
-      success: true,
-      message: 'Profile updated successfully'
-    });
+    res.status(200).json({ success: true, message: 'Profile updated successfully' });
   } catch (error) {
     console.error('Error updating supervisor profile:', error);
     next(errorHandler(500, 'Error updating supervisor profile'));
@@ -366,16 +339,9 @@ export const updateSupervisorPassword = async (req, res, next) => {
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    
-    await Supervisor.updateOne(
-      { user_id: userId },
-      { $set: { password: hashedPassword } }
-    );
+    await Supervisor.updateOne({ user_id: userId }, { $set: { password: hashedPassword } });
 
-    res.status(200).json({
-      success: true,
-      message: 'Password updated successfully'
-    });
+    res.status(200).json({ success: true, message: 'Password updated successfully' });
   } catch (error) {
     console.error('Error updating supervisor password:', error);
     next(errorHandler(500, 'Error updating supervisor password'));
@@ -385,10 +351,7 @@ export const updateSupervisorPassword = async (req, res, next) => {
 export const supervisorLogout = async (req, res, next) => {
   try {
     res.clearCookie('supervisor_access_token');
-    res.status(200).json({
-      success: true,
-      message: 'Logged out successfully'
-    });
+    res.status(200).json({ success: true, message: 'Logged out successfully' });
   } catch (error) {
     console.error('Error during logout:', error);
     next(errorHandler(500, 'Error during logout'));
