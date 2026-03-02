@@ -29,6 +29,7 @@ const Checkout = () => {
 
     try {
       const fetchedCart = JSON.parse(localStorage.getItem(cartKey) || "[]");
+      console.log("Fetched cart from localStorage:", fetchedCart);
       setCart(fetchedCart);
     } catch (error) {
       console.error("Error reading cart:", error);
@@ -40,12 +41,12 @@ const Checkout = () => {
 
   const determineItemType = (item) => {
 
-    if (item.model && item.ram && item.rom) return "phone";
+    if (item.type==='phone') return "phone";
+    if (item.type==='laptop') return "laptop";
     if (item.wattage && item.outputCurrent) return "charger";
     if (item.design && item.batteryLife) return "earphone";
     if (item.displaySize && item.displayType && item.batteryRuntime) return "smartwatch";
     if (item.resolution && item.connectivity && item.type) return "mouse";
-    if (item.processor && item.ram) return "laptop";
 
     return "unknown";
   };
