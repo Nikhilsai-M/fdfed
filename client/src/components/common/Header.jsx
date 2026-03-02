@@ -96,7 +96,14 @@ const Header = () => {
 
           {/* Right Section */}
           <div className="flex items-center gap-4">
-            {/* Notifications - Listing Status Only */}
+            
+            {/* NEW: Seller Dashboard Entry Point */}
+            <Link
+              to="/seller/login"
+              className="hidden md:block text-sm font-bold text-blue-700 border-2 border-blue-600 px-4 py-1.5 rounded-full hover:bg-blue-600 hover:text-white transition-all duration-300 shadow-sm"
+            >
+              Seller Hub
+            </Link>
             {user && (
               <div className="relative group">
                 <button

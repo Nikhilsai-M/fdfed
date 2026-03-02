@@ -48,19 +48,20 @@ export const getSellerProfileAnalytics = async (req, res) => {
         (revenueTypeWise[type] || 0) + Number(item.amount);
     });
 
-    /* ---------------- SITE WIDE SALES ---------------- */
-    const allItems = await OrderItem.find();
+  const allItems = await OrderItem.find({
+  item_type: { $in: ["earphone", "charger", "mouse", "smartwatch"] }
+});
 
     const siteBrandWise = {};
     const siteTypeWise = {};
 
-    allItems.forEach(item => {
-      const brand = item.accessory?.brand || "Unknown";
-      const type = item.item_type;
+allItems.forEach(item => {
+  const brand = item.accessory?.brand || "Unknown";
+  const type = item.item_type;
 
-      siteBrandWise[brand] = (siteBrandWise[brand] || 0) + item.quantity;
-      siteTypeWise[type] = (siteTypeWise[type] || 0) + item.quantity;
-    });
+  siteBrandWise[brand] = (siteBrandWise[brand] || 0) + item.quantity;
+  siteTypeWise[type] = (siteTypeWise[type] || 0) + item.quantity;
+});
    const totalRevenue = sellerItems.reduce(
   (sum, item) => sum + Number(item.amount || 0),
   0

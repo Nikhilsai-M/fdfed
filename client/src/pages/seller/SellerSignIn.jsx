@@ -17,30 +17,38 @@ export default function SellerLogin() {
     });
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  try {
+    try {
+      const res = await axios.post(
+        "http://localhost:3000/api/seller/login",
+        form
+      );
+      localStorage.setItem("sellerToken", res.data.token);
+      alert("Login successful");
+      navigate("/seller/dashboard"); 
+    } catch (err) {
+      alert(err.response?.data?.message);
+    }
+  };
 
-    const res = await axios.post(
-      "http://localhost:3000/api/seller/login",
-      form
-    );
-
-    localStorage.setItem("sellerToken", res.data.token);
-
-    alert("Login successful");
-
-    navigate("/seller/dashboard");   // redirect here
-
-  } catch (err) {
-
-    alert(err.response?.data?.message);
-
-  }
-};
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 relative">
+      
+      {/* NEW: Clean "Back to Home" link positioned at the top left */}
+      <div className="absolute top-6 left-6 sm:top-8 sm:left-8">
+        <Link 
+          to="/" 
+          className="flex items-center text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors"
+        >
+          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back to Smart Exchange
+        </Link>
+      </div>
+
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg border border-gray-100">
         <div>
           <h2 className="mt-2 text-center text-3xl font-extrabold text-gray-900">
@@ -86,24 +94,23 @@ const handleSubmit = async (e) => {
           <div>
             <button
               type="submit"
-              className="group relative w-full flex justify-center py-2.5 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+              className="group relative w-full flex justify-center py-2.5 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors shadow-md"
             >
               Sign In
             </button>
-            
           </div>
         </form>
-        <Link to="/sign-in"><button
-             
-              className="group relative w-full flex justify-center py-2.5 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-            >
-              Sign In As Customer
-            </button></Link>
-        <div className="text-center text-sm">
+
+        <div className="mt-6 pt-6 border-t border-gray-100 text-center text-sm">
           <span className="text-gray-600">Don't have a seller account? </span>
           <Link to="/seller/signup" className="font-medium text-blue-600 hover:text-blue-500">
             Apply here
           </Link>
+        </div>
+        
+        {/* Subtle helper text for customers who wander here by mistake */}
+        <div className="text-center text-xs text-gray-400 mt-2">
+          Looking to buy a phone? <Link to="/sign-in" className="hover:text-blue-500 underline">Sign in as a customer</Link>
         </div>
       </div>
     </div>
