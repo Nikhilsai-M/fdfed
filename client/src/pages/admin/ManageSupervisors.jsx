@@ -408,10 +408,15 @@ const ManageSupervisors = () => {
                         {supervisor.first_name.charAt(0)}{supervisor.last_name.charAt(0)}
                       </div>
                       <div className="flex-1">
-                        <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
-                          {supervisor.first_name} {supervisor.last_name}
-                        </h3>
-                        <p className="text-xs text-gray-500 mt-1">Supervisor ID: {supervisor.user_id}</p>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                            {supervisor.first_name} {supervisor.last_name}
+                          </h3>
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-100 text-indigo-700 uppercase">
+                            {supervisor.type || 'N/A'}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">Supervisor ID: {supervisor.user_id || 'N/A'}</p>
                       </div>
                     </div>
 
@@ -846,3 +851,5 @@ const ManageSupervisors = () => {
 };
 
 export default ManageSupervisors;
+
+
