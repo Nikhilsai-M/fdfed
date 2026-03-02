@@ -117,7 +117,7 @@ const Footer = () => {
       `}</style>
 
       <div className="max-w-7xl mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-6">
           
           {/* Brand Section */}
           <div className="footer-section text-center md:text-left">
@@ -184,7 +184,21 @@ const Footer = () => {
               </li>
             </ul>
           </div>
-
+<div className="footer-section text-center md:text-left">
+            <h2 className="footer-title text-xl font-bold mb-3">Partner With Us</h2>
+            <ul className="list-none space-y-2">
+              <li className="footer-item">
+                <Link to="/seller/login" className="footer-link text-gray-200 text-sm">Seller Login</Link>
+              </li>
+              <li className="footer-item">
+                <Link to="/seller/signup" className="footer-link text-gray-200 text-sm">Become an Accessory Seller</Link>
+              </li>
+              <li className="footer-item">
+                <Link to="/seller/benefits" className="footer-link text-gray-200 text-sm">Seller Benefits</Link>
+              </li>
+            </ul>
+          </div>
+        
         </div>
 
         {/* Social Media Section */}

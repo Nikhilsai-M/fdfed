@@ -294,13 +294,6 @@ export default function SignIn() {
              
 
           </form>
-          <Link to="/seller/login">
-           <button
-            className={`bg-gradient-to-r ${config.gradient} text-white p-4 rounded-xl font-semibold uppercase hover:shadow-xl transform transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2`}
-            >
-            Sign In As Seller
-            </button>
-          </Link>
           
 
           {error && (

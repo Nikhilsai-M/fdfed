@@ -57,6 +57,7 @@ import AddProduct from './pages/seller/AddProduct.jsx';
 import SellerOrders from './pages/seller/SellerOrders.jsx';
 import RevenueAnalytics from "./pages/admin/RevenueAnalytics";
 import SellerProfile from './pages/seller/SellerProfile.jsx';
+import SellerOTPVerification from "./pages/seller/SellerOTPVerification";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -194,6 +195,7 @@ function App() {
                   <Route path="/seller/add-product" element={<AddProduct/>}/>
                   <Route path="/seller/orders" element={<SellerOrders/>}/>
                   <Route path="/seller/profile" element={<SellerProfile/>}/>
+                  <Route path="/seller/verify-otp" element={<SellerOTPVerification />} />
                 </Routes>
               </main>
             
