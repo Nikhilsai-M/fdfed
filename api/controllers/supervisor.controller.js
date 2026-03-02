@@ -9,12 +9,48 @@ import { errorHandler } from "../utils/error.js";
 import DeviceRequest from "../models/deviceRequest.model.js";
 import Notification from "../models/notification.model.js";
 import { v4 as uuidv4 } from "uuid";
+import {
+  getNextSupervisorId,
+  getSupervisorIdsByType,
+} from "../services/supervisorAssignment.service.js";
 
 // Helper: return the correct Application model based on supervisor type
 const getApplicationModel = (supervisorType) => {
   if (supervisorType === 'phone') return PhoneApplication;
   if (supervisorType === 'laptop') return LaptopApplication;
   return null;
+};
+
+const assignPendingApplications = async (supervisorType, ApplicationModel) => {
+  const supervisorIds = await getSupervisorIdsByType(supervisorType);
+  if (supervisorIds.length === 0) return;
+
+  const pendingAppsToAssign = await ApplicationModel.find({
+    status: "pending",
+    $or: [
+      { assigned_supervisor_id: { $exists: false } },
+      { assigned_supervisor_id: null },
+      { assigned_supervisor_id: { $nin: supervisorIds } },
+    ],
+  })
+    .sort({ created_at: 1, id: 1 })
+    .select({ _id: 1 })
+    .lean();
+
+  for (const app of pendingAppsToAssign) {
+    const nextSupervisorId = await getNextSupervisorId(supervisorType);
+    if (!nextSupervisorId) break;
+
+    await ApplicationModel.updateOne(
+      { _id: app._id, status: "pending" },
+      {
+        $set: {
+          assigned_supervisor_id: nextSupervisorId,
+          assigned_at: new Date(),
+        },
+      }
+    );
+  }
 };
 
 export const getDashboardData = async (req, res, next) => {
@@ -26,8 +62,16 @@ export const getDashboardData = async (req, res, next) => {
       return next(errorHandler(400, 'Invalid supervisor type'));
     }
 
-    const pendingCount = await ApplicationModel.countDocuments({ status: 'pending' });
-    const approvedCount = await ApplicationModel.countDocuments({ status: { $in: ['approved', 'added_to_inventory'] } });
+    await assignPendingApplications(supervisorType, ApplicationModel);
+
+    const pendingCount = await ApplicationModel.countDocuments({
+      status: "pending",
+      assigned_supervisor_id: req.user.user_id,
+    });
+    const approvedCount = await ApplicationModel.countDocuments({
+      status: { $in: ["approved", "added_to_inventory"] },
+      assigned_supervisor_id: req.user.user_id,
+    });
 
     const recentActivity = await SupervisorActivity.find({ supervisor_id: req.user.user_id })
       .sort({ timestamp: -1 })
@@ -58,11 +102,19 @@ export const getStatistics = async (req, res, next) => {
       return next(errorHandler(400, 'Invalid supervisor type'));
     }
 
-    const totalItemsAdded = await ApplicationModel.countDocuments();
-    const listingsVerified = await ApplicationModel.countDocuments({
-      status: { $in: ['approved', 'added_to_inventory'] }
+    await assignPendingApplications(supervisorType, ApplicationModel);
+
+    const totalItemsAdded = await ApplicationModel.countDocuments({
+      assigned_supervisor_id: req.user.user_id,
     });
-    const pendingListings = await ApplicationModel.countDocuments({ status: 'pending' });
+    const listingsVerified = await ApplicationModel.countDocuments({
+      status: { $in: ['approved', 'added_to_inventory'] },
+      assigned_supervisor_id: req.user.user_id,
+    });
+    const pendingListings = await ApplicationModel.countDocuments({
+      status: 'pending',
+      assigned_supervisor_id: req.user.user_id,
+    });
 
     const recentActivity = await SupervisorActivity.find({ supervisor_id: req.user.user_id })
       .sort({ timestamp: -1 })
@@ -96,7 +148,13 @@ export const getVerifyApplications = async (req, res, next) => {
       return next(errorHandler(400, 'Invalid supervisor type'));
     }
 
-    const apps = await ApplicationModel.find().sort({ created_at: -1 }).lean();
+    await assignPendingApplications(supervisorType, ApplicationModel);
+
+    const apps = await ApplicationModel.find({
+      assigned_supervisor_id: req.user.user_id,
+    })
+      .sort({ created_at: -1 })
+      .lean();
     const applications = apps.map(app => ({ ...app, type: supervisorType }));
 
     res.status(200).json({
@@ -122,7 +180,10 @@ export const getApplicationDetails = async (req, res, next) => {
 
     const numericId = parseInt(id);
     const ApplicationModel = getApplicationModel(supervisorType);
-    const application = await ApplicationModel.findOne({ id: numericId }).lean();
+    const application = await ApplicationModel.findOne({
+      id: numericId,
+      assigned_supervisor_id: req.user.user_id,
+    }).lean();
 
     if (!application) {
       return next(errorHandler(404, 'Application not found'));
@@ -153,7 +214,7 @@ export const updateApplicationStatus = async (req, res, next) => {
     const ApplicationModel = getApplicationModel(supervisorType);
 
     const result = await ApplicationModel.updateOne(
-      { id: numericId },
+      { id: numericId, assigned_supervisor_id: req.user.user_id },
       { $set: { status, rejection_reason: rejectionReason, price } }
     );
 
@@ -189,13 +250,16 @@ export const addToInventory = async (req, res, next) => {
     const numericId = parseInt(id);
 
     if (supervisorType === 'phone') {
-      const application = await PhoneApplication.findOne({ id: numericId });
+      const application = await PhoneApplication.findOne({
+        id: numericId,
+        assigned_supervisor_id: req.user.user_id,
+      });
       if (!application) {
         return next(errorHandler(404, 'Phone application not found'));
       }
 
       const result = await PhoneApplication.updateOne(
-        { id: numericId },
+        { id: numericId, assigned_supervisor_id: req.user.user_id },
         { $set: { status: 'added_to_inventory' } }
       );
       if (result.modifiedCount === 0) {
@@ -228,13 +292,16 @@ export const addToInventory = async (req, res, next) => {
       await matchRequests("phone", phone);
 
     } else if (supervisorType === 'laptop') {
-      const application = await LaptopApplication.findOne({ id: numericId });
+      const application = await LaptopApplication.findOne({
+        id: numericId,
+        assigned_supervisor_id: req.user.user_id,
+      });
       if (!application) {
         return next(errorHandler(404, 'Laptop application not found'));
       }
 
       const result = await LaptopApplication.updateOne(
-        { id: numericId },
+        { id: numericId, assigned_supervisor_id: req.user.user_id },
         { $set: { status: 'added_to_inventory' } }
       );
       if (result.modifiedCount === 0) {

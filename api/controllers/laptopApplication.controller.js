@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { uploadToCloudinary } from '../utils/cloudinary.js';
 import { unlink } from 'fs/promises';
+import { getNextSupervisorId } from '../services/supervisorAssignment.service.js';
 
 
 const storage = multer.diskStorage({
@@ -131,7 +132,8 @@ export const submitLaptopApplication = async (req, res) => {
       });
     }
 
-   
+    const assignedSupervisorId = await getNextSupervisorId('laptop');
+
     const newApplication = new LaptopApplication({
       id: nextId,
       user_id: req.user?.user_id || null,
@@ -153,7 +155,9 @@ export const submitLaptopApplication = async (req, res) => {
       phone,
       image_path, 
       cloudinary_public_id, 
-      status: 'pending'
+      status: 'pending',
+      assigned_supervisor_id: assignedSupervisorId,
+      assigned_at: assignedSupervisorId ? new Date() : null
     });
 
     await newApplication.save();
