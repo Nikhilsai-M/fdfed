@@ -65,10 +65,10 @@ export const NotificationProvider = ({ children }) => {
 
   // Fetch fresh data from API
   const fetchNotifications = useCallback(async (silent = false) => {
-    if (!user) {
-      setNotifications([]);
-      return;
-    }
+    if (!user?.user_id) {
+  setNotifications([]);
+  return;
+}
 
     try {
       if (!silent) setLoading(true);
@@ -78,19 +78,22 @@ export const NotificationProvider = ({ children }) => {
         headers: { 'Content-Type': 'application/json' }
       });
 
-      if (response.data.success) {
-        const normalized = response.data.notifications.map(n => ({
-          ...n,
-          id: n._id || n.notification_id || n.id,
-        }));
+      if (response.data.success && Array.isArray(response.data.notifications)) {
+  const normalized = response.data.notifications.map(n => ({
+    ...n,
+    id: n?._id || n?.notification_id || n?.id || null,
+  }));
 
-        // ✅ Updates state + auto-saves to cache via the useEffect above
-        setNotifications(normalized);
-      }
-    } catch (error) {
-      console.error('❌ Error fetching notifications:', error);
-      // Cache is already loaded — no extra fallback needed
-    } finally {
+  setNotifications(normalized);
+}
+    }catch (error) {
+  if (error.response?.status === 401) {
+    // User not authenticated — silently ignore
+    return;
+  }
+
+  console.error('❌ Error fetching notifications:', error);
+}finally {
       if (!silent) setLoading(false);
     }
   }, [user]);
@@ -167,12 +170,15 @@ export const NotificationProvider = ({ children }) => {
     fetchNotifications();
   }, [fetchNotifications]);
 
-  // Poll every 30 seconds for new notifications
   useEffect(() => {
-    if (!user) return;
-    const interval = setInterval(() => fetchNotifications(true), 30000);
-    return () => clearInterval(interval);
-  }, [user, fetchNotifications]);
+  if (!user?.user_id) return;
+
+  const interval = setInterval(() => {
+    fetchNotifications(true);
+  }, 30000);
+
+  return () => clearInterval(interval);
+}, [user?.user_id, fetchNotifications]);
 
   const value = {
     notifications,

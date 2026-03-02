@@ -70,7 +70,7 @@ export default function AdminSidebar() {
           <SidebarLink
             to="/admin/analytics"
             iconClass="fas fa-chart-simple"
-            label="Analytics"
+            label="Supervisor Analytics"
             isActive={currentPath.startsWith('/admin/analytics')}
           />
 
