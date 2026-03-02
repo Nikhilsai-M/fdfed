@@ -21,14 +21,21 @@ export default function SellerSignup() {
     });
   };
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
     try {
-      await axios.post("/api/seller/signup", form);
-      alert("Seller registered successfully! Please log in.");
-      navigate("/seller/login");
+      // 1. Call the new INITIATE endpoint
+      await axios.post("http://localhost:3000/api/seller/signup/initiate", form);
+      
+      // 2. Redirect the user to the OTP verification page
+      navigate("/seller/verify-otp", { 
+        state: { 
+          email: form.email,
+          message: "OTP sent to your email. Please verify to complete registration."
+        } 
+      });
     } catch (err) {
       setError(err.response?.data?.message || "An error occurred during registration.");
     }
