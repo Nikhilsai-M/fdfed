@@ -354,6 +354,45 @@ export default function SellerProfile() {
                 </BarChart>
               </ResponsiveContainer>
             </ChartCard>
+            <ChartCard
+  title="Platform Sales — Product Type"
+  subtitle="All-store category performance"
+  icon="📦"
+  delay={0.28}
+>
+  <ResponsiveContainer width="100%" height={260}>
+    <BarChart data={convertToChart(siteTypeWise)} barSize={28}>
+      <XAxis
+        dataKey="name"
+        tick={{
+          fontSize: 12,
+          fontFamily: "'DM Sans'",
+          fill: "#94a3b8"
+        }}
+        axisLine={false}
+        tickLine={false}
+      />
+      <YAxis
+        tick={{
+          fontSize: 11,
+          fontFamily: "'DM Sans'",
+          fill: "#94a3b8"
+        }}
+        axisLine={false}
+        tickLine={false}
+      />
+      <Tooltip
+        content={<CustomTooltip />}
+        cursor={{ fill: "rgba(99,102,241,0.06)" }}
+      />
+      <Bar
+        dataKey="value"
+        fill="#8b5cf6"
+        radius={[6, 6, 0, 0]}
+      />
+    </BarChart>
+  </ResponsiveContainer>
+</ChartCard>
 
             <ChartCard title="Your Revenue Distribution" subtitle="Revenue split by product type" icon="💸" delay={0.3}>
               <ResponsiveContainer width="100%" height={260}>
