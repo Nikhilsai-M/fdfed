@@ -1,14 +1,17 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Chart, registerables } from "chart.js";
 import AdminSidebar from "../../components/admin/AdminSidebar";
+
 Chart.register(...registerables);
 
 export default function SupervisorAnalytics() {
   const [data, setData] = useState(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [error, setError] = useState("");
-  const [lastUpdated, setLastUpdated] = useState("Never");
+  const [selectedSupervisorId, setSelectedSupervisorId] = useState(null);
   const [listingStats, setListingStats] = useState(null);
+  const [topSupervisors, setTopSupervisors] = useState([]);
+  const [activityLog, setActivityLog] = useState([]);
+  const [lastUpdated, setLastUpdated] = useState("Never");
 
   const barRef = useRef(null);
   const pieRef = useRef(null);
@@ -21,68 +24,105 @@ export default function SupervisorAnalytics() {
   /* ================= FETCH DATA ================= */
   const fetchData = async () => {
     try {
-      setError("");
-
       // Supervisor analytics
       const supRes = await fetch("/api/admin/supervisor-analytics", {
         credentials: "include",
       });
       const supJson = await supRes.json();
-      if (!supRes.ok || !supJson.success)
-        throw new Error("Supervisor analytics failed");
+      if (supRes.ok && supJson.success) {
+        setData(supJson.data.supervisors);
+        if (supJson.data.supervisors.length > 0) {
+          setSelectedSupervisorId(
+            supJson.data.supervisors[0].supervisor_id
+          );
+        }
+      }
 
-      setData(supJson.data.supervisors);
-
-      // Old listing activity stats
+      // Overall listing stats
       const listRes = await fetch("/api/admin/supervisor-listings", {
         credentials: "include",
       });
       const listJson = await listRes.json();
-      if (!listRes.ok || !listJson.success)
-        throw new Error("Listing stats failed");
+      if (listRes.ok && listJson.success) {
+        setListingStats(listJson.statusCounts);
+      }
 
-      setListingStats(listJson.statusCounts);
+      // Top 5 supervisors
+      const topRes = await fetch("/api/admin/top-supervisors", {
+        credentials: "include",
+      });
+      const topJson = await topRes.json();
+      if (topRes.ok && topJson.success) {
+        setTopSupervisors(topJson.data);
+      }
 
       setLastUpdated(new Date().toLocaleString());
     } catch (err) {
-      console.error(err);
-      setError(err.message);
+      console.error("Supervisor analytics fetch error:", err);
     }
   };
 
+  /* ================= FETCH ACTIVITY ================= */
+  useEffect(() => {
+    if (!selectedSupervisorId) return;
+
+    const fetchActivity = async () => {
+      try {
+        const res = await fetch(
+          `/api/admin/supervisor-activity/${selectedSupervisorId}`,
+          { credentials: "include" }
+        );
+        const json = await res.json();
+        if (res.ok && json.success) {
+          setActivityLog(json.data);
+        }
+      } catch (err) {
+        console.error("Activity fetch error:", err);
+      }
+    };
+
+    fetchActivity();
+  }, [selectedSupervisorId]);
+
   /* ================= BAR GRAPH ================= */
-  const renderBarChart = (supervisors) => {
+  useEffect(() => {
+    if (!data || !barRef.current) return;
+
     barChart.current?.destroy();
 
     barChart.current = new Chart(barRef.current, {
       type: "bar",
       data: {
-        labels: supervisors.map((s) => s.name),
+        labels: data.map((s) => s.name),
         datasets: [
           {
-            label: "Listings Done",
-            data: supervisors.map((s) => s.approved),
+            label: "Approved",
+            data: data.map((s) => s.approved),
             backgroundColor: "#22c55e",
           },
           {
-            label: "Listings Rejected",
-            data: supervisors.map((s) => s.rejected),
+            label: "Rejected",
+            data: data.map((s) => s.rejected),
             backgroundColor: "#ef4444",
           },
         ],
       },
       options: { responsive: true, maintainAspectRatio: false },
     });
-  };
+  }, [data]);
 
-  /* ================= SUPERVISOR PIE ================= */
-  const renderPieChart = (supervisor) => {
+  /* ================= PIE GRAPH ================= */
+  useEffect(() => {
+    if (!data || !pieRef.current) return;
+
     pieChart.current?.destroy();
+
+    const supervisor = data[selectedIndex];
 
     pieChart.current = new Chart(pieRef.current, {
       type: "pie",
       data: {
-        labels: ["Accepted", "Rejected", "Pending"],
+        labels: ["Approved", "Rejected", "Pending"],
         datasets: [
           {
             data: [
@@ -96,13 +136,17 @@ export default function SupervisorAnalytics() {
       },
       options: { responsive: true, maintainAspectRatio: false },
     });
-  };
+  }, [selectedIndex, data]);
 
-  /* ================= OLD ACTIVITY DOUGHNUT ================= */
-  const renderActivityChart = (stats) => {
+  /* ================= OVERALL ACTIVITY DOUGHNUT ================= */
+  useEffect(() => {
+    if (!listingStats || !activityRef.current) return;
+
     activityChart.current?.destroy();
 
-    const data = [
+    const stats = listingStats;
+
+    const chartData = [
       stats.phone.pending || 0,
       stats.phone.approved || 0,
       stats.phone.addedToInventory || 0,
@@ -128,7 +172,7 @@ export default function SupervisorAnalytics() {
         ],
         datasets: [
           {
-            data,
+            data: chartData,
             backgroundColor: [
               "#ef4444",
               "#22c55e",
@@ -145,14 +189,11 @@ export default function SupervisorAnalytics() {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: {
-          legend: { position: "right" },
-        },
+        plugins: { legend: { position: "right" } },
       },
     });
-  };
+  }, [listingStats]);
 
-  /* ================= EFFECT ================= */
   useEffect(() => {
     fetchData();
     return () => {
@@ -162,48 +203,41 @@ export default function SupervisorAnalytics() {
     };
   }, []);
 
-  useEffect(() => {
-    if (data) renderBarChart(data);
-  }, [data]);
-
-  useEffect(() => {
-    if (data) renderPieChart(data[selectedIndex]);
-  }, [selectedIndex]);
-
-  useEffect(() => {
-    if (listingStats) renderActivityChart(listingStats);
-  }, [listingStats]);
-
   return (
     <div className="flex min-h-screen bg-gray-100">
       <AdminSidebar />
       <main className="flex-1 p-6 sm:p-8">
-        <h1 className="text-3xl font-extrabold text-gray-800 mb-6">
+        <h1 className="text-3xl font-extrabold mb-6">
           👨‍💼 Supervisor Analytics
         </h1>
 
-        {error && (
-          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
-            {error}
-          </div>
-        )}
 
         {/* BAR GRAPH */}
-        <section className="bg-white rounded-2xl p-6 shadow border mb-8">
-          <h2 className="text-xl font-semibold mb-4">
-            Listings Done vs Rejected
-          </h2>
-          <div className="h-[350px]">
-            <canvas ref={barRef} />
-          </div>
-        </section>
+        {data && (
+          <section className="bg-white rounded-2xl p-6 shadow border mb-8">
+            <h2 className="text-xl font-semibold mb-4">
+              Listings Approved vs Rejected
+            </h2>
+            <div className="h-[350px]">
+              <canvas ref={barRef} />
+            </div>
+          </section>
+        )}
 
-        {/* SUPERVISOR PIE */}
+      
+
+        
+
+        {/* SELECT SUPERVISOR */}
         {data && (
           <>
             <select
               className="mb-6 px-4 py-2 border rounded-lg"
-              onChange={(e) => setSelectedIndex(Number(e.target.value))}
+              onChange={(e) => {
+                const index = Number(e.target.value);
+                setSelectedIndex(index);
+                setSelectedSupervisorId(data[index].supervisor_id);
+              }}
             >
               {data.map((s, i) => (
                 <option key={i} value={i}>
@@ -212,6 +246,7 @@ export default function SupervisorAnalytics() {
               ))}
             </select>
 
+            {/* PIE */}
             <section className="bg-white rounded-2xl p-6 shadow border mb-8">
               <h2 className="text-xl font-semibold mb-4">
                 Supervisor Breakdown
@@ -220,13 +255,57 @@ export default function SupervisorAnalytics() {
                 <canvas ref={pieRef} />
               </div>
               <div className="mt-4 text-center font-medium">
-                Total Listings: {data[selectedIndex].total}
+                Total Listings: {data[selectedIndex]?.total || 0}
               </div>
             </section>
           </>
         )}
 
-        {/* OLD LISTING ACTIVITY DOUGHNUT */}
+        {/* TOP 5 */}
+        {topSupervisors.length > 0 && (
+          <section className="bg-white rounded-2xl p-6 shadow border mb-8">
+            <h2 className="text-xl font-semibold mb-4">
+              🏆 Top 5 Supervisors (By Activity)
+            </h2>
+            <div className="space-y-3">
+              {topSupervisors.map((sup, index) => (
+                <div
+                  key={sup.supervisor_id}
+                  className="flex justify-between p-4 bg-gray-50 rounded-lg border"
+                >
+                  <span>{index + 1}. {sup.name}</span>
+                  <span className="font-semibold text-indigo-600">
+                    {sup.activityCount} Activities
+                  </span>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ACTIVITY HISTORY */}
+        {activityLog.length > 0 && (
+          <section className="bg-white rounded-2xl p-6 shadow border mb-8">
+            <h2 className="text-xl font-semibold mb-4">
+              📜 Supervisor Activity History
+            </h2>
+            <div className="space-y-3 max-h-[400px] overflow-y-auto">
+              {activityLog.map((act, index) => (
+                <div
+                  key={index}
+                  className="p-3 bg-gray-50 border rounded-lg"
+                >
+                  <div>{act.action}</div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {new Date(act.timestamp).toLocaleString()}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* OVERALL LISTING ACTIVITY */}
         {listingStats && (
           <section className="bg-white rounded-2xl p-6 shadow border">
             <h2 className="text-xl font-semibold mb-4">
@@ -237,6 +316,10 @@ export default function SupervisorAnalytics() {
             </div>
           </section>
         )}
+
+        <div className="mt-6 text-sm text-gray-500">
+          Last Updated: {lastUpdated}
+        </div>
       </main>
     </div>
   );

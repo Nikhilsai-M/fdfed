@@ -451,54 +451,60 @@ export const getSupervisorAnalytics = async (req, res) => {
   try {
     const supervisors = await Supervisor.find().lean();
 
-    const result = [];
+    const result = await Promise.all(
+      supervisors.map(async (sup) => {
+        let approved = 0;
+        let rejected = 0;
+        let pending = 0;
 
-    for (const sup of supervisors) {
-      let approved = 0;
-      let rejected = 0;
-      let pending = 0;
+        if (sup.type === "phone") {
+          [approved, rejected, pending] = await Promise.all([
+            PhoneApplication.countDocuments({
+              assigned_supervisor_id: sup.user_id,
+              status: { $in: ["approved", "added_to_inventory"] }
+            }),
+            PhoneApplication.countDocuments({
+              assigned_supervisor_id: sup.user_id,
+              status: "rejected"
+            }),
+            PhoneApplication.countDocuments({
+              assigned_supervisor_id: sup.user_id,
+              status: "pending"
+            })
+          ]);
+        }
 
-      if (sup.type === "phone") {
-        approved = await PhoneApplication.countDocuments({
-          status: { $in: ["approved", "added_to_inventory"] }
-        });
+        if (sup.type === "laptop") {
+          [approved, rejected, pending] = await Promise.all([
+            LaptopApplication.countDocuments({
+              assigned_supervisor_id: sup.user_id,
+              status: { $in: ["approved", "added_to_inventory"] }
+            }),
+            LaptopApplication.countDocuments({
+              assigned_supervisor_id: sup.user_id,
+              status: "rejected"
+            }),
+            LaptopApplication.countDocuments({
+              assigned_supervisor_id: sup.user_id,
+              status: "pending"
+            })
+          ]);
+        }
 
-        rejected = await PhoneApplication.countDocuments({
-          status: "rejected"
-        });
-
-        pending = await PhoneApplication.countDocuments({
-          status: "pending"
-        });
-
-      } else if (sup.type === "laptop") {
-        approved = await LaptopApplication.countDocuments({
-          status: { $in: ["approved", "added_to_inventory"] }
-        });
-
-        rejected = await LaptopApplication.countDocuments({
-          status: "rejected"
-        });
-
-        pending = await LaptopApplication.countDocuments({
-          status: "pending"
-        });
-      }
-
-      result.push({
-        name: `${sup.first_name} ${sup.last_name}`,
-        approved,
-        rejected,
-        pending,
-        total: approved + rejected + pending
-      });
-    }
+        return {
+          supervisor_id: sup.user_id, // 🔥 VERY IMPORTANT
+          name: `${sup.first_name} ${sup.last_name}`,
+          approved,
+          rejected,
+          pending,
+          total: approved + rejected + pending
+        };
+      })
+    );
 
     res.json({
       success: true,
-      data: {
-        supervisors: result
-      }
+      data: { supervisors: result }
     });
 
   } catch (err) {
@@ -506,6 +512,88 @@ export const getSupervisorAnalytics = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to fetch supervisor analytics"
+    });
+  }
+};
+
+
+
+import { SupervisorActivity } from "../models/supervisor.model.js";
+export const getTopSupervisors = async (req, res) => {
+  try {
+    const top = await SupervisorActivity.aggregate([
+      {
+        $group: {
+          _id: "$supervisor_id",
+          activityCount: { $sum: 1 }
+        }
+      },
+      { $sort: { activityCount: -1 } },
+      { $limit: 5 },
+      {
+        $lookup: {
+          from: "supervisors", // make sure collection name is correct
+          localField: "_id",
+          foreignField: "user_id",
+          as: "supervisor"
+        }
+      },
+      {
+        $unwind: {
+          path: "$supervisor",
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $project: {
+          supervisor_id: "$_id",
+          activityCount: 1,
+          name: {
+            $cond: [
+              { $ifNull: ["$supervisor.first_name", false] },
+              { $concat: ["$supervisor.first_name", " ", "$supervisor.last_name"] },
+              "Unknown"
+            ]
+          }
+        }
+      }
+    ]);
+
+    res.json({
+      success: true,
+      data: top
+    });
+
+  } catch (err) {
+    console.error("Top supervisor error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch top supervisors"
+    });
+  }
+};
+
+
+export const getSupervisorActivityById = async (req, res) => {
+  try {
+    const { supervisorId } = req.params;
+
+    const activities = await SupervisorActivity.find({
+      supervisor_id: supervisorId
+    })
+      .sort({ timestamp: -1 })
+      .lean();
+
+    res.json({
+      success: true,
+      data: activities
+    });
+
+  } catch (err) {
+    console.error("Supervisor activity error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch supervisor activity"
     });
   }
 };

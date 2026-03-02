@@ -7,6 +7,8 @@ import {
   getCategoryRevenueAnalytics,
   debugOrderItems,
   getSupervisorAnalytics,
+  getTopSupervisors,
+  getSupervisorActivityById,
 } from "../controllers/adminStatistics.controller.js";
 import { verifyAdmin } from "../middleware/admin.middleware.js";
 
@@ -19,5 +21,7 @@ router.get("/revenue", verifyAdmin, getRevenueAnalytics);
 router.get("/revenue/categories", verifyAdmin, getCategoryRevenueAnalytics);
 router.get("/debug-orderitems", debugOrderItems);
 router.get("/supervisor-analytics", getSupervisorAnalytics);
+router.get("/top-supervisors", getTopSupervisors);
+router.get("/supervisor-activity/:supervisorId", getSupervisorActivityById);
 
 export default router;
