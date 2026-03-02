@@ -50,6 +50,7 @@ import adminSalesAnalyticsRouter from "./routes/adminSalesAnalytics.route.js";
 import SellerOrderRoutes from "./routes/sellerOrders.route.js"
 import SellerProfileRoutes from "./routes/sellerProfile.route.js"
 dotenv.config({ path: '../.env' });
+import adminSellerActivityRoutes from "./routes/adminSellerActivity.route.js";
 
 mongoose.connect(process.env.MONGO).then(async() => {
   console.log("Connected to MongoDB successfully!!!");
@@ -147,6 +148,7 @@ app.use("/api/seller",SellerOrderRoutes);
 app.use("/api/seller",SellerProfileRoutes);
 app.use("/api/admin/product-analytics", adminProductAnalyticsRouter);
 app.use("/api/admin/sales-analytics", adminSalesAnalyticsRouter);
+app.use("/api/admin/seller-activity", adminSellerActivityRoutes);
 
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;

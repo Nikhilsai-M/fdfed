@@ -16,7 +16,7 @@ import SmartWatchesPage from './pages/SmartWatchesPage';
 import AccessoriesPage from './pages/Accessories';
 import AccessoryDetails from './pages/AccessoryDetails';
 import SupervisorDashboard from './pages/supervisor/SupervisorDashboard';
-import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminDashboard from './pages/admin/adminDashboard';
 import VerifyListings from './pages/supervisor/VerifyListings';
 import ManageInventory from './pages/supervisor/ManageInventory';
 import Statistics from './pages/supervisor/Statistics';
@@ -57,7 +57,9 @@ import AddProduct from './pages/seller/AddProduct.jsx';
 import SellerOrders from './pages/seller/SellerOrders.jsx';
 import RevenueAnalytics from "./pages/admin/RevenueAnalytics";
 import SellerProfile from './pages/seller/SellerProfile.jsx';
+import SellerActivity from "./pages/admin/SellerActivity";
 import SellerOTPVerification from "./pages/seller/SellerOTPVerification";
+
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -186,6 +188,7 @@ function App() {
                   <Route path="/admin/manage-supervisors" element={<ProtectedRoute><ManageSupervisors /></ProtectedRoute>} />
                   <Route path="/admin/product-analytics" element={<ProductAnalytics />} />
                   <Route path="/admin/revenue" element={<ProtectedRoute><RevenueAnalytics /></ProtectedRoute>}/>
+                  <Route path="/admin/seller-activity" element={<SellerActivity />} />
 
                   {/* Seller Routes */}
                   <Route path="/seller/signup" element={<SellerSignup />} />
