@@ -16,7 +16,7 @@ import {
   deleteMouse,
   deleteSmartwatch
 } from "../crud/inventory.js";
-
+import { matchRequests } from "../services/requestMatcher.service.js";
 import {
   uploadBufferToCloudinary,
   deleteFromCloudinary
@@ -63,7 +63,13 @@ export const addProduct = async (req, res, next) => {
     if (category === "smartwatch") {
       result = await addSmartwatch({ ...data, sellerId });
     }
-
+     if (result) {
+      await matchRequests(category, {
+        id: result._id,
+        brand: result.brand,
+        model: result.model || result.title || "",
+      });
+    }
     res.json({ success: true, product: result });
 
   } catch (err) {
