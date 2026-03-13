@@ -91,6 +91,22 @@ const Notifications = () => {
         };
     }
   };
+const iconMap = {
+  "phone": "fa-mobile-screen",
+  "laptop": "fa-laptop",
+  "charger": "fa-plug",
+  "earphone": "fa-headphones",
+  "mouse": "fa-computer-mouse",
+  "smartwatch": "fa-clock"
+};
+const typeMap = {
+  "phone": "Smartphone",
+  "laptop": "Laptop",
+  "charger": "Charger",
+  "earphone": "Earphone",
+  "mouse": "Mouse",
+  "smartwatch": "Smartwatch"
+};
 
   console.log('🎨 Rendering Notifications page with:', {
     notificationCount: notifications.length,
@@ -172,6 +188,7 @@ const Notifications = () => {
               {notifications.length > 0 ? (
                 <div className="space-y-4">
                   {notifications.map((notification) => {
+                      console.log("Notification object:", notification); // 🔍 debug
                     const statusStyle = getStatusStyle(notification.status);
 
                     return (
@@ -197,14 +214,17 @@ const Notifications = () => {
                               <div className="flex-1">
                                 <div className="flex items-center gap-3 mb-3">
                                   <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
-                                    <i className={`fa-solid ${notification.device_type === 'phone' ? 'fa-mobile-screen' : 'fa-laptop'} text-white text-xl`}></i>
+                                    <i className={`fa-solid ${iconMap[notification.device_type] || "fa-box"} text-white text-xl`} />
                                   </div>
                                   <div>
                                     <h3 className="text-xl font-bold text-gray-900">
                                       {notification.brand} {notification.model}
                                     </h3>
-                                    <p className="text-sm text-gray-600">{notification.title}</p>
-                                  </div>
+                                   <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                                    {notification.title}
+                                    {notification.status === "fulfilled" && "🎉"}
+                                  </h3>
+                                </div>
                                   {!notification.read && (
                                     <span className="ml-2 w-3 h-3 bg-blue-600 rounded-full"></span>
                                   )}
@@ -212,13 +232,11 @@ const Notifications = () => {
                                 
                                 <div className="flex flex-wrap items-center gap-4">
                                   <div className="flex items-center gap-2 text-gray-600">
-                                    <i className={`fa-solid ${notification.device_type === 'phone' ? 'fa-mobile-screen' : 'fa-laptop'} text-gray-400`}></i>
+                                    <i className={`fa-solid ${iconMap[notification.device_type] || "fa-box"} text-white text-xl`} />
                                     <span className="font-medium">
-                                      {notification.type === "request_update"
-                                        ? "Device Request"
-                                        : notification.device_type === "phone"
-                                        ? "Smartphone"
-                                        : "Laptop"}
+                                     {notification.type === "request_update"
+                                          ? "Device Request"
+                                          : typeMap[notification.device_type] || "Product"}
                                     </span>
                                   </div>
                                   

@@ -35,6 +35,9 @@ export const getUserNotifications = async (req, res) => {
       notifications: notifications.map(n => ({
         ...n,
         id: n._id,
+        title: n.title,
+        message: n.message,
+
         brand: n.device_data?.brand || "Unknown",
         model: n.device_data?.model || "",
         device_type: n.application_type,
