@@ -26,20 +26,24 @@ export const matchRequests = async (device_type, item) => {
     console.log("➡️ Request criteria:", req.criteria);
 
     try {
-      await Notification.create({
-        notification_id: uuidv4(),
-        user_id: req.user_id,
-        application_id: item.id.toString(),
-        application_type: device_type,
-        type: "request_fulfilled", // ✅ FIXED
-        status: "fulfilled",
-        title: "Requested device now available 🎉",
-        message: `${item.brand} ${item.model || ""} is now available`,
-        device_data: {
-          brand: item.brand,
-          model: item.model || "",
-        },
-      });
+     const modelName = device_type === "laptop"
+  ? item.series
+  : item.model;
+
+await Notification.create({
+  notification_id: uuidv4(),
+  user_id: req.user_id,
+  application_id: item.id.toString(),
+  application_type: device_type,
+  type: "request_fulfilled",
+  status: "fulfilled",
+  title: "Requested device now available 🎉",
+  message: `${item.brand} ${modelName || ""} is now available`,
+  device_data: {
+    brand: item.brand,
+    model: modelName || ""
+  }
+});
 
       console.log("📨 Notification created for user:", req.user_id);
 
