@@ -25,16 +25,20 @@ const router = express.Router();
  *     responses:
  *       200:
  *         description: List of smartwatches
+ *         content:
+ *           application/json:
+ *             example:
+ *               - name: Apple Watch
+ *                 price: 29999
+ *       500:
+ *         description: Server error
  */
 router.get('/', async (req, res) => {
   try {
     const smartwatches = await getAllSmartwatches();
     res.json(smartwatches);
-  } catch (error) {
-    console.error('Error fetching smartwatches:', error);
-    res
-      .status(500)
-      .json({ message: 'Server error while fetching smartwatches' });
+  } catch {
+    res.status(500).json({ message: 'Server error while fetching smartwatches' });
   }
 });
 
@@ -59,15 +63,11 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const smartwatch = await getSmartwatchById(req.params.id);
-    if (!smartwatch) {
+    if (!smartwatch)
       return res.status(404).json({ message: 'Smartwatch not found' });
-    }
     res.json(smartwatch);
-  } catch (error) {
-    console.error('Error fetching smartwatch by ID:', error);
-    res
-      .status(500)
-      .json({ message: 'Server error while fetching smartwatch' });
+  } catch {
+    res.status(500).json({ message: 'Server error while fetching smartwatch' });
   }
 });
 
@@ -81,28 +81,27 @@ router.get('/:id', async (req, res) => {
  *       required: true
  *       content:
  *         application/json:
- *           schema:
- *             type: object
- *             example:
- *               title: Fitness Watch
- *               brand: Noise
- *               originalPrice: 3999
+ *           example:
+ *             name: Apple Watch
+ *             price: 29999
  *     responses:
  *       201:
  *         description: Smartwatch created
+ *       400:
+ *         description: Invalid input
  */
 router.post('/', async (req, res) => {
   try {
     const result = await addSmartwatch(req.body);
     if (result.success) {
-      res
-        .status(201)
-        .json({ message: 'Smartwatch added successfully', id: result.id });
+      res.status(201).json({
+        message: 'Smartwatch added successfully',
+        id: result.id,
+      });
     } else {
       res.status(400).json({ message: result.message });
     }
-  } catch (error) {
-    console.error('Error adding smartwatch:', error);
+  } catch {
     res.status(500).json({ message: 'Server error while adding smartwatch' });
   }
 });
@@ -111,14 +110,13 @@ router.post('/', async (req, res) => {
  * @swagger
  * /api/Accessories/smartwatches/{id}:
  *   put:
- *     summary: Update a smartwatch
+ *     summary: Update smartwatch
  *     tags: [Smartwatches]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
+ *     responses:
+ *       200:
+ *         description: Smartwatch updated
+ *       400:
+ *         description: Invalid input
  */
 router.put('/:id', async (req, res) => {
   try {
@@ -128,8 +126,7 @@ router.put('/:id', async (req, res) => {
     } else {
       res.status(400).json({ message: result.message });
     }
-  } catch (error) {
-    console.error('Error updating smartwatch:', error);
+  } catch {
     res.status(500).json({ message: 'Server error while updating smartwatch' });
   }
 });
@@ -138,14 +135,13 @@ router.put('/:id', async (req, res) => {
  * @swagger
  * /api/Accessories/smartwatches/{id}:
  *   delete:
- *     summary: Delete a smartwatch
+ *     summary: Delete smartwatch
  *     tags: [Smartwatches]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
+ *     responses:
+ *       200:
+ *         description: Smartwatch deleted
+ *       404:
+ *         description: Smartwatch not found
  */
 router.delete('/:id', async (req, res) => {
   try {
@@ -155,8 +151,7 @@ router.delete('/:id', async (req, res) => {
     } else {
       res.status(404).json({ message: 'Smartwatch not found' });
     }
-  } catch (error) {
-    console.error('Error deleting smartwatch:', error);
+  } catch {
     res.status(500).json({ message: 'Server error while deleting smartwatch' });
   }
 });

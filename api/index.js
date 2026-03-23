@@ -67,6 +67,7 @@ const options = {
         url: "http://localhost:3000",
       },
     ],
+
     components: {
       securitySchemes: {
         bearerAuth: {
@@ -74,25 +75,17 @@ const options = {
           scheme: "bearer",
           bearerFormat: "JWT",
         },
-        accessTokenCookie: {
-          type: "apiKey",
-          in: "cookie",
-          name: "access_token",
-        },
-        adminTokenCookie: {
-          type: "apiKey",
-          in: "cookie",
-          name: "admin_access_token",
-        },
-        supervisorTokenCookie: {
-          type: "apiKey",
-          in: "cookie",
-          name: "supervisor_access_token",
-        },
       },
     },
+
+    security: [
+      {
+        bearerAuth: [],
+      },
+    ],
   },
-  apis: ["./routes/*.js"], 
+
+  apis: ["./routes/**/*.js"],
 };
 
 const swaggerSpec = swaggerJsdoc(options);

@@ -177,16 +177,21 @@ export const resendSignupOTP = async (req, res, next) => {
   }
 };
 
-// 🟢 SIGNIN (unchanged)
 export const signin = async (req, res, next) => {
-  const { username, password } = req.body;
+  const { username, email, password } = req.body;
 
   try {
     console.log('\n=== 🔐 SIGNIN REQUEST ===');
-    if (!username || !password)
-      return next(errorHandler(400, "Username and password are required"));
 
-    const validUser = await User.findOne({ $or: [{ username }, { email: username }] });
+    const loginId = username || email;
+
+    if (!loginId || !password)
+      return next(errorHandler(400, "Username/email and password are required"));
+
+    const validUser = await User.findOne({
+      $or: [{ username: loginId }, { email: loginId }],
+    });
+
     if (!validUser) return next(errorHandler(404, "User not found!"));
 
     const validPassword = bcrypt.compareSync(password, validUser.password);
@@ -217,7 +222,7 @@ export const signin = async (req, res, next) => {
       .json({ success: true, user: rest, token });
   } catch (error) {
     console.error("Signin error:", error);
-    next(errorHandler(500, "Error during signin: " + error.message));
+    next(errorHandler(500, "Error during signin"));
   }
 };
 

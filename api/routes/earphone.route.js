@@ -25,13 +25,19 @@ const router = express.Router();
  *     responses:
  *       200:
  *         description: List of earphones
+ *         content:
+ *           application/json:
+ *             example:
+ *               - name: Bluetooth Earbuds
+ *                 price: 1999
+ *       500:
+ *         description: Server error
  */
 router.get('/', async (req, res) => {
   try {
     const earphones = await getAllEarphones();
     res.json(earphones);
-  } catch (error) {
-    console.error('Error fetching earphones:', error);
+  } catch {
     res.status(500).json({ message: 'Server error while fetching earphones' });
   }
 });
@@ -57,12 +63,10 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const earphone = await getEarphoneById(req.params.id);
-    if (!earphone) {
+    if (!earphone)
       return res.status(404).json({ message: 'Earphone not found' });
-    }
     res.json(earphone);
-  } catch (error) {
-    console.error('Error fetching earphone by ID:', error);
+  } catch {
     res.status(500).json({ message: 'Server error while fetching earphone' });
   }
 });
@@ -77,28 +81,27 @@ router.get('/:id', async (req, res) => {
  *       required: true
  *       content:
  *         application/json:
- *           schema:
- *             type: object
- *             example:
- *               title: Wireless Earbuds
- *               brand: Sony
- *               originalPrice: 2499
+ *           example:
+ *             name: Bluetooth Earbuds
+ *             price: 1999
  *     responses:
  *       201:
  *         description: Earphone created
+ *       400:
+ *         description: Invalid input
  */
 router.post('/', async (req, res) => {
   try {
     const result = await addEarphone(req.body);
     if (result.success) {
-      res
-        .status(201)
-        .json({ message: 'Earphone added successfully', id: result.id });
+      res.status(201).json({
+        message: 'Earphone added successfully',
+        id: result.id,
+      });
     } else {
       res.status(400).json({ message: result.message });
     }
-  } catch (error) {
-    console.error('Error adding earphone:', error);
+  } catch {
     res.status(500).json({ message: 'Server error while adding earphone' });
   }
 });
@@ -107,14 +110,13 @@ router.post('/', async (req, res) => {
  * @swagger
  * /api/Accessories/earphones/{id}:
  *   put:
- *     summary: Update an earphone
+ *     summary: Update earphone
  *     tags: [Earphones]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
+ *     responses:
+ *       200:
+ *         description: Earphone updated
+ *       400:
+ *         description: Invalid input
  */
 router.put('/:id', async (req, res) => {
   try {
@@ -124,8 +126,7 @@ router.put('/:id', async (req, res) => {
     } else {
       res.status(400).json({ message: result.message });
     }
-  } catch (error) {
-    console.error('Error updating earphone:', error);
+  } catch {
     res.status(500).json({ message: 'Server error while updating earphone' });
   }
 });
@@ -134,14 +135,13 @@ router.put('/:id', async (req, res) => {
  * @swagger
  * /api/Accessories/earphones/{id}:
  *   delete:
- *     summary: Delete an earphone
+ *     summary: Delete earphone
  *     tags: [Earphones]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
+ *     responses:
+ *       200:
+ *         description: Earphone deleted
+ *       404:
+ *         description: Earphone not found
  */
 router.delete('/:id', async (req, res) => {
   try {
@@ -151,8 +151,7 @@ router.delete('/:id', async (req, res) => {
     } else {
       res.status(404).json({ message: 'Earphone not found' });
     }
-  } catch (error) {
-    console.error('Error deleting earphone:', error);
+  } catch {
     res.status(500).json({ message: 'Server error while deleting earphone' });
   }
 });
