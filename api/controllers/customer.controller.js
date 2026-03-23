@@ -275,6 +275,8 @@ export const getNotifications = async (req, res, next) => {
             storage: notif.device_data?.storage,
             ram: notif.device_data?.ram,
             created_at: notif.created_at,
+               title: notif.title,
+                message: notif.message,
             updated_at: notif.updated_at || notif.created_at,
             read: notif.read,
             time: formatTimeAgo(notif.updated_at || notif.created_at),
