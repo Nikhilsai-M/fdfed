@@ -12,8 +12,7 @@ import {
   getUserProfile,
   updateUserProfile,
 } from "../controllers/auth.controller.js";
-
-import { verifyToken } from "../utils/verifyUser.js"
+import { verifyToken } from "../utils/verifyUser.js";
 
 const router = express.Router();
 
@@ -30,6 +29,59 @@ const router = express.Router();
  *   post:
  *     summary: Initiate signup (send OTP)
  *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - username
+ *               - firstName
+ *               - lastName
+ *               - email
+ *               - phone
+ *               - password
+ *               - address
+ *             properties:
+ *               username:
+ *                 type: string
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               address:
+ *                 type: object
+ *                 properties:
+ *                   street:
+ *                     type: string
+ *                   city:
+ *                     type: string
+ *                   state:
+ *                     type: string
+ *                   postal_code:
+ *                     type: string
+ *                   country:
+ *                     type: string
+ *             example:
+ *               username: johndoe
+ *               firstName: John
+ *               lastName: Doe
+ *               email: john@example.com
+ *               phone: "9876543210"
+ *               password: securePassword123
+ *               address:
+ *                 street: 12 MG Road
+ *                 city: Bengaluru
+ *                 state: Karnataka
+ *                 postal_code: "560001"
+ *                 country: India
  *     responses:
  *       200:
  *         description: OTP sent successfully
@@ -44,6 +96,23 @@ router.post("/signup/initiate", initiateSignup);
  *   post:
  *     summary: Verify signup OTP
  *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - otp
+ *             properties:
+ *               email:
+ *                 type: string
+ *               otp:
+ *                 type: string
+ *             example:
+ *               email: john@example.com
+ *               otp: "123456"
  *     responses:
  *       201:
  *         description: User created successfully
@@ -58,6 +127,19 @@ router.post("/signup/verify", verifySignupOTP);
  *   post:
  *     summary: Resend signup OTP
  *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *             example:
+ *               email: john@example.com
  *     responses:
  *       200:
  *         description: OTP resent
@@ -74,19 +156,23 @@ router.post("/signup/resend-otp", resendSignupOTP);
  *       required: true
  *       content:
  *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - password
+ *             properties:
+ *               username:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
  *           example:
- *             email: user@example.com
+ *             username: johndoe
  *             password: password123
  *     responses:
  *       200:
  *         description: Login successful
- *         content:
- *           application/json:
- *             example:
- *               success: true
- *               token: jwt_token_here
- *               user:
- *                 email: user@example.com
  *       400:
  *         description: Invalid input
  *       404:
@@ -100,6 +186,19 @@ router.post("/signin", signin);
  *   post:
  *     summary: Send OTP for password reset
  *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - usernameOrEmail
+ *             properties:
+ *               usernameOrEmail:
+ *                 type: string
+ *             example:
+ *               usernameOrEmail: johndoe
  *     responses:
  *       200:
  *         description: OTP sent
@@ -112,6 +211,23 @@ router.post("/forgot-password", forgotPassword);
  *   post:
  *     summary: Verify OTP for password reset
  *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - otp
+ *             properties:
+ *               email:
+ *                 type: string
+ *               otp:
+ *                 type: string
+ *             example:
+ *               email: john@example.com
+ *               otp: "123456"
  *     responses:
  *       200:
  *         description: OTP verified
@@ -124,6 +240,26 @@ router.post("/verify-otp", verifyOTP);
  *   post:
  *     summary: Reset password
  *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - newPassword
+ *             properties:
+ *               email:
+ *                 type: string
+ *               otp:
+ *                 type: string
+ *               newPassword:
+ *                 type: string
+ *             example:
+ *               email: john@example.com
+ *               otp: "123456"
+ *               newPassword: newSecurePassword123
  *     responses:
  *       200:
  *         description: Password reset successful
@@ -136,6 +272,19 @@ router.post("/reset-password", resetPassword);
  *   post:
  *     summary: Resend forgot password OTP
  *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *             example:
+ *               email: john@example.com
  *     responses:
  *       200:
  *         description: OTP resent
@@ -150,6 +299,7 @@ router.post("/resend-forgot-password-otp", resendForgotPasswordOTP);
  *     tags: [Auth]
  *     security:
  *       - bearerAuth: []
+ *       - accessTokenCookie: []
  *     responses:
  *       200:
  *         description: User profile fetched
@@ -166,6 +316,40 @@ router.get("/profile", verifyToken, getUserProfile);
  *     tags: [Auth]
  *     security:
  *       - bearerAuth: []
+ *       - accessTokenCookie: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               address:
+ *                 type: object
+ *                 properties:
+ *                   street:
+ *                     type: string
+ *                   city:
+ *                     type: string
+ *                   state:
+ *                     type: string
+ *                   postal_code:
+ *                     type: string
+ *                   country:
+ *                     type: string
+ *             example:
+ *               firstName: John
+ *               lastName: Doe
+ *               phone: "9876543210"
+ *               address:
+ *                 city: Bengaluru
+ *                 state: Karnataka
  *     responses:
  *       200:
  *         description: Profile updated

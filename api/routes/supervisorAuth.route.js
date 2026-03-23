@@ -1,6 +1,5 @@
 import express from "express";
 import { supervisorSignin, checkSupervisorExists } from "../controllers/supervisorAuth.controller.js";
-import { verifyToken } from "../utils/verifyUser.js";
 
 const router = express.Router();
 
@@ -23,9 +22,23 @@ const router = express.Router();
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - username
+ *               - password
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 description: Supervisor username or email
+ *               password:
+ *                 type: string
  *             example:
- *               email: supervisor@example.com
+ *               username: supervisor01
  *               password: securePassword123
+ *     responses:
+ *       200:
+ *         description: Supervisor signed in successfully
+ *       400:
+ *         description: Missing or invalid credentials
  */
 router.post("/signin", supervisorSignin);
 
@@ -35,11 +48,16 @@ router.post("/signin", supervisorSignin);
  *   get:
  *     summary: Check if a supervisor exists
  *     tags: [Supervisor Auth]
+ *     parameters:
+ *       - in: query
+ *         name: username
+ *         schema:
+ *           type: string
+ *         description: Supervisor username or email to check
  *     responses:
  *       200:
  *         description: Supervisor existence checked successfully
  */
 router.get("/check", checkSupervisorExists);
-// router.get("/profile", verifyToken, getS);
 
 export default router;

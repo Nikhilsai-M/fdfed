@@ -22,14 +22,27 @@ const router = express.Router();
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - username
+ *               - password
+ *               - securityToken
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 description: Admin ID
+ *               password:
+ *                 type: string
+ *               securityToken:
+ *                 type: string
  *             example:
- *               email: admin@example.com
+ *               username: ADMIN001
  *               password: adminPassword123
+ *               securityToken: ADM-TOKEN-123
  *     responses:
  *       200:
  *         description: Admin signed in successfully
- *       401:
- *         description: Invalid credentials
+ *       400:
+ *         description: Invalid credentials or security token
  */
 router.post("/admin-signin", adminSignin);
 
