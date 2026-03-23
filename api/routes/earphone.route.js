@@ -5,53 +5,119 @@ import {
   addEarphone,
   updateEarphone,
   deleteEarphone,
-} from '../crud/earphones.js'; // Assumes crud file is earphones.js
+} from '../crud/earphones.js';
 
 const router = express.Router();
 
-// ✅ GET all earphones
+/**
+ * @swagger
+ * tags:
+ *   name: Earphones
+ *   description: Earphone management APIs
+ */
+
+/**
+ * @swagger
+ * /api/Accessories/earphones:
+ *   get:
+ *     summary: Get all earphones
+ *     tags: [Earphones]
+ *     responses:
+ *       200:
+ *         description: List of earphones
+ *         content:
+ *           application/json:
+ *             example:
+ *               - name: Bluetooth Earbuds
+ *                 price: 1999
+ *       500:
+ *         description: Server error
+ */
 router.get('/', async (req, res) => {
   try {
     const earphones = await getAllEarphones();
     res.json(earphones);
-  } catch (error) {
-    console.error('Error fetching earphones:', error);
+  } catch {
     res.status(500).json({ message: 'Server error while fetching earphones' });
   }
 });
 
-// ✅ GET earphone by ID
+/**
+ * @swagger
+ * /api/Accessories/earphones/{id}:
+ *   get:
+ *     summary: Get earphone by ID
+ *     tags: [Earphones]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Earphone found
+ *       404:
+ *         description: Earphone not found
+ */
 router.get('/:id', async (req, res) => {
   try {
     const earphone = await getEarphoneById(req.params.id);
-    if (!earphone) {
+    if (!earphone)
       return res.status(404).json({ message: 'Earphone not found' });
-    }
     res.json(earphone);
-  } catch (error) {
-    console.error('Error fetching earphone by ID:', error);
+  } catch {
     res.status(500).json({ message: 'Server error while fetching earphone' });
   }
 });
 
-// ✅ POST new earphone
+/**
+ * @swagger
+ * /api/Accessories/earphones:
+ *   post:
+ *     summary: Add a new earphone
+ *     tags: [Earphones]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           example:
+ *             name: Bluetooth Earbuds
+ *             price: 1999
+ *     responses:
+ *       201:
+ *         description: Earphone created
+ *       400:
+ *         description: Invalid input
+ */
 router.post('/', async (req, res) => {
   try {
     const result = await addEarphone(req.body);
     if (result.success) {
-      res
-        .status(201)
-        .json({ message: 'Earphone added successfully', id: result.id });
+      res.status(201).json({
+        message: 'Earphone added successfully',
+        id: result.id,
+      });
     } else {
       res.status(400).json({ message: result.message });
     }
-  } catch (error) {
-    console.error('Error adding earphone:', error);
+  } catch {
     res.status(500).json({ message: 'Server error while adding earphone' });
   }
 });
 
-// ✅ PUT update earphone
+/**
+ * @swagger
+ * /api/Accessories/earphones/{id}:
+ *   put:
+ *     summary: Update earphone
+ *     tags: [Earphones]
+ *     responses:
+ *       200:
+ *         description: Earphone updated
+ *       400:
+ *         description: Invalid input
+ */
 router.put('/:id', async (req, res) => {
   try {
     const result = await updateEarphone(req.params.id, req.body);
@@ -60,13 +126,23 @@ router.put('/:id', async (req, res) => {
     } else {
       res.status(400).json({ message: result.message });
     }
-  } catch (error) {
-    console.error('Error updating earphone:', error);
+  } catch {
     res.status(500).json({ message: 'Server error while updating earphone' });
   }
 });
 
-// ✅ DELETE earphone
+/**
+ * @swagger
+ * /api/Accessories/earphones/{id}:
+ *   delete:
+ *     summary: Delete earphone
+ *     tags: [Earphones]
+ *     responses:
+ *       200:
+ *         description: Earphone deleted
+ *       404:
+ *         description: Earphone not found
+ */
 router.delete('/:id', async (req, res) => {
   try {
     const result = await deleteEarphone(req.params.id);
@@ -75,8 +151,7 @@ router.delete('/:id', async (req, res) => {
     } else {
       res.status(404).json({ message: 'Earphone not found' });
     }
-  } catch (error) {
-    console.error('Error deleting earphone:', error);
+  } catch {
     res.status(500).json({ message: 'Server error while deleting earphone' });
   }
 });
