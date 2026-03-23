@@ -5,11 +5,27 @@ import {
   addSmartwatch,
   updateSmartwatch,
   deleteSmartwatch,
-} from '../crud/smartwatches.js'; // Assumes crud file is smartwatches.js
+} from '../crud/smartwatches.js';
 
 const router = express.Router();
 
-// ✅ GET all smartwatches
+/**
+ * @swagger
+ * tags:
+ *   name: Smartwatches
+ *   description: Smartwatch management APIs
+ */
+
+/**
+ * @swagger
+ * /api/Accessories/smartwatches:
+ *   get:
+ *     summary: Get all smartwatches
+ *     tags: [Smartwatches]
+ *     responses:
+ *       200:
+ *         description: List of smartwatches
+ */
 router.get('/', async (req, res) => {
   try {
     const smartwatches = await getAllSmartwatches();
@@ -22,7 +38,24 @@ router.get('/', async (req, res) => {
   }
 });
 
-// ✅ GET smartwatch by ID
+/**
+ * @swagger
+ * /api/Accessories/smartwatches/{id}:
+ *   get:
+ *     summary: Get smartwatch by ID
+ *     tags: [Smartwatches]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Smartwatch found
+ *       404:
+ *         description: Smartwatch not found
+ */
 router.get('/:id', async (req, res) => {
   try {
     const smartwatch = await getSmartwatchById(req.params.id);
@@ -38,7 +71,26 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// ✅ POST new smartwatch
+/**
+ * @swagger
+ * /api/Accessories/smartwatches:
+ *   post:
+ *     summary: Add a new smartwatch
+ *     tags: [Smartwatches]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             example:
+ *               title: Fitness Watch
+ *               brand: Noise
+ *               originalPrice: 3999
+ *     responses:
+ *       201:
+ *         description: Smartwatch created
+ */
 router.post('/', async (req, res) => {
   try {
     const result = await addSmartwatch(req.body);
@@ -55,7 +107,19 @@ router.post('/', async (req, res) => {
   }
 });
 
-// ✅ PUT update smartwatch
+/**
+ * @swagger
+ * /api/Accessories/smartwatches/{id}:
+ *   put:
+ *     summary: Update a smartwatch
+ *     tags: [Smartwatches]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ */
 router.put('/:id', async (req, res) => {
   try {
     const result = await updateSmartwatch(req.params.id, req.body);
@@ -70,7 +134,19 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// ✅ DELETE smartwatch
+/**
+ * @swagger
+ * /api/Accessories/smartwatches/{id}:
+ *   delete:
+ *     summary: Delete a smartwatch
+ *     tags: [Smartwatches]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ */
 router.delete('/:id', async (req, res) => {
   try {
     const result = await deleteSmartwatch(req.params.id);

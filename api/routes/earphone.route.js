@@ -5,11 +5,27 @@ import {
   addEarphone,
   updateEarphone,
   deleteEarphone,
-} from '../crud/earphones.js'; // Assumes crud file is earphones.js
+} from '../crud/earphones.js';
 
 const router = express.Router();
 
-// ✅ GET all earphones
+/**
+ * @swagger
+ * tags:
+ *   name: Earphones
+ *   description: Earphone management APIs
+ */
+
+/**
+ * @swagger
+ * /api/Accessories/earphones:
+ *   get:
+ *     summary: Get all earphones
+ *     tags: [Earphones]
+ *     responses:
+ *       200:
+ *         description: List of earphones
+ */
 router.get('/', async (req, res) => {
   try {
     const earphones = await getAllEarphones();
@@ -20,7 +36,24 @@ router.get('/', async (req, res) => {
   }
 });
 
-// ✅ GET earphone by ID
+/**
+ * @swagger
+ * /api/Accessories/earphones/{id}:
+ *   get:
+ *     summary: Get earphone by ID
+ *     tags: [Earphones]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Earphone found
+ *       404:
+ *         description: Earphone not found
+ */
 router.get('/:id', async (req, res) => {
   try {
     const earphone = await getEarphoneById(req.params.id);
@@ -34,7 +67,26 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// ✅ POST new earphone
+/**
+ * @swagger
+ * /api/Accessories/earphones:
+ *   post:
+ *     summary: Add a new earphone
+ *     tags: [Earphones]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             example:
+ *               title: Wireless Earbuds
+ *               brand: Sony
+ *               originalPrice: 2499
+ *     responses:
+ *       201:
+ *         description: Earphone created
+ */
 router.post('/', async (req, res) => {
   try {
     const result = await addEarphone(req.body);
@@ -51,7 +103,19 @@ router.post('/', async (req, res) => {
   }
 });
 
-// ✅ PUT update earphone
+/**
+ * @swagger
+ * /api/Accessories/earphones/{id}:
+ *   put:
+ *     summary: Update an earphone
+ *     tags: [Earphones]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ */
 router.put('/:id', async (req, res) => {
   try {
     const result = await updateEarphone(req.params.id, req.body);
@@ -66,7 +130,19 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// ✅ DELETE earphone
+/**
+ * @swagger
+ * /api/Accessories/earphones/{id}:
+ *   delete:
+ *     summary: Delete an earphone
+ *     tags: [Earphones]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ */
 router.delete('/:id', async (req, res) => {
   try {
     const result = await deleteEarphone(req.params.id);

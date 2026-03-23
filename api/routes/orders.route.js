@@ -15,9 +15,45 @@ import { getSmartwatchById } from "../crud/smartwatches.js";
 
 const router = Router();
 
-/* ----------------------------------------------------
-   CREATE ORDER
----------------------------------------------------- */
+/**
+ * @swagger
+ * tags:
+ *   name: Orders
+ *   description: Order and buy-now APIs
+ */
+
+/**
+ * @swagger
+ * /api/orders:
+ *   post:
+ *     summary: Create an order
+ *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
+ *       - accessTokenCookie: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             example:
+ *               totalAmount: 49999
+ *               paymentMethod: cod
+ *               items:
+ *                 - type: phone
+ *                   id: "101"
+ *                   quantity: 1
+ *                   amount: 49999
+ *                   accessory:
+ *                     brand: Apple
+ *                     model: iPhone 14
+ *     responses:
+ *       201:
+ *         description: Order created successfully
+ *       400:
+ *         description: Invalid order data
+ */
 router.post("/orders", verifyToken, async (req, res) => {
   try {
     const userId = req.user.user_id;
@@ -27,7 +63,6 @@ router.post("/orders", verifyToken, async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid order data" });
     }
 
-    // Validate each item
     for (const item of items) {
       if (!item.type || !item.id || !item.quantity || !item.amount || !item.accessory) {
         return res.status(400).json({ success: false, message: "Invalid item data" });
@@ -51,9 +86,19 @@ router.post("/orders", verifyToken, async (req, res) => {
   }
 });
 
-/* ----------------------------------------------------
-   GET ALL ORDERS FOR LOGGED USER
----------------------------------------------------- */
+/**
+ * @swagger
+ * /api/myorders:
+ *   get:
+ *     summary: Get all orders for the logged-in user
+ *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
+ *       - accessTokenCookie: []
+ *     responses:
+ *       200:
+ *         description: Orders fetched successfully
+ */
 router.get("/myorders", verifyToken, async (req, res) => {
   try {
     const userId = req.user.user_id;
@@ -65,9 +110,27 @@ router.get("/myorders", verifyToken, async (req, res) => {
   }
 });
 
-/* ----------------------------------------------------
-   GET SINGLE ORDER
----------------------------------------------------- */
+/**
+ * @swagger
+ * /api/orders/{orderId}:
+ *   get:
+ *     summary: Get a single order for the logged-in user
+ *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
+ *       - accessTokenCookie: []
+ *     parameters:
+ *       - in: path
+ *         name: orderId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Order fetched successfully
+ *       404:
+ *         description: Order not found
+ */
 router.get("/orders/:orderId", verifyToken, async (req, res) => {
   try {
     const userId = req.user.user_id;
@@ -88,9 +151,35 @@ router.get("/orders/:orderId", verifyToken, async (req, res) => {
   }
 });
 
-/* ----------------------------------------------------
-   BUY NOW (PHONE + LAPTOP + ACCESSORIES)
----------------------------------------------------- */
+/**
+ * @swagger
+ * /api/buy/{type}/{id}:
+ *   get:
+ *     summary: Prepare buy-now payment data for a product
+ *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
+ *       - accessTokenCookie: []
+ *     parameters:
+ *       - in: path
+ *         name: type
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: phone
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Buy-now data prepared successfully
+ *       400:
+ *         description: Invalid product type
+ *       404:
+ *         description: Product not found
+ */
 router.get("/buy/:type/:id", verifyToken, async (req, res) => {
   try {
     const type = req.params.type.toLowerCase();
