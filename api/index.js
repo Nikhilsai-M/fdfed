@@ -75,14 +75,23 @@ const options = {
           scheme: "bearer",
           bearerFormat: "JWT",
         },
+        accessTokenCookie: {
+          type: "apiKey",
+          in: "cookie",
+          name: "access_token",
+        },
+        adminTokenCookie: {
+          type: "apiKey",
+          in: "cookie",
+          name: "admin_access_token",
+        },
+        supervisorTokenCookie: {
+          type: "apiKey",
+          in: "cookie",
+          name: "supervisor_access_token",
+        },
       },
     },
-
-    security: [
-      {
-        bearerAuth: [],
-      },
-    ],
   },
 
   apis: ["./routes/**/*.js"],
@@ -111,7 +120,19 @@ mongoose.connect(process.env.MONGO).then(async() => {
 const app = express();
 app.use(helmet());
 // Swagger route
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use(
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, {
+    swaggerOptions: {
+      persistAuthorization: true,
+      requestInterceptor: (req) => {
+        req.credentials = "include";
+        return req;
+      },
+    },
+  })
+);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 

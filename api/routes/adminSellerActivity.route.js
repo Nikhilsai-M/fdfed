@@ -3,13 +3,10 @@ import {
   getTopSellerActivity,
   getSellerTrend,
 } from "../controllers/adminSellerActivity.controller.js";
-
-// ✅ Import the whole module, then pick the exported middleware safely
 import * as adminMiddleware from "../middleware/admin.middleware.js";
 
 const router = express.Router();
 
-// ✅ pick whichever export exists in your file
 const adminAuth =
   adminMiddleware.adminAuth ||
   adminMiddleware.adminauth ||
@@ -24,7 +21,45 @@ if (!adminAuth) {
   );
 }
 
+/**
+ * @swagger
+ * tags:
+ *   name: Admin Seller Activity
+ *   description: Admin seller activity analytics APIs
+ */
+
+/**
+ * @swagger
+ * /api/admin/seller-activity/top:
+ *   get:
+ *     summary: Get top seller activity metrics
+ *     tags: [Admin Seller Activity]
+ *     security:
+ *       - bearerAuth: []
+ *       - adminTokenCookie: []
+ *     responses:
+ *       200:
+ *         description: Top seller activity fetched successfully
+ *       401:
+ *         description: Unauthorized
+ */
 router.get("/top", adminAuth, getTopSellerActivity);
+
+/**
+ * @swagger
+ * /api/admin/seller-activity/trend:
+ *   get:
+ *     summary: Get seller activity trend
+ *     tags: [Admin Seller Activity]
+ *     security:
+ *       - bearerAuth: []
+ *       - adminTokenCookie: []
+ *     responses:
+ *       200:
+ *         description: Seller activity trend fetched successfully
+ *       401:
+ *         description: Unauthorized
+ */
 router.get("/trend", adminAuth, getSellerTrend);
 
 export default router;
