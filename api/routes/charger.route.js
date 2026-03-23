@@ -9,73 +9,129 @@ import {
 
 const router = express.Router();
 
-// ✅ GET all chargers
+/**
+ * @swagger
+ * tags:
+ *   name: Chargers
+ *   description: Charger management APIs
+ */
+
+/**
+ * @swagger
+ * /api/Accessories/chargers:
+ *   get:
+ *     summary: Get all chargers
+ *     tags: [Chargers]
+ *     responses:
+ *       200:
+ *         description: List of chargers
+ */
 router.get('/', async (req, res) => {
   try {
     const chargers = await getAllChargers();
     res.json(chargers);
   } catch (error) {
-    console.error('Error fetching chargers:', error);
     res.status(500).json({ message: 'Server error while fetching chargers' });
   }
 });
 
-// ✅ GET charger by ID
+/**
+ * @swagger
+ * /api/Accessories/chargers/{id}:
+ *   get:
+ *     summary: Get charger by ID
+ *     tags: [Chargers]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Charger found
+ *       404:
+ *         description: Charger not found
+ */
 router.get('/:id', async (req, res) => {
   try {
     const charger = await getChargerById(req.params.id);
-    if (!charger) {
-      return res.status(404).json({ message: 'Charger not found' });
-    }
+    if (!charger) return res.status(404).json({ message: 'Charger not found' });
     res.json(charger);
-  } catch (error) {
-    console.error('Error fetching charger by ID:', error);
-    res.status(500).json({ message: 'Server error while fetching charger' });
+  } catch {
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
-// ✅ POST new charger
+/**
+ * @swagger
+ * /api/Accessories/chargers:
+ *   post:
+ *     summary: Add a new charger
+ *     tags: [Chargers]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             example:
+ *               name: Fast Charger
+ *               price: 999
+ *     responses:
+ *       201:
+ *         description: Charger created
+ */
 router.post('/', async (req, res) => {
   try {
     const result = await addCharger(req.body);
     if (result.success) {
-      res.status(201).json({ message: 'Charger added successfully', id: result.id });
+      res.status(201).json({ message: 'Charger added', id: result.id });
     } else {
       res.status(400).json({ message: result.message });
     }
-  } catch (error) {
-    console.error('Error adding charger:', error);
-    res.status(500).json({ message: 'Server error while adding charger' });
+  } catch {
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
-// ✅ PUT update charger
+/**
+ * @swagger
+ * /api/Accessories/chargers/{id}:
+ *   put:
+ *     summary: Update charger
+ *     tags: [Chargers]
+ */
 router.put('/:id', async (req, res) => {
   try {
     const result = await updateCharger(req.params.id, req.body);
     if (result.success) {
-      res.json({ message: 'Charger updated successfully' });
+      res.json({ message: 'Updated successfully' });
     } else {
       res.status(400).json({ message: result.message });
     }
-  } catch (error) {
-    console.error('Error updating charger:', error);
-    res.status(500).json({ message: 'Server error while updating charger' });
+  } catch {
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
-// ✅ DELETE charger
+/**
+ * @swagger
+ * /api/Accessories/chargers/{id}:
+ *   delete:
+ *     summary: Delete charger
+ *     tags: [Chargers]
+ */
 router.delete('/:id', async (req, res) => {
   try {
     const result = await deleteCharger(req.params.id);
     if (result.success) {
-      res.json({ message: 'Charger deleted successfully' });
+      res.json({ message: 'Deleted successfully' });
     } else {
-      res.status(404).json({ message: 'Charger not found' });
+      res.status(404).json({ message: 'Not found' });
     }
-  } catch (error) {
-    console.error('Error deleting charger:', error);
-    res.status(500).json({ message: 'Server error while deleting charger' });
+  } catch {
+    res.status(500).json({ message: 'Server error' });
   }
 });
 

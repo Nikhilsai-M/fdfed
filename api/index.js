@@ -51,6 +51,29 @@ import SellerOrderRoutes from "./routes/sellerOrders.route.js"
 import SellerProfileRoutes from "./routes/sellerProfile.route.js"
 dotenv.config({ path: '../.env' });
 import adminSellerActivityRoutes from "./routes/adminSellerActivity.route.js";
+import swaggerUi from "swagger-ui-express";
+import swaggerJsdoc from "swagger-jsdoc";
+
+const options = {
+  definition: {
+    openapi: "3.0.0",
+    info: {
+      title: "API Documentation",
+      version: "1.0.0",
+      description: "API documentation for Smart Exchange",
+    },
+    servers: [
+      {
+        url: "http://localhost:3000",
+      },
+    ],
+  },
+  apis: ["./routes/*.js"], 
+};
+
+const swaggerSpec = swaggerJsdoc(options);
+
+
 
 mongoose.connect(process.env.MONGO).then(async() => {
   console.log("Connected to MongoDB successfully!!!");
@@ -70,6 +93,8 @@ mongoose.connect(process.env.MONGO).then(async() => {
 
 const app = express();
 app.use(helmet());
+// Swagger route
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
