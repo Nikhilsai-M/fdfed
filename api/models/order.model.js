@@ -23,6 +23,22 @@ const orderSchema = new mongoose.Schema({
     required: true
   },
 
+  payment_status: {
+    type: String,
+    enum: ["pending", "success", "failed"],
+    default: "pending"
+  },
+
+  payment_id: {
+    type: String,
+    default: null
+  },
+
+  razorpay_order_id: {
+    type: String,
+    default: null
+  },
+
   order_status: {
     type: String,
     default: "Pending"
@@ -34,6 +50,6 @@ const orderSchema = new mongoose.Schema({
   }
 
 });
-const Order = mongoose.model("Order", orderSchema);
+const Order = mongoose.models.Order || mongoose.model("Order", orderSchema);
 
 export default Order;

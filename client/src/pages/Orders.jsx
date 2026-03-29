@@ -1,17 +1,40 @@
-import React, { useEffect, useState, useRef } from "react";
-import { useParams, Link } from "react-router-dom";
+import React, { useEffect, useRef, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Download, ArrowLeft } from "lucide-react";
+import { useAppSelector } from "../hooks/redux";
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 
 const Orders = () => {
   const { orderId } = useParams();
   const [order, setOrder] = useState(null);
+  const [error, setError] = useState("");
   const billRef = useRef();
+  const { token } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
-    const data = localStorage.getItem(orderId);
-    if (data) setOrder(JSON.parse(data));
-  }, [orderId]);
+    const fetchOrder = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}`, {
+          credentials: "include",
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+          throw new Error(result.message || "Order not found");
+        }
+
+        setOrder(result.order);
+      } catch (fetchError) {
+        console.error("Order fetch error:", fetchError);
+        setError(fetchError.message || "Order not found");
+      }
+    };
+
+    fetchOrder();
+  }, [orderId, token]);
 
   const getItemDisplayName = (item) => {
     const acc = item.accessory;
@@ -19,9 +42,9 @@ const Orders = () => {
 
     switch (item.type) {
       case "phone":
-        return `${acc.brand} ${acc.model} - ${acc.ram} RAM, ${acc.rom} Storage`;
+        return `${acc.brand || ""} ${acc.model || ""} - ${acc.ram || ""} RAM, ${acc.rom || ""} Storage`;
       case "laptop":
-        return acc.name || `${acc.brand} ${acc.series} - ${acc.ram} RAM`;
+        return acc.name || `${acc.brand || ""} ${acc.series || ""} - ${acc.ram || ""} RAM`;
       default:
         return acc.title || acc.name || acc.brand || "Unnamed Item";
     }
@@ -30,10 +53,11 @@ const Orders = () => {
   const downloadTextBill = () => {
     if (!order) return;
 
-    let text = `🧾 Order Invoice\n=========================\n`;
+    let text = `Order Invoice\n=========================\n`;
     text += `Order ID: ${order.orderId}\n`;
     text += `Date: ${new Date(order.timestamp).toLocaleString()}\n`;
     text += `Payment Mode: ${order.paymentMethod}\n`;
+    text += `Payment Status: ${order.paymentStatus || "pending"}\n`;
     text += `-------------------------\nItems:\n`;
 
     order.items.forEach((item, idx) => {
@@ -42,16 +66,12 @@ const Orders = () => {
       const unit = (item.amount / qty).toFixed(2);
       const total = item.amount.toFixed(2);
 
-      text += `${idx + 1}. ${title}\n   Qty: ${qty}, Unit: ₹${unit}, Total: ₹${total}\n`;
+      text += `${idx + 1}. ${title}\n   Qty: ${qty}, Unit: Rs.${unit}, Total: Rs.${total}\n`;
     });
 
     text += `-------------------------\n`;
-    text += `Subtotal: ₹${order.subtotal.toFixed(2)}\n`;
-    text += `Shipping: ₹${order.shipping.toFixed(2)}\n`;
-    if (order.discountAmount > 0)
-      text += `Discount: -₹${order.discountAmount.toFixed(2)}\n`;
-    text += `TOTAL: ₹${order.totalAmount.toFixed(2)}\n`;
-    text += `=========================\nThank you for your purchase 🙌\n`;
+    text += `TOTAL: Rs.${Number(order.totalAmount || 0).toFixed(2)}\n`;
+    text += `=========================\nThank you for your purchase.\n`;
 
     const blob = new Blob([text], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
@@ -62,15 +82,24 @@ const Orders = () => {
     URL.revokeObjectURL(url);
   };
 
-  if (!order)
+  if (error) {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center">
-        <p className="text-gray-600">Order not found.</p>
+        <p className="text-gray-600">{error}</p>
         <Link to="/myorders" className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg">
           View All Orders
         </Link>
       </div>
     );
+  }
+
+  if (!order) {
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center">
+        <p className="text-gray-600">Loading order...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">
@@ -85,12 +114,18 @@ const Orders = () => {
           <span className="text-gray-600">#{order.orderId}</span>
         </div>
 
-        <div className="mb-6 text-gray-700">
+        <div className="mb-6 text-gray-700 grid gap-2 md:grid-cols-2">
           <p>
             <strong>Date:</strong> {new Date(order.timestamp).toLocaleString()}
           </p>
           <p>
             <strong>Payment Method:</strong> {order.paymentMethod}
+          </p>
+          <p>
+            <strong>Payment Status:</strong> {order.paymentStatus || "pending"}
+          </p>
+          <p>
+            <strong>Order Status:</strong> {order.orderStatus || "Pending"}
           </p>
         </div>
 
@@ -124,28 +159,16 @@ const Orders = () => {
                 </td>
 
                 <td className="p-3">{item.quantity}</td>
-                <td className="p-3">
-                  ₹{(item.amount / item.quantity).toFixed(2)}
-                </td>
+                <td className="p-3">₹{(item.amount / item.quantity).toFixed(2)}</td>
                 <td className="p-3">₹{item.amount.toFixed(2)}</td>
               </tr>
             ))}
           </tbody>
         </table>
 
-        {/* FIXED PRICE SUMMARY */}
         <div className="text-right mt-6 space-y-1 text-gray-800">
-          <p>Subtotal: ₹{order.subtotal.toFixed(2)}</p>
-          <p>Shipping: ₹{order.shipping.toFixed(2)}</p>
-
-          {order.discountAmount > 0 && (
-            <p className="text-green-600">
-              Discount: -₹{order.discountAmount.toFixed(2)}
-            </p>
-          )}
-
           <p className="text-xl font-semibold border-t pt-2">
-            Total: ₹{order.totalAmount.toFixed(2)}
+            Total: ₹{Number(order.totalAmount || 0).toFixed(2)}
           </p>
         </div>
       </motion.div>

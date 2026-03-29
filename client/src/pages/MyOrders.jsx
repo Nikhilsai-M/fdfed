@@ -1,19 +1,27 @@
 // src/components/MyOrders.jsx
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion'; 
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
+import { useAppSelector } from '../hooks/redux';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
 const MyOrders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const location = useLocation();
+  const { token } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await fetch('/api/myorders');
+        const response = await fetch(`${API_BASE_URL}/api/myorders`, {
+          credentials: 'include',
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
         if (!response.ok) {
           throw new Error(`HTTP error: ${response.status}`);
         }
@@ -31,7 +39,18 @@ const MyOrders = () => {
     };
 
     fetchOrders();
-  }, []);
+  }, [token]);
+
+  const getPaymentBadgeStyles = (status) => {
+    switch ((status || '').toLowerCase()) {
+      case 'success':
+        return 'bg-emerald-100 text-emerald-700';
+      case 'failed':
+        return 'bg-red-100 text-red-700';
+      default:
+        return 'bg-amber-100 text-amber-700';
+    }
+  };
 
   const getItemDisplayName = (item) => {
     const acc = item.accessory;
@@ -108,6 +127,16 @@ const MyOrders = () => {
           <h1 className="text-4xl font-bold text-gray-800 mb-4">My Orders</h1>
           <p className="text-gray-600">Track and review your purchase history</p>
         </motion.div>
+
+        {location.state?.paymentSuccess ? (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-emerald-800"
+          >
+            Payment completed successfully. {location.state?.orderId ? `Order ${location.state.orderId} is confirmed.` : 'Your order is confirmed.'}
+          </motion.div>
+        ) : null}
 
         <motion.div
           variants={containerVariants}
@@ -188,6 +217,9 @@ const MyOrders = () => {
                     <div className="text-right">
                       <span className="block text-2xl font-bold text-green-600">₹{(order.totalAmount || 0).toLocaleString('en-IN')}</span>
                       <span className="text-sm text-gray-500">Total Paid</span>
+                      <span className={`mt-3 inline-flex rounded-full px-3 py-1 text-xs font-semibold ${getPaymentBadgeStyles(order.paymentStatus)}`}>
+                        Payment: {(order.paymentStatus || 'pending').toUpperCase()}
+                      </span>
                     </div>
                   </div>
 
@@ -197,6 +229,12 @@ const MyOrders = () => {
                     <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
                       <span className="font-medium text-blue-700">Payment Method</span>
                       <span className="font-semibold text-gray-800">{order.paymentMethod ? order.paymentMethod.charAt(0).toUpperCase() + order.paymentMethod.slice(1) : 'N/A'}</span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-violet-50 rounded-lg">
+                      <span className="font-medium text-violet-700">Payment Status</span>
+                      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${getPaymentBadgeStyles(order.paymentStatus)}`}>
+                        {(order.paymentStatus || 'pending').toUpperCase()}
+                      </span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
                       <span className="font-medium text-green-700">Order Date</span>

@@ -9,6 +9,7 @@ import { errorHandler } from '../utils/error.js';
 
 
 import Order from '../models/order.model.js';
+import OrderItem from '../models/orderitem.model.js';
 import { Supervisor } from '../models/supervisor.model.js';
 import bcrypt from 'bcryptjs';
 import { getAllSupervisors, deleteSupervisor } from '../crud/supervisors.js'; 
@@ -17,6 +18,7 @@ export const getStatistics = async (req, res) => {
  try {
  const now = new Date();
  const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+ const paidOrderMatch = { payment_status: "success" };
 
 
 const calculateTrend = (current, previous) => {
@@ -47,57 +49,56 @@ return parseFloat(((current - previous) / previous * 100).toFixed(2));
       ]).then(counts => counts.reduce((sum, count) => sum + count, 0)),
     ]);
     
-    
-    const [totalSales, prevTotalSales] = await Promise.all([
-      Promise.all([
-        PhoneApplication.countDocuments({ status: 'approved' }),
-        LaptopApplication.countDocuments({ status: 'approved' }),
-        Charger.countDocuments(),
-        Earphone.countDocuments(),
-        Mouse.countDocuments(),
-        Smartwatch.countDocuments(),
-      ]).then(counts => counts.reduce((sum, count) => sum + count, 0)),
-      Promise.all([
-        PhoneApplication.countDocuments({ status: 'approved', createdAt: { $lte: oneWeekAgo } }),
-        LaptopApplication.countDocuments({ status: 'approved', createdAt: { $lte: oneWeekAgo } }),
-        Charger.countDocuments({ createdAt: { $lte: oneWeekAgo } }),
-        Earphone.countDocuments({ createdAt: { $lte: oneWeekAgo } }),
-        Mouse.countDocuments({ createdAt: { $lte: oneWeekAgo } }),
-        Smartwatch.countDocuments({ createdAt: { $lte: oneWeekAgo } }),
-      ]).then(counts => counts.reduce((sum, count) => sum + count, 0)),
-    ]);
-
-    
-    const salesByCategory = await Promise.all([
-      PhoneApplication.countDocuments({ status: 'approved' }),
-      LaptopApplication.countDocuments({ status: 'approved' }),
-      Charger.countDocuments(),
-      Earphone.countDocuments(),
-      Mouse.countDocuments(),
-      Smartwatch.countDocuments(),
-    ]).then(counts => ({
-      phones: counts[0],
-      laptops: counts[1],
-      chargers: counts[2],
-      earphones: counts[3],
-      mouses: counts[4],
-      smartwatches: counts[5],
- }));
-
-    const [orders, prevOrders] = await Promise.all([
-        
-        Order.aggregate([
-            { $group: { _id: null, total: { $sum: '$total_amount' } } },
-        ]),
-        
-        Order.aggregate([
-            { $match: { createdAt: { $lte: oneWeekAgo } } }, 
-            { $group: { _id: null, total: { $sum: '$total_amount' } } },
-        ]),
+    const [paidOrders, prevPaidOrders] = await Promise.all([
+      Order.find(paidOrderMatch).select({ order_id: 1, total_amount: 1, created_at: 1 }).lean(),
+      Order.find({
+        ...paidOrderMatch,
+        created_at: { $lte: oneWeekAgo }
+      }).select({ order_id: 1, total_amount: 1 }).lean(),
     ]);
 
-    const totalSalesRevenue = orders[0]?.total || 0;
-    const prevTotalSalesRevenue = prevOrders[0]?.total || 0;
+    const paidOrderIds = paidOrders.map((order) => order.order_id);
+    const paidOrderItems = paidOrderIds.length
+      ? await OrderItem.find({ order_id: { $in: paidOrderIds } }).lean()
+      : [];
+
+    const totalSales = paidOrderItems.reduce((sum, item) => sum + (item.quantity || 0), 0);
+
+    const prevWeekStart = new Date(oneWeekAgo.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const currentWeekOrderIds = paidOrders
+      .filter((order) => order.created_at >= oneWeekAgo)
+      .map((order) => order.order_id);
+    const previousWeekOrderIds = paidOrders
+      .filter((order) => order.created_at >= prevWeekStart && order.created_at < oneWeekAgo)
+      .map((order) => order.order_id);
+
+    const [currentWeekItems, previousWeekItems] = await Promise.all([
+      currentWeekOrderIds.length ? OrderItem.find({ order_id: { $in: currentWeekOrderIds } }).lean() : [],
+      previousWeekOrderIds.length ? OrderItem.find({ order_id: { $in: previousWeekOrderIds } }).lean() : [],
+    ]);
+
+    const prevTotalSales = previousWeekItems.reduce((sum, item) => sum + (item.quantity || 0), 0);
+
+    const salesByCategory = paidOrderItems.reduce((acc, item) => {
+      const quantity = item.quantity || 0;
+      if (item.item_type === 'phone') acc.phones += quantity;
+      else if (item.item_type === 'laptop') acc.laptops += quantity;
+      else if (item.item_type === 'charger') acc.chargers += quantity;
+      else if (item.item_type === 'earphone') acc.earphones += quantity;
+      else if (item.item_type === 'mouse') acc.mouses += quantity;
+      else if (item.item_type === 'smartwatch') acc.smartwatches += quantity;
+      return acc;
+    }, {
+      phones: 0,
+      laptops: 0,
+      chargers: 0,
+      earphones: 0,
+      mouses: 0,
+      smartwatches: 0,
+    });
+
+    const totalSalesRevenue = paidOrders.reduce((sum, order) => sum + (order.total_amount || 0), 0);
+    const prevTotalSalesRevenue = prevPaidOrders.reduce((sum, order) => sum + (order.total_amount || 0), 0);
 
  
  const statistics = {

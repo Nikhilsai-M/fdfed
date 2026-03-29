@@ -53,6 +53,7 @@ dotenv.config({ path: '../.env' });
 import adminSellerActivityRoutes from "./routes/adminSellerActivity.route.js";
 import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
+import paymentRouter from "./modules/payment/payment.routes.js";
 
 const options = {
   definition: {
@@ -212,6 +213,7 @@ app.use("/api/seller",SellerProfileRoutes);
 app.use("/api/admin/product-analytics", adminProductAnalyticsRouter);
 app.use("/api/admin/sales-analytics", adminSalesAnalyticsRouter);
 app.use("/api/admin/seller-activity", adminSellerActivityRoutes);
+app.use("/api/payment", paymentRouter);
 
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
