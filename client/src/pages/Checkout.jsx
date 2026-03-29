@@ -6,7 +6,6 @@ const Checkout = () => {
 
   const [userId, setUserId] = useState(null);
   const [cart, setCart] = useState([]);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
   const [message, setMessage] = useState({ text: "", type: "" });
   const [isProcessing, setIsProcessing] = useState(false);
   const [couponCode, setCouponCode] = useState("");
@@ -156,23 +155,10 @@ const Checkout = () => {
     }
   };
 
-
-
-  const handlePaymentSelect = (method) => {
-    setSelectedPaymentMethod(method);
-  };
-
-
-
   const handlePay = async () => {
 
     if (cart.length === 0) {
       setMessage({ text: "Your cart is empty.", type: "error" });
-      return;
-    }
-
-    if (!selectedPaymentMethod) {
-      setMessage({ text: "Please select a payment method.", type: "error" });
       return;
     }
 
@@ -191,83 +177,35 @@ const Checkout = () => {
     }
 
     setIsProcessing(true);
-    setMessage({ text: "Processing payment...", type: "info" });
+    setMessage({ text: "Redirecting to secure payment...", type: "info" });
 
-    try {
+    const checkoutData = {
+      source: "cart",
+      userId,
+      paymentMethod: "razorpay",
+      subtotal,
+      shipping,
+      discountAmount,
+      discountPercent,
+      totalAmount: total,
+      items: cart.map((item) => ({
+        type: determineItemType(item),
+        id: item._id || item.id,
+        seller_id: item.seller_id || item.sellerId || null,
+        accessory: sanitizeAccessory(item),
+        quantity: item.quantity || 1,
+        amount: calculateItemTotal(item),
+      })),
+    };
 
-      const orderData = {
+    navigate("/payment", {
+      state: {
+        checkoutData,
+      },
+    });
 
-        totalAmount: total,
-        paymentMethod: selectedPaymentMethod,
-
-        items: cart.map((item) => ({
-
-          type: determineItemType(item),
-          id: item._id || item.id,
-          seller_id: item.seller_id,
-          accessory: sanitizeAccessory(item),
-          quantity: item.quantity || 1,
-          amount: calculateItemTotal(item),
-
-        })),
-
-      };
-
-      const response = await fetch("/api/orders", {
-
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(orderData),
-
-      });
-
-      const result = await response.json();
-
-      if (!result.success) {
-        throw new Error(result.message || "Order creation failed");
-      }
-
-      const userCartKey = `cart_user_${userId}`;
-      localStorage.setItem(userCartKey, JSON.stringify([]));
-
-      setCart([]);
-
-      setMessage({
-        text: "Payment successful!",
-        type: "success",
-      });
-
-      setTimeout(() => {
-
-        navigate(`/myorders`);
-
-      }, 1500);
-
-    } catch (error) {
-
-      console.error("Payment error:", error);
-
-      setMessage({
-        text: `Payment failed: ${error.message}`,
-        type: "error",
-      });
-
-    } finally {
-
-      setIsProcessing(false);
-    }
+    setIsProcessing(false);
   };
-
-
-
-  const paymentMethods = [
-
-    { method: "card", icon: "fa-credit-card", label: "Credit/Debit Card" },
-    { method: "netbanking", icon: "fa-university", label: "Net Banking" },
-    { method: "upi", icon: "fa-mobile-alt", label: "UPI" },
-    { method: "cod", icon: "fa-money-bill", label: "Cash on Delivery" },
-
-  ];
 
 
 
@@ -351,30 +289,10 @@ const Checkout = () => {
 
 
         <div className="bg-white rounded-xl p-6 shadow">
-
-          <h2 className="text-xl font-bold mb-4">Payment Method</h2>
-
-          <div className="grid grid-cols-2 gap-3 mb-4">
-
-            {paymentMethods.map((pm) => (
-
-              <button
-                key={pm.method}
-                onClick={() => handlePaymentSelect(pm.method)}
-                className={`p-3 border rounded ${
-                  selectedPaymentMethod === pm.method
-                    ? "border-blue-500"
-                    : ""
-                }`}
-              >
-
-                {pm.label}
-
-              </button>
-
-            ))}
-
-          </div>
+          <h2 className="text-xl font-bold mb-4">Secure Payment</h2>
+          <p className="mb-4 text-gray-600">
+            Continue to Razorpay to pay using card, UPI, net banking, or wallet.
+          </p>
 
 
 

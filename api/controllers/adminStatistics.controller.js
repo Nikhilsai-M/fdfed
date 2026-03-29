@@ -3,7 +3,7 @@ import LaptopApplication from "../models/laptopApplication.model.js";
 import Phone from "../models/phone.model.js";
 import Laptop from "../models/laptop.model.js";
 import Order from "../models/order.model.js";
-import OrderItem from "../models/orderItem.model.js";
+import OrderItem from "../models/orderitem.model.js";
 
 const pct = (cur, prev) => {
   if (!prev) return cur ? 100 : 0;

@@ -1,6 +1,6 @@
 import Counter from "../models/counter.model.js";
 import Order from "../models/order.model.js";
-import OrderItem from "../models/orderItem.model.js";
+import OrderItem from "../models/orderitem.model.js";
 import User from "../models/user.model.js";
 
 import Charger from "../models/charger.model.js";
@@ -10,13 +10,19 @@ import Smartwatch from "../models/smartwatch.model.js";
 import Phone from "../models/phone.model.js";
 import Laptop from "../models/laptop.model.js";
 
-export async function createOrder(userId, totalAmount, paymentMethod, items) {
+export async function createOrder(userId, totalAmount, paymentMethod, items, options = {}) {
   try {
     if (!userId || !totalAmount || !paymentMethod || !Array.isArray(items) || items.length === 0) {
       return { success: false, message: "Invalid order data" };
     }
 
-    // 🔥 Auto-increment order ID
+    const {
+      orderStatus = "Confirmed",
+      paymentStatus = paymentMethod === "cod" ? "pending" : "success",
+      paymentId = null,
+      razorpayOrderId = null,
+    } = options;
+
     const counter = await Counter.findOneAndUpdate(
       { _id: "order_id" },
       { $inc: { seq: 1 } },
@@ -88,7 +94,10 @@ export async function createOrder(userId, totalAmount, paymentMethod, items) {
       user_id: userId,
       total_amount: totalAmount,
       payment_method: paymentMethod,
-      status: "pending",
+      payment_status: paymentStatus,
+      payment_id: paymentId,
+      razorpay_order_id: razorpayOrderId,
+      order_status: orderStatus,
       created_at: new Date(),
     });
 
@@ -163,6 +172,10 @@ export async function getOrdersByUserId(userId) {
       orderId: order.order_id,
       totalAmount: order.total_amount,
       paymentMethod: order.payment_method,
+      paymentStatus: order.payment_status || "pending",
+      orderStatus: order.order_status || "Pending",
+      paymentId: order.payment_id || null,
+      razorpayOrderId: order.razorpay_order_id || null,
       timestamp: order.created_at,
       items: orderItems
         .filter((item) => item.order_id === order.order_id)
@@ -193,6 +206,10 @@ export async function getAllOrders() {
       orderId: order.order_id,
       totalAmount: order.total_amount,
       paymentMethod: order.payment_method,
+      paymentStatus: order.payment_status || "pending",
+      orderStatus: order.order_status || "Pending",
+      paymentId: order.payment_id || null,
+      razorpayOrderId: order.razorpay_order_id || null,
       timestamp: order.created_at,
       items: orderItems
         .filter((item) => item.order_id === order.order_id)
