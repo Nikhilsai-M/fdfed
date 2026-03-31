@@ -14,6 +14,48 @@ import { Supervisor } from '../models/supervisor.model.js';
 import bcrypt from 'bcryptjs';
 import { getAllSupervisors, deleteSupervisor } from '../crud/supervisors.js'; 
 
+const validateSupervisorPayload = ({
+  firstName,
+  lastName,
+  email,
+  phone,
+  username,
+  password,
+  type,
+}) => {
+  const nameRegex = /^[a-zA-Z\s]+$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const phoneRegex = /^[0-9]{10}$/;
+
+  if (!firstName) return 'First name is required';
+  if (firstName.length < 2) return 'First name must be at least 2 characters';
+  if (!nameRegex.test(firstName)) return 'First name must contain only alphabets';
+
+  if (!lastName) return 'Last name is required';
+  if (lastName.length < 2) return 'Last name must be at least 2 characters';
+  if (!nameRegex.test(lastName)) return 'Last name must contain only alphabets';
+
+  if (!email) return 'Email is required';
+  if (!emailRegex.test(email)) return 'Please enter a valid email address';
+
+  if (!phone) return 'Phone is required';
+  if (!/^[0-9]+$/.test(phone)) return 'Phone must contain only digits';
+  if (!phoneRegex.test(phone)) return 'Phone must be exactly 10 digits';
+
+  if (!username) return 'Username is required';
+  if (username.length < 3) return 'Username must be at least 3 characters';
+
+  if (!password) return 'Password is required';
+  if (password.length < 6) return 'Password must be at least 6 characters';
+  if (password.length > 50) return 'Password must be less than 50 characters';
+
+  if (!type || !['phone', 'laptop'].includes(type)) {
+    return 'Supervisor type must be "phone" or "laptop"';
+  }
+
+  return null;
+};
+
 export const getStatistics = async (req, res) => {
  try {
  const now = new Date();
@@ -124,11 +166,26 @@ totalSales,
 
 export const addSupervisor = async (req, res, next) => {
   try {
-    const { firstName, lastName, email, phone, username, password, type } = req.body;
+    const firstName = req.body.firstName?.trim();
+    const lastName = req.body.lastName?.trim();
+    const email = req.body.email?.trim().toLowerCase();
+    const phone = req.body.phone?.trim();
+    const username = req.body.username?.trim().toLowerCase();
+    const password = req.body.password;
+    const type = req.body.type?.trim().toLowerCase();
 
-    // Validate type
-    if (!type || !['phone', 'laptop'].includes(type)) {
-      return next(errorHandler(400, 'Supervisor type must be "phone" or "laptop"'));
+    const validationError = validateSupervisorPayload({
+      firstName,
+      lastName,
+      email,
+      phone,
+      username,
+      password,
+      type,
+    });
+
+    if (validationError) {
+      return next(errorHandler(400, validationError));
     }
 
     // Check for duplicates

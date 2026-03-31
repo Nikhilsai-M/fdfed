@@ -3,7 +3,7 @@ import {
   getPaymentPublicConfig,
   getPaymentStatus,
   verifyPayment,
-} from "./payment.service.js";
+} from "../services/payment.service.js";
 
 export async function createOrderController(req, res) {
   try {

@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import Razorpay from "razorpay";
-import Payment from "./payment.model.js";
-import { createOrder } from "../../crud/orders.js";
+import Payment from "../models/payment.model.js";
+import { createOrder } from "../crud/orders.js";
 
 const CURRENCY = "INR";
 
@@ -47,9 +47,8 @@ function buildLog(prefix, data = {}) {
   return `[${new Date().toISOString()}] ${prefix} ${JSON.stringify(data)}`;
 }
 
-// ✅ SHORT RECEIPT GENERATOR
 function generateReceipt() {
-  return `rcpt_${Date.now()}`; // ALWAYS < 40 chars
+  return `rcpt_${Date.now()}`;
 }
 
 export async function createPaymentOrder({
@@ -72,12 +71,10 @@ export async function createPaymentOrder({
   if (razorpay) {
     const receipt = generateReceipt();
 
-    console.log("Receipt:", receipt, "Length:", receipt.length); // debug
-
     razorpayOrder = await razorpay.orders.create({
       amount: amountInPaise,
       currency,
-      receipt, // ✅ FIXED
+      receipt,
       notes: {
         userId,
         source: "marketplace-checkout",
@@ -118,7 +115,6 @@ export async function createPaymentOrder({
   };
 }
 
-// ✅ VERIFY PAYMENT (unchanged but clean)
 export async function verifyPayment({
   userId,
   razorpay_order_id,
