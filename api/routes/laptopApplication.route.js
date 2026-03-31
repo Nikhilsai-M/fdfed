@@ -102,6 +102,11 @@ router.get('/', getLaptopApplications);
  *               status: approved
  *               price: 28000
  *               rejection_reason: Cosmetic damage
+ *     responses:
+ *       200:
+ *         description: Laptop application status updated successfully
+ *       404:
+ *         description: Laptop application not found
  */
 router.put('/:id/status', updateLaptopApplicationStatus);
 

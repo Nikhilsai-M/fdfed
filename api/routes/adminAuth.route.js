@@ -36,8 +36,8 @@ const router = express.Router();
  *                 type: string
  *             example:
  *               username: ADMIN001
- *               password: adminPassword123
- *               securityToken: ADM-TOKEN-123
+ *               password: Admin@123
+ *               securityToken: TOKEN001
  *     responses:
  *       200:
  *         description: Admin signed in successfully

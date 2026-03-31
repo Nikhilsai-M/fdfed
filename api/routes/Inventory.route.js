@@ -76,6 +76,13 @@ router.post("/", verifySupervisor, addInventoryItem);
  *         required: true
  *         schema:
  *           type: string
+ *     responses:
+ *       200:
+ *         description: Inventory item updated successfully
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Inventory item not found
  */
 router.put("/:type/:id", verifySupervisor, updateInventoryItem);
 
@@ -98,6 +105,13 @@ router.put("/:type/:id", verifySupervisor, updateInventoryItem);
  *         required: true
  *         schema:
  *           type: string
+ *     responses:
+ *       200:
+ *         description: Inventory item deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Inventory item not found
  */
 router.delete("/:type/:id", verifySupervisor, deleteInventoryItem);
 

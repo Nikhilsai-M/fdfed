@@ -25,13 +25,6 @@ const router = express.Router();
  *     responses:
  *       200:
  *         description: List of earphones
- *         content:
- *           application/json:
- *             example:
- *               - name: Bluetooth Earbuds
- *                 price: 1999
- *       500:
- *         description: Server error
  */
 router.get('/', async (req, res) => {
   try {
@@ -81,9 +74,50 @@ router.get('/:id', async (req, res) => {
  *       required: true
  *       content:
  *         application/json:
- *           example:
- *             name: Bluetooth Earbuds
- *             price: 1999
+ *           schema:
+ *             type: object
+ *             required:
+ *               - id
+ *               - title
+ *               - image
+ *               - brand
+ *               - originalPrice
+ *               - discount
+ *               - design
+ *               - batteryLife
+ *               - sellerId
+ *             properties:
+ *               id:
+ *                 type: string
+ *               title:
+ *                 type: string
+ *               image:
+ *                 type: string
+ *               brand:
+ *                 type: string
+ *               originalPrice:
+ *                 type: number
+ *               discount:
+ *                 type: number
+ *               design:
+ *                 type: string
+ *               batteryLife:
+ *                 type: string
+ *               sellerId:
+ *                 type: string
+ *               stock:
+ *                 type: integer
+ *             example:
+ *               id: ear101
+ *               title: Bluetooth Earbuds
+ *               image: earbuds.webp
+ *               brand: Boat
+ *               originalPrice: 1999
+ *               discount: 20
+ *               design: Earbuds
+ *               batteryLife: 40 hours
+ *               sellerId: 67f123abc456def789012345
+ *               stock: 15
  *     responses:
  *       201:
  *         description: Earphone created
@@ -112,6 +146,49 @@ router.post('/', async (req, res) => {
  *   put:
  *     summary: Update earphone
  *     tags: [Earphones]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               image:
+ *                 type: string
+ *               brand:
+ *                 type: string
+ *               originalPrice:
+ *                 type: number
+ *               discount:
+ *                 type: number
+ *               design:
+ *                 type: string
+ *               batteryLife:
+ *                 type: string
+ *               stock:
+ *                 type: integer
+ *               sellerId:
+ *                 type: string
+ *               isActive:
+ *                 type: boolean
+ *             example:
+ *               title: Bluetooth Earbuds Pro
+ *               image: earbuds-pro.webp
+ *               brand: Boat
+ *               originalPrice: 2499
+ *               discount: 15
+ *               design: Earbuds
+ *               batteryLife: 45 hours
+ *               stock: 12
+ *               isActive: true
  *     responses:
  *       200:
  *         description: Earphone updated

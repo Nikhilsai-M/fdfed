@@ -25,13 +25,6 @@ const router = express.Router();
  *     responses:
  *       200:
  *         description: List of mouses
- *         content:
- *           application/json:
- *             example:
- *               - name: Gaming Mouse
- *                 price: 1499
- *       500:
- *         description: Server error
  */
 router.get('/', async (req, res) => {
   try {
@@ -80,9 +73,53 @@ router.get('/:id', async (req, res) => {
  *       required: true
  *       content:
  *         application/json:
- *           example:
- *             name: Gaming Mouse
- *             price: 1499
+ *           schema:
+ *             type: object
+ *             required:
+ *               - id
+ *               - title
+ *               - image
+ *               - brand
+ *               - originalPrice
+ *               - discount
+ *               - type
+ *               - connectivity
+ *               - resolution
+ *             properties:
+ *               id:
+ *                 type: string
+ *               title:
+ *                 type: string
+ *               image:
+ *                 type: string
+ *               brand:
+ *                 type: string
+ *               originalPrice:
+ *                 type: number
+ *               discount:
+ *                 type: number
+ *               type:
+ *                 type: string
+ *               connectivity:
+ *                 type: string
+ *               resolution:
+ *                 type: string
+ *               sellerId:
+ *                 type: string
+ *               stock:
+ *                 type: integer
+ *             example:
+ *               id: mouse101
+ *               title: Gaming Mouse
+ *               image: gaming-mouse.webp
+ *               brand: Logitech
+ *               originalPrice: 1499
+ *               discount: 10
+ *               type: Wireless
+ *               connectivity: Bluetooth & USB
+ *               resolution: "4600"
+ *               sellerId: 67f123abc456def789012345
+ *               stock: 8
  *     responses:
  *       201:
  *         description: Mouse created
@@ -106,6 +143,52 @@ router.post('/', async (req, res) => {
  *   put:
  *     summary: Update mouse
  *     tags: [Mouses]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               image:
+ *                 type: string
+ *               brand:
+ *                 type: string
+ *               originalPrice:
+ *                 type: number
+ *               discount:
+ *                 type: number
+ *               type:
+ *                 type: string
+ *               connectivity:
+ *                 type: string
+ *               resolution:
+ *                 type: string
+ *               sellerId:
+ *                 type: string
+ *               stock:
+ *                 type: integer
+ *               isActive:
+ *                 type: boolean
+ *             example:
+ *               title: Gaming Mouse Plus
+ *               image: gaming-mouse-plus.webp
+ *               brand: Logitech
+ *               originalPrice: 1699
+ *               discount: 12
+ *               type: Wireless
+ *               connectivity: Bluetooth & USB
+ *               resolution: "5600"
+ *               stock: 10
+ *               isActive: true
  *     responses:
  *       200:
  *         description: Updated successfully
