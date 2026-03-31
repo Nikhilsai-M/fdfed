@@ -40,6 +40,9 @@ const router = express.Router();
  *               - originalPrice
  *               - discount
  *             properties:
+ *               id:
+ *                 type: string
+ *                 example: "64f123abc"
  *               category:
  *                 type: string
  *                 enum: [earphone, charger, mouse, smartwatch]
