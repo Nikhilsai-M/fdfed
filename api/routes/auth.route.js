@@ -313,6 +313,7 @@ router.get("/profile", verifyToken, getUserProfile);
  * /api/auth/profile:
  *   put:
  *     summary: Update user profile
+ *     description: Updates the authenticated user's profile using the access token, so no path id is required.
  *     tags: [Auth]
  *     security:
  *       - bearerAuth: []
@@ -343,13 +344,6 @@ router.get("/profile", verifyToken, getUserProfile);
  *                     type: string
  *                   country:
  *                     type: string
- *             example:
- *               firstName: John
- *               lastName: Doe
- *               phone: "9876543210"
- *               address:
- *                 city: Bengaluru
- *                 state: Karnataka
  *     responses:
  *       200:
  *         description: Profile updated

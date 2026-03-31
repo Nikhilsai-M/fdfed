@@ -1,4 +1,6 @@
 import express from 'express';
+import upload from '../middleware/upload.middleware.js';
+import { uploadBufferToCloudinary } from '../utils/cloudinary.js';
 import {
   getAllSmartwatches,
   getSmartwatchById,
@@ -73,7 +75,7 @@ router.get('/:id', async (req, res) => {
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             required:
@@ -94,6 +96,7 @@ router.get('/:id', async (req, res) => {
  *                 type: string
  *               image:
  *                 type: string
+ *                 format: binary
  *               brand:
  *                 type: string
  *               originalPrice:
@@ -110,40 +113,43 @@ router.get('/:id', async (req, res) => {
  *                 type: string
  *               stock:
  *                 type: integer
- *             example:
- *               id: sw101
- *               title: Apple Watch
- *               image: apple-watch.webp
- *               brand: Apple
- *               originalPrice: 29999
- *               discount: 5
- *               displaySize: "41"
- *               displayType: Retina Display
- *               batteryRuntime: 18 hours
- *               sellerId: 67f123abc456def789012345
- *               stock: 6
+ *           example:
+ *             id: sw101
+ *             title: Apple Watch
+ *             brand: Apple
+ *             originalPrice: 29999
+ *             discount: 5
+ *             displaySize: "41"
+ *             displayType: Retina Display
+ *             batteryRuntime: 18 hours
+ *             sellerId: 67f123abc456def789012345
+ *             stock: 6
  *     responses:
  *       201:
  *         description: Smartwatch created
  *       400:
  *         description: Invalid input
  */
-router.post('/', async (req, res) => {
+router.post('/', upload.single('image'), async (req, res) => {
   try {
-    const result = await addSmartwatch(req.body);
+    const payload = { ...req.body };
+
+    if (req.file) {
+      const uploaded = await uploadBufferToCloudinary(req.file.buffer, 'accessories');
+      payload.image = uploaded.secure_url;
+      payload.public_id = uploaded.public_id;
+    }
+
+    const result = await addSmartwatch(payload);
     if (result.success) {
-      res.status(201).json({
-        message: 'Smartwatch added successfully',
-        id: result.id,
-      });
+      res.status(201).json({ message: 'Smartwatch created', id: result.id });
     } else {
       res.status(400).json({ message: result.message });
     }
   } catch {
-    res.status(500).json({ message: 'Server error while adding smartwatch' });
+    res.status(500).json({ message: 'Server error' });
   }
 });
-
 /**
  * @swagger
  * /api/Accessories/smartwatches/{id}:
@@ -162,6 +168,7 @@ router.post('/', async (req, res) => {
  *         application/json:
  *           schema:
  *             type: object
+ *             additionalProperties: false
  *             properties:
  *               title:
  *                 type: string
@@ -183,17 +190,6 @@ router.post('/', async (req, res) => {
  *                 type: integer
  *               isActive:
  *                 type: boolean
- *             example:
- *               title: Apple Watch Series 8
- *               image: apple-watch-series8.webp
- *               brand: Apple
- *               originalPrice: 55900
- *               discount: 8
- *               displaySize: "41"
- *               displayType: Retina Display
- *               batteryRuntime: 18 hours
- *               stock: 9
- *               isActive: true
  *     responses:
  *       200:
  *         description: Smartwatch updated
@@ -219,6 +215,12 @@ router.put('/:id', async (req, res) => {
  *   delete:
  *     summary: Delete smartwatch
  *     tags: [Smartwatches]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
  *     responses:
  *       200:
  *         description: Smartwatch deleted
@@ -239,3 +241,4 @@ router.delete('/:id', async (req, res) => {
 });
 
 export default router;
+

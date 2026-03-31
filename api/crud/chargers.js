@@ -125,7 +125,7 @@ export async function addCharger(data) {
     await Charger.create({
       id,
       title,
-      image: image.startsWith("/") ? image : prefix + image,
+      image: image.startsWith("/") || image.startsWith("http") ? image : prefix + image,
       brand,
       wattage,
       type,
@@ -165,7 +165,7 @@ export async function updateCharger(id, data) {
       {
         $set: {
           title,
-          image: image.startsWith("/") ? image : prefix + image,
+          image: image.startsWith("/") || image.startsWith("http") ? image : prefix + image,
           brand,
           wattage,
           type,

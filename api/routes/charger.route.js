@@ -1,4 +1,6 @@
 import express from 'express';
+import upload from '../middleware/upload.middleware.js';
+import { uploadBufferToCloudinary } from '../utils/cloudinary.js';
 import {
   getAllChargers,
   getChargerById,
@@ -72,7 +74,7 @@ router.get('/:id', async (req, res) => {
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             required:
@@ -93,6 +95,7 @@ router.get('/:id', async (req, res) => {
  *                 type: string
  *               image:
  *                 type: string
+ *                 format: binary
  *               brand:
  *                 type: string
  *               wattage:
@@ -109,27 +112,36 @@ router.get('/:id', async (req, res) => {
  *                 type: string
  *               stock:
  *                 type: integer
- *             example:
- *               id: chg101
- *               title: Apple 20W USB-C Power Adapter
- *               image: apple_20w.webp
- *               brand: Apple
- *               wattage: "20"
- *               type: USB C
- *               originalPrice: 1900
- *               discount: 10
- *               outputCurrent: 3A
- *               sellerId: 67f123abc456def789012345
- *               stock: 10
+ *           example:
+ *             id: chg101
+ *             title: Apple 20W USB-C Power Adapter
+ *             brand: Apple
+ *             wattage: "20"
+ *             type: USB C
+ *             originalPrice: 1900
+ *             discount: 10
+ *             outputCurrent: 3A
+ *             sellerId: 67f123abc456def789012345
+ *             stock: 10
  *     responses:
  *       201:
  *         description: Charger created
+ *       400:
+ *         description: Invalid input
  */
-router.post('/', async (req, res) => {
+router.post('/', upload.single('image'), async (req, res) => {
   try {
-    const result = await addCharger(req.body);
+    const payload = { ...req.body };
+
+    if (req.file) {
+      const uploaded = await uploadBufferToCloudinary(req.file.buffer, 'accessories');
+      payload.image = uploaded.secure_url;
+      payload.public_id = uploaded.public_id;
+    }
+
+    const result = await addCharger(payload);
     if (result.success) {
-      res.status(201).json({ message: 'Charger added', id: result.id });
+      res.status(201).json({ message: 'Charger created', id: result.id });
     } else {
       res.status(400).json({ message: result.message });
     }
@@ -137,7 +149,6 @@ router.post('/', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
-
 /**
  * @swagger
  * /api/Accessories/chargers/{id}:
@@ -156,6 +167,7 @@ router.post('/', async (req, res) => {
  *         application/json:
  *           schema:
  *             type: object
+ *             additionalProperties: false
  *             properties:
  *               title:
  *                 type: string
@@ -177,17 +189,6 @@ router.post('/', async (req, res) => {
  *                 type: integer
  *               isActive:
  *                 type: boolean
- *             example:
- *               title: Apple 20W USB-C Power Adapter
- *               image: apple_20w.webp
- *               brand: Apple
- *               wattage: "20"
- *               type: USB C
- *               originalPrice: 1900
- *               discount: 12
- *               outputCurrent: 3A
- *               stock: 14
- *               isActive: true
  *     responses:
  *       200:
  *         description: Charger updated successfully
@@ -215,6 +216,12 @@ router.put('/:id', async (req, res) => {
  *   delete:
  *     summary: Delete charger
  *     tags: [Chargers]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
  *     responses:
  *       200:
  *         description: Charger deleted successfully
@@ -235,3 +242,4 @@ router.delete('/:id', async (req, res) => {
 });
 
 export default router;
+
