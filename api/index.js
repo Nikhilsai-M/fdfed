@@ -53,7 +53,7 @@ dotenv.config({ path: '../.env' });
 import adminSellerActivityRoutes from "./routes/adminSellerActivity.route.js";
 import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
-import paymentRouter from "./modules/payment/payment.routes.js";
+import paymentRouter from "./routes/payment.route.js";
 
 const options = {
   definition: {
@@ -95,7 +95,7 @@ const options = {
     },
   },
 
-  apis: ["./routes/**/*.js", "./modules/**/*.js"],
+  apis: ["./routes/**/*.js"],
 };
 
 const swaggerSpec = swaggerJsdoc(options);
