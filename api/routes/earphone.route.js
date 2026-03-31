@@ -1,4 +1,6 @@
 import express from 'express';
+import upload from '../middleware/upload.middleware.js';
+import { uploadBufferToCloudinary } from '../utils/cloudinary.js';
 import {
   getAllEarphones,
   getEarphoneById,
@@ -73,7 +75,7 @@ router.get('/:id', async (req, res) => {
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             required:
@@ -93,6 +95,7 @@ router.get('/:id', async (req, res) => {
  *                 type: string
  *               image:
  *                 type: string
+ *                 format: binary
  *               brand:
  *                 type: string
  *               originalPrice:
@@ -107,39 +110,42 @@ router.get('/:id', async (req, res) => {
  *                 type: string
  *               stock:
  *                 type: integer
- *             example:
- *               id: ear101
- *               title: Bluetooth Earbuds
- *               image: earbuds.webp
- *               brand: Boat
- *               originalPrice: 1999
- *               discount: 20
- *               design: Earbuds
- *               batteryLife: 40 hours
- *               sellerId: 67f123abc456def789012345
- *               stock: 15
+ *           example:
+ *             id: ear101
+ *             title: Bluetooth Earbuds
+ *             brand: Boat
+ *             originalPrice: 1999
+ *             discount: 20
+ *             design: Earbuds
+ *             batteryLife: 40 hours
+ *             sellerId: 67f123abc456def789012345
+ *             stock: 15
  *     responses:
  *       201:
  *         description: Earphone created
  *       400:
  *         description: Invalid input
  */
-router.post('/', async (req, res) => {
+router.post('/', upload.single('image'), async (req, res) => {
   try {
-    const result = await addEarphone(req.body);
+    const payload = { ...req.body };
+
+    if (req.file) {
+      const uploaded = await uploadBufferToCloudinary(req.file.buffer, 'accessories');
+      payload.image = uploaded.secure_url;
+      payload.public_id = uploaded.public_id;
+    }
+
+    const result = await addEarphone(payload);
     if (result.success) {
-      res.status(201).json({
-        message: 'Earphone added successfully',
-        id: result.id,
-      });
+      res.status(201).json({ message: 'Earphone created', id: result.id });
     } else {
       res.status(400).json({ message: result.message });
     }
   } catch {
-    res.status(500).json({ message: 'Server error while adding earphone' });
+    res.status(500).json({ message: 'Server error' });
   }
 });
-
 /**
  * @swagger
  * /api/Accessories/earphones/{id}:
@@ -158,6 +164,7 @@ router.post('/', async (req, res) => {
  *         application/json:
  *           schema:
  *             type: object
+ *             additionalProperties: false
  *             properties:
  *               title:
  *                 type: string
@@ -179,16 +186,6 @@ router.post('/', async (req, res) => {
  *                 type: string
  *               isActive:
  *                 type: boolean
- *             example:
- *               title: Bluetooth Earbuds Pro
- *               image: earbuds-pro.webp
- *               brand: Boat
- *               originalPrice: 2499
- *               discount: 15
- *               design: Earbuds
- *               batteryLife: 45 hours
- *               stock: 12
- *               isActive: true
  *     responses:
  *       200:
  *         description: Earphone updated
@@ -214,6 +211,12 @@ router.put('/:id', async (req, res) => {
  *   delete:
  *     summary: Delete earphone
  *     tags: [Earphones]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
  *     responses:
  *       200:
  *         description: Earphone deleted
@@ -234,3 +237,4 @@ router.delete('/:id', async (req, res) => {
 });
 
 export default router;
+

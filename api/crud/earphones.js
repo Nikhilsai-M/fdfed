@@ -141,7 +141,7 @@ export async function addEarphone(earphoneData) {
     await Earphone.create({
       id,
       title,
-      image: image.startsWith("/") ? image : prefix + image,
+      image: image.startsWith("/") || image.startsWith("http") ? image : prefix + image,
       brand,
       originalPrice: Number(originalPrice),
       discount: Number(discount),
@@ -179,7 +179,7 @@ export async function updateEarphone(id, earphoneData) {
       {
         $set: {
           title,
-          image: image.startsWith("/") ? image : prefix + image,
+          image: image.startsWith("/") || image.startsWith("http") ? image : prefix + image,
           brand,
           originalPrice,
           discount,

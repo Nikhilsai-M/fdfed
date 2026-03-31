@@ -33,6 +33,7 @@ router.get("/profile", verifyToken, getUserProfile);
  * /api/user/profile:
  *   put:
  *     summary: Update the logged-in user profile
+ *     description: Updates the authenticated user's profile using the access token, so no path id is required.
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
@@ -43,10 +44,14 @@ router.get("/profile", verifyToken, getUserProfile);
  *         application/json:
  *           schema:
  *             type: object
- *             example:
- *               username: johndoe
- *               email: john@example.com
- *               phone: "9876543210"
+ *             additionalProperties: false
+ *             properties:
+ *               username:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               phone:
+ *                 type: string
  *     responses:
  *       200:
  *         description: User profile updated successfully

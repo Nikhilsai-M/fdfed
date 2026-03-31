@@ -160,7 +160,7 @@ export async function addMouse(mouseData) {
     await Mouse.create({
       id,
       title,
-      image: image.startsWith("/") ? image : prefix + image,
+      image: image.startsWith("/") || image.startsWith("http") ? image : prefix + image,
       brand,
       originalPrice,
       discount,
