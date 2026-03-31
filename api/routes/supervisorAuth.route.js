@@ -32,8 +32,8 @@ const router = express.Router();
  *               password:
  *                 type: string
  *             example:
- *               username: supervisor01
- *               password: securePassword123
+ *               username: supervisor@se.com
+ *               password: Supervisor@123
  *     responses:
  *       200:
  *         description: Supervisor signed in successfully

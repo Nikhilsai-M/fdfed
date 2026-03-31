@@ -20,6 +20,21 @@ const router = express.Router();
  *   description: Admin reporting and analytics APIs
  */
 
+/**
+ * @swagger
+ * /api/admin/statistics:
+ *   get:
+ *     summary: Get admin statistics overview
+ *     tags: [Admin Statistics]
+ *     security:
+ *       - bearerAuth: []
+ *       - adminTokenCookie: []
+ *     responses:
+ *       200:
+ *         description: Admin statistics fetched successfully
+ *       401:
+ *         description: Unauthorized
+ */
 router.get("/statistics", verifyAdmin, getAdminStatistics);
 
 /**

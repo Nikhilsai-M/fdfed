@@ -35,6 +35,11 @@ const router = Router();
  *               phoneNumber: "9876543210"
  *               storeName: Gadget Hub
  *               businessAddress: MG Road, Bengaluru
+ *     responses:
+ *       200:
+ *         description: Seller signup OTP sent successfully
+ *       400:
+ *         description: Invalid signup request
  */
 router.post("/signup/initiate", initiateSellerSignup);
 
@@ -53,6 +58,11 @@ router.post("/signup/initiate", initiateSellerSignup);
  *             example:
  *               email: seller@example.com
  *               otp: "123456"
+ *     responses:
+ *       201:
+ *         description: Seller registered successfully
+ *       400:
+ *         description: Invalid or expired OTP
  */
 router.post("/signup/verify", verifySellerSignupOTP);
 
@@ -70,6 +80,11 @@ router.post("/signup/verify", verifySellerSignupOTP);
  *             type: object
  *             example:
  *               email: seller@example.com
+ *     responses:
+ *       200:
+ *         description: Seller signup OTP resent successfully
+ *       400:
+ *         description: No pending seller registration found
  */
 router.post("/signup/resend-otp", resendSellerSignupOTP);
 
@@ -79,6 +94,7 @@ router.post("/signup/resend-otp", resendSellerSignupOTP);
  *   post:
  *     summary: Seller login
  *     tags: [Seller Auth]
+ *     description: Use a seller account created through the signup flow first, because no default seller is seeded.
  *     requestBody:
  *       required: true
  *       content:
@@ -88,6 +104,11 @@ router.post("/signup/resend-otp", resendSellerSignupOTP);
  *             example:
  *               email: seller@example.com
  *               password: securePassword123
+ *     responses:
+ *       200:
+ *         description: Seller logged in successfully
+ *       400:
+ *         description: Invalid seller credentials
  */
 router.post("/login", sellerLogin);
 

@@ -25,13 +25,6 @@ const router = express.Router();
  *     responses:
  *       200:
  *         description: List of smartwatches
- *         content:
- *           application/json:
- *             example:
- *               - name: Apple Watch
- *                 price: 29999
- *       500:
- *         description: Server error
  */
 router.get('/', async (req, res) => {
   try {
@@ -81,9 +74,54 @@ router.get('/:id', async (req, res) => {
  *       required: true
  *       content:
  *         application/json:
- *           example:
- *             name: Apple Watch
- *             price: 29999
+ *           schema:
+ *             type: object
+ *             required:
+ *               - id
+ *               - title
+ *               - image
+ *               - brand
+ *               - originalPrice
+ *               - discount
+ *               - displaySize
+ *               - displayType
+ *               - batteryRuntime
+ *               - sellerId
+ *             properties:
+ *               id:
+ *                 type: string
+ *               title:
+ *                 type: string
+ *               image:
+ *                 type: string
+ *               brand:
+ *                 type: string
+ *               originalPrice:
+ *                 type: number
+ *               discount:
+ *                 type: number
+ *               displaySize:
+ *                 type: string
+ *               displayType:
+ *                 type: string
+ *               batteryRuntime:
+ *                 type: string
+ *               sellerId:
+ *                 type: string
+ *               stock:
+ *                 type: integer
+ *             example:
+ *               id: sw101
+ *               title: Apple Watch
+ *               image: apple-watch.webp
+ *               brand: Apple
+ *               originalPrice: 29999
+ *               discount: 5
+ *               displaySize: "41"
+ *               displayType: Retina Display
+ *               batteryRuntime: 18 hours
+ *               sellerId: 67f123abc456def789012345
+ *               stock: 6
  *     responses:
  *       201:
  *         description: Smartwatch created
@@ -112,6 +150,50 @@ router.post('/', async (req, res) => {
  *   put:
  *     summary: Update smartwatch
  *     tags: [Smartwatches]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               image:
+ *                 type: string
+ *               brand:
+ *                 type: string
+ *               originalPrice:
+ *                 type: number
+ *               discount:
+ *                 type: number
+ *               displaySize:
+ *                 type: string
+ *               displayType:
+ *                 type: string
+ *               batteryRuntime:
+ *                 type: string
+ *               stock:
+ *                 type: integer
+ *               isActive:
+ *                 type: boolean
+ *             example:
+ *               title: Apple Watch Series 8
+ *               image: apple-watch-series8.webp
+ *               brand: Apple
+ *               originalPrice: 55900
+ *               discount: 8
+ *               displaySize: "41"
+ *               displayType: Retina Display
+ *               batteryRuntime: 18 hours
+ *               stock: 9
+ *               isActive: true
  *     responses:
  *       200:
  *         description: Smartwatch updated

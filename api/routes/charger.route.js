@@ -75,9 +75,52 @@ router.get('/:id', async (req, res) => {
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - id
+ *               - title
+ *               - image
+ *               - brand
+ *               - wattage
+ *               - type
+ *               - originalPrice
+ *               - discount
+ *               - outputCurrent
+ *               - sellerId
+ *             properties:
+ *               id:
+ *                 type: string
+ *               title:
+ *                 type: string
+ *               image:
+ *                 type: string
+ *               brand:
+ *                 type: string
+ *               wattage:
+ *                 type: string
+ *               type:
+ *                 type: string
+ *               originalPrice:
+ *                 type: number
+ *               discount:
+ *                 type: number
+ *               outputCurrent:
+ *                 type: string
+ *               sellerId:
+ *                 type: string
+ *               stock:
+ *                 type: integer
  *             example:
- *               name: Fast Charger
- *               price: 999
+ *               id: chg101
+ *               title: Apple 20W USB-C Power Adapter
+ *               image: apple_20w.webp
+ *               brand: Apple
+ *               wattage: "20"
+ *               type: USB C
+ *               originalPrice: 1900
+ *               discount: 10
+ *               outputCurrent: 3A
+ *               sellerId: 67f123abc456def789012345
+ *               stock: 10
  *     responses:
  *       201:
  *         description: Charger created
@@ -101,6 +144,57 @@ router.post('/', async (req, res) => {
  *   put:
  *     summary: Update charger
  *     tags: [Chargers]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               image:
+ *                 type: string
+ *               brand:
+ *                 type: string
+ *               wattage:
+ *                 type: string
+ *               type:
+ *                 type: string
+ *               originalPrice:
+ *                 type: number
+ *               discount:
+ *                 type: number
+ *               outputCurrent:
+ *                 type: string
+ *               stock:
+ *                 type: integer
+ *               isActive:
+ *                 type: boolean
+ *             example:
+ *               title: Apple 20W USB-C Power Adapter
+ *               image: apple_20w.webp
+ *               brand: Apple
+ *               wattage: "20"
+ *               type: USB C
+ *               originalPrice: 1900
+ *               discount: 12
+ *               outputCurrent: 3A
+ *               stock: 14
+ *               isActive: true
+ *     responses:
+ *       200:
+ *         description: Charger updated successfully
+ *       400:
+ *         description: Invalid update request
+ *       404:
+ *         description: Charger not found
  */
 router.put('/:id', async (req, res) => {
   try {
@@ -121,6 +215,11 @@ router.put('/:id', async (req, res) => {
  *   delete:
  *     summary: Delete charger
  *     tags: [Chargers]
+ *     responses:
+ *       200:
+ *         description: Charger deleted successfully
+ *       404:
+ *         description: Charger not found
  */
 router.delete('/:id', async (req, res) => {
   try {

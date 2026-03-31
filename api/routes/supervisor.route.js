@@ -83,6 +83,13 @@ router.get("/verify-applications", verifySupervisor, getVerifyApplications);
  *         required: true
  *         schema:
  *           type: string
+ *     responses:
+ *       200:
+ *         description: Application details fetched successfully
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Application not found
  */
 router.get("/application/:type/:id", verifySupervisor, getApplicationDetails);
 
@@ -105,6 +112,13 @@ router.get("/application/:type/:id", verifySupervisor, getApplicationDetails);
  *         required: true
  *         schema:
  *           type: string
+ *     responses:
+ *       200:
+ *         description: Application status updated successfully
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Application not found
  */
 router.put("/application/:type/:id/status", verifySupervisor, updateApplicationStatus);
 
@@ -127,6 +141,13 @@ router.put("/application/:type/:id/status", verifySupervisor, updateApplicationS
  *         required: true
  *         schema:
  *           type: string
+ *     responses:
+ *       200:
+ *         description: Application added to inventory successfully
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Application not found
  */
 router.post("/add-to-inventory/:type/:id", verifySupervisor, addToInventory);
 
@@ -159,6 +180,11 @@ router.get("/profile", verifySupervisor, getSupervisorProfile);
  *           schema:
  *             type: object
  *             additionalProperties: true
+ *     responses:
+ *       200:
+ *         description: Supervisor profile updated successfully
+ *       401:
+ *         description: Unauthorized
  */
 router.put("/profile", verifySupervisor, updateSupervisorProfile);
 
@@ -179,6 +205,13 @@ router.put("/profile", verifySupervisor, updateSupervisorProfile);
  *             example:
  *               currentPassword: oldPassword123
  *               newPassword: newPassword123
+ *     responses:
+ *       200:
+ *         description: Supervisor password updated successfully
+ *       400:
+ *         description: Invalid password update request
+ *       401:
+ *         description: Unauthorized
  */
 router.post("/password", verifySupervisor, updateSupervisorPassword);
 

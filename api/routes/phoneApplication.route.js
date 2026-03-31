@@ -111,6 +111,11 @@ router.get('/', getPhoneApplications);
  *               status: approved
  *               price: 18000
  *               rejection_reason: Screen issue
+ *     responses:
+ *       200:
+ *         description: Phone application status updated successfully
+ *       404:
+ *         description: Phone application not found
  */
 router.put('/:id/status', updatePhoneApplicationStatus);
 
