@@ -66,7 +66,7 @@ const options = {
     },
     servers: [
       {
-        url: "http://localhost:3000",
+        url: process.env.SWAGGER_SERVER_URL || "http://localhost:3000",
       },
     ],
 
@@ -174,7 +174,7 @@ app.use(session({
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -230,6 +230,8 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(3000, () => {
-  console.log("Server is running on port 3000!!!");
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}!!!`);
 });
