@@ -55,7 +55,6 @@ const Checkout = () => {
   const [discountPercent, setDiscountPercent] = useState(0);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const cart = cartItems;
 
   useEffect(() => {
     const loadCart = async () => {
@@ -147,7 +146,7 @@ const Checkout = () => {
         id: item.productId || item.id,
         seller_id: item.seller_id || null,
         accessory: sanitizeAccessory(item),
-        quantity: Number(item.quantity || 1),
+        quantity: item.quantity || 1,
         amount: calculateItemTotal(item),
       })),
     };
