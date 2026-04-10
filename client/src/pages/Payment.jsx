@@ -116,6 +116,7 @@ const PaymentPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const autoOpenedRef = useRef(false);
+  const cartLoadedRef = useRef(false);
   const [checkoutData, setCheckoutData] = useState(() => buildCheckoutDataFromState(location.state));
   const [paymentSession, setPaymentSession] = useState(null);
   const [statusMessage, setStatusMessage] = useState("");
@@ -124,6 +125,7 @@ const PaymentPage = () => {
   const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
   const [hasPaymentFailed, setHasPaymentFailed] = useState(false);
   const { user, token } = useAppSelector((state) => state.auth);
+  const { cartItems, fetchCart, clearCart } = useCart();
 
   const authHeaders = useMemo(() => {
     const headers = { "Content-Type": "application/json" };
@@ -207,6 +209,7 @@ const PaymentPage = () => {
           discountPercent: checkoutData.discountPercent,
           totalAmount: checkoutData.totalAmount,
           paymentMethod: checkoutData.paymentMethod || "razorpay",
+          source: checkoutData.source || "buyNow",
         }),
       });
 
@@ -267,6 +270,7 @@ const PaymentPage = () => {
           source: checkoutData.source || "buyNow",
           totalAmount: checkoutData.totalAmount,
           paymentMethod: "cod",
+          source: checkoutData.source,
           items: checkoutData.items,
         }),
       });
@@ -603,3 +607,8 @@ const PaymentPage = () => {
 };
 
 export default PaymentPage;
+
+
+
+
+

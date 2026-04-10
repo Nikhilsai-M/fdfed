@@ -27,6 +27,10 @@ isActive: {
 },
   created_at: { type: Date, default: Date.now },
 });
+chargerSchema.index({ sellerId: 1, isActive: 1, created_at: -1 });
+
+chargerSchema.index({ title: "text", brand: "text", type: "text", wattage: "text" });
+
 const Charger = mongoose.model("Charger", chargerSchema);
 
 export default Charger;

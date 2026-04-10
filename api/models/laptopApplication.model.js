@@ -34,5 +34,10 @@ const laptopApplicationSchema = new mongoose.Schema({
   },
 });
 
+laptopApplicationSchema.index({ user_id: 1, created_at: -1 });
+laptopApplicationSchema.index({ status: 1, created_at: -1 });
+laptopApplicationSchema.index({ assigned_supervisor_id: 1, status: 1, created_at: -1 });
+laptopApplicationSchema.index({ status: 1, assigned_supervisor_id: 1, id: 1 });
+
 const LaptopApplication = mongoose.model("LaptopApplication", laptopApplicationSchema);
 export default LaptopApplication;

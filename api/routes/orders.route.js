@@ -72,6 +72,10 @@ router.post("/orders", verifyToken, async (req, res) => {
 
     const result = await createOrder(userId, totalAmount, paymentMethod, items);
 
+    if (result.success && source === "cart") {
+      await clearCartByUserId(userId);
+    }
+
     if (!result.success) {
       return res.status(500).json({ success: false, message: result.message });
     }
@@ -237,3 +241,4 @@ router.get("/buy/:type/:id", verifyToken, async (req, res) => {
 });
 
 export default router;
+

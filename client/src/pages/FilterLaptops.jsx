@@ -416,7 +416,7 @@ const FilterLaptops = () => {
   
   const [cartItem, setCartItem] = useState(null);
   const navigate = useNavigate();
-  const { updateCart } = useCart();
+  const { addItem } = useCart();
 
   // Get URL parameters
   const brandFromUrl = searchParams.get('brand');
@@ -691,7 +691,6 @@ const FilterLaptops = () => {
       // Show success message
       setCartItem(`${laptop.brand} ${laptop.series} added to cart!`);
       setTimeout(() => setCartItem(null), 3000);
-
     } catch (error) {
       console.error('Error adding to cart:', error);
       navigate('/sign-in');
@@ -727,7 +726,7 @@ const FilterLaptops = () => {
     }
   };
 
-  // Buy Now function for laptops
+  // Buy Now function for laptops  // Buy Now function for laptops
   const buyNow = async (laptop) => {
     try {
       console.log('Buy Now clicked for:', laptop);

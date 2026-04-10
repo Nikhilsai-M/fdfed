@@ -22,7 +22,7 @@ const PhoneDetails = () => {
   const [error, setError] = useState(null);
   const [cartMessage, setCartMessage] = useState(null);
 
-  const { updateCart } = useCart();
+  const { addItem } = useCart();
 
   // Fetch phone details
   useEffect(() => {
@@ -103,7 +103,6 @@ const PhoneDetails = () => {
       setTimeout(() => setCartMessage(null), 3500);
     }
   };
-
   const buyNow = async () => {
     try {
       const response = await fetch('/api/user/profile', { credentials: 'include' });

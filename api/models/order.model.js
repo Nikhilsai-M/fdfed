@@ -50,6 +50,10 @@ const orderSchema = new mongoose.Schema({
   }
 
 });
+orderSchema.index({ user_id: 1, created_at: -1 });
+orderSchema.index({ payment_status: 1, created_at: -1 });
+orderSchema.index({ created_at: -1 });
+
 const Order = mongoose.models.Order || mongoose.model("Order", orderSchema);
 
 export default Order;

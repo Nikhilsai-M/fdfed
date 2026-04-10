@@ -3,8 +3,25 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 import { getCart } from "../services/cartApi";
 
 const CartContext = createContext();
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+
+const getAuthHeaders = (includeJson = false) => {
+  const headers = {};
+  const token = localStorage.getItem("token");
+
+  if (includeJson) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  return headers;
+};
 
 export const CartProvider = ({ children }) => {
+  const [cartItems, setCartItems] = useState([]);
   const [cartCount, setCartCount] = useState(0);
 
   const syncCartCount = useCallback((cart) => {

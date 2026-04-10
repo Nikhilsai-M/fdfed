@@ -34,6 +34,10 @@ const mouseSchema = new mongoose.Schema({
   created_at: { type: Date, default: Date.now },
 });
 
+mouseSchema.index({ sellerId: 1, isActive: 1, created_at: -1 });
+
+mouseSchema.index({ title: "text", brand: "text", type: "text", connectivity: "text" });
+
 const Mouse = mongoose.model("Mouse", mouseSchema);
 
 export default Mouse;

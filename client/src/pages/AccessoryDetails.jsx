@@ -23,7 +23,7 @@ const AccessoryDetails = ({ type }) => {
   const [error, setError] = useState(null);
   const [cartMessage, setCartMessage] = useState(null);
 
-  const { updateCart } = useCart();
+  const { addItem } = useCart();
 
   const getApiEndpoint = () => {
     switch (type) {
@@ -155,7 +155,6 @@ const AccessoryDetails = ({ type }) => {
       setTimeout(() => setCartMessage(null), 3000);
     }
   };
-
   const buyNow = async () => {
     try {
       const response = await fetch("/api/user/profile", {

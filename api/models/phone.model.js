@@ -21,5 +21,7 @@ const phoneSchema = new mongoose.Schema({
   created_at: { type: Date, default: Date.now },
 });
 
+phoneSchema.index({ brand: "text", model: "text", color: "text", processor: "text", os: "text" });
+
 const Phone = mongoose.model("Phone", phoneSchema);
 export default Phone;

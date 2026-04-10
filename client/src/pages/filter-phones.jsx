@@ -327,7 +327,7 @@ const FilterPhones = () => {
   const navigate = useNavigate();
 
   // ✅ Get the updateCart function from the context
-  const { updateCart } = useCart();
+  const { addItem } = useCart();
 
   // Get URL parameters
   const brandFromUrl = searchParams.get('brand');
@@ -552,7 +552,6 @@ const FilterPhones = () => {
       // Keep the UI feedback
       setCartItem(`${phone.brand} ${phone.model} added to cart!`);
       setTimeout(() => setCartItem(null), 3000);
-
     } catch (error) {
       console.error('Error adding to cart:', error);
       
@@ -592,7 +591,7 @@ const FilterPhones = () => {
     }
   };
 
-  // ✅ NEW: Buy Now functionality (same as AccessoryDetails.jsx)
+  // ✅ NEW: Buy Now functionality (same as AccessoryDetails.jsx)  // ✅ NEW: Buy Now functionality (same as AccessoryDetails.jsx)
   const buyNow = async (phone) => {
     try {
       // Verify user session via API

@@ -21,7 +21,7 @@ const LaptopDetails = () => {
   const [error, setError] = useState(null);
   const [cartMessage, setCartMessage] = useState(null);
 
-  const { updateCart } = useCart();
+  const { addItem } = useCart();
 
   // Fetch laptop details
   useEffect(() => {
@@ -103,7 +103,7 @@ const LaptopDetails = () => {
     }
   };
 
-  // Buy Now function - SAME as FilterLaptops page
+  // Buy Now function - SAME as FilterLaptops page  // Buy Now function - SAME as FilterLaptops page
   const buyNow = async () => {
     try {
       console.log('Buy Now clicked for laptop:', laptop);

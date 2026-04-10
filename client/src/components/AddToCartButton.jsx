@@ -34,10 +34,10 @@ const inferProductType = (product) => {
 
 const AddToCartButton = ({ product }) => {
   const [message, setMessage] = useState(null);
-  const { updateCart } = useCart();
+  const { addItem } = useCart();
   const navigate = useNavigate();
 
-  const addToCart = async () => {
+  const handleAddToCart = async () => {
     try {
       const productType = inferProductType(product);
 
@@ -56,7 +56,6 @@ const AddToCartButton = ({ product }) => {
 
       setMessage("Item added to cart");
       setTimeout(() => setMessage(null), 2500);
-
     } catch (error) {
       console.error("Cart error:", error);
       if (error.status === 401 || error.status === 403) {
@@ -86,7 +85,7 @@ const AddToCartButton = ({ product }) => {
       )}
 
       <button
-        onClick={addToCart}
+        onClick={handleAddToCart}
         className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
       >
         <ShoppingCart className="w-5 h-5" />

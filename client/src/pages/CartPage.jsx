@@ -23,10 +23,12 @@ const Cart = () => {
     );
     const ship = sub > 0 ? 100 : 0;
 
-    setSubtotal(sub);
-    setShipping(ship);
-    setTotal(sub + ship);
-  };
+    return {
+      subtotal,
+      shipping,
+      total: subtotal + shipping,
+    };
+  }, [cartItems]);
 
   useEffect(() => {
     const loadCart = async () => {
@@ -116,6 +118,7 @@ const Cart = () => {
                           <button
                             onClick={() => handleQuantityChange(item.itemId, item.quantity - 1)}
                             className="px-2 py-1 border rounded hover:bg-gray-100"
+                            disabled={Number(item.quantity || 1) <= 1}
                           >
                             -
                           </button>

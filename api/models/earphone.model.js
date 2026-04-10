@@ -30,6 +30,10 @@ isActive: {
   created_at: { type: Date, default: Date.now },
 });
 
+earphoneSchema.index({ sellerId: 1, isActive: 1, created_at: -1 });
+
+earphoneSchema.index({ title: "text", brand: "text", design: "text" });
+
 const Earphone = mongoose.model("Earphone", earphoneSchema);
 
 export default Earphone;
