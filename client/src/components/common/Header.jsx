@@ -22,7 +22,7 @@ const Header = () => {
 
   useEffect(() => {
     fetchCartCount();
-  }, [fetchCartCount]);
+  }, [user, fetchCartCount]);
 
 
 

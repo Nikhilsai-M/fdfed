@@ -11,6 +11,7 @@ import Header from "../components/common/Header";
 import Footer from "../components/common/Footer";
 
 import { useCart } from "../context/CartContent";
+import { addCartItem } from "../services/cartApi";
 
 const AccessoryDetails = ({ type }) => {
   console.log("AccessoryDetails component loaded");
@@ -133,42 +134,25 @@ const AccessoryDetails = ({ type }) => {
 
   const addToCart = async () => {
     try {
-      const response = await fetch("/api/user/profile", {
-        method: "GET",
-        credentials: "include",
+      const cart = await addCartItem({
+        productType: type,
+        productId: product.id,
+        quantity: 1,
       });
 
-      if (!response.ok) return navigate("/sign-in");
-
-      const userData = await response.json();
-      const userId = userData?.user?.user_id;
-
-      if (!userId) return navigate("/sign-in");
-
-      const cartKey = `cart_${userId}`;
-      const existingCart =
-        JSON.parse(localStorage.getItem(cartKey)) || [];
-
-      const index = existingCart.findIndex(
-        (item) => item.id === product.id
-      );
-
-      let updatedCart;
-
-      if (index !== -1) {
-        updatedCart = [...existingCart];
-        updatedCart[index].quantity += 1;
-      } else {
-        updatedCart = [...existingCart, getCartItemFields(product)];
-      }
-
-      updateCart(updatedCart, userId);
+      await updateCart(cart);
 
       setCartMessage(`${product.title} added to cart!`);
       setTimeout(() => setCartMessage(null), 3000);
     } catch (error) {
       console.error("Add to cart error:", error);
-      navigate("/sign-in");
+      if (error.status === 401 || error.status === 403) {
+        navigate("/sign-in");
+        return;
+      }
+
+      setCartMessage(error.message || "Unable to add item to cart");
+      setTimeout(() => setCartMessage(null), 3000);
     }
   };
 
