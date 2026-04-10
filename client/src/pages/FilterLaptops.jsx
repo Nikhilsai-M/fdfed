@@ -5,6 +5,7 @@ import { ShoppingCart, X, Check, Zap } from 'lucide-react';
 import '../styles/FilterLaptops.css';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
+import { addCartItem } from '../services/cartApi';
 
 // LaptopFilter Component (now integrated)
 const LaptopFilter = ({ filters, onFilterChange, onClearFilters }) => {
@@ -697,6 +698,35 @@ const FilterLaptops = () => {
     }
   };
 
+  const addToCartBackend = async (laptop) => {
+    try {
+      if (!laptop || !laptop.id) {
+        console.error('Laptop data not available');
+        return;
+      }
+
+      const cart = await addCartItem({
+        productType: 'laptop',
+        productId: laptop.id,
+        quantity: 1,
+      });
+
+      await updateCart(cart);
+
+      setCartItem(`${laptop.brand} ${laptop.series} added to cart!`);
+      setTimeout(() => setCartItem(null), 3000);
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      if (error.status === 401 || error.status === 403) {
+        navigate('/sign-in');
+        return;
+      }
+
+      setCartItem(error.message || 'Unable to add item to cart');
+      setTimeout(() => setCartItem(null), 3000);
+    }
+  };
+
   // Buy Now function for laptops
   const buyNow = async (laptop) => {
     try {
@@ -813,7 +843,7 @@ const FilterLaptops = () => {
                 <ProductCard 
                   key={laptop.id} 
                   product={laptop}
-                  onAddToCart={addToCart}
+                  onAddToCart={addToCartBackend}
                   onBuyNow={buyNow}
                 />
               ))

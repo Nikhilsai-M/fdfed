@@ -11,6 +11,7 @@ import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
 
 import { useCart } from '../context/CartContent';
+import { addCartItem } from '../services/cartApi';
 
 const PhoneDetails = () => {
   const { id } = useParams();
@@ -81,38 +82,25 @@ const PhoneDetails = () => {
   // Add to Cart using Context
   const addToCart = async () => {
     try {
-      const response = await fetch('/api/user/profile', { method: 'GET', credentials: 'include' });
-      if (!response.ok) {
-        navigate('/sign-in');
-        return;
-      }
+      const cart = await addCartItem({
+        productType: 'phone',
+        productId: phone.id,
+        quantity: 1,
+      });
 
-      const userData = await response.json();
-      const userId = userData?.user?.user_id;
-      if (!userId) {
-        navigate('/sign-in');
-        return;
-      }
-
-      const cartKey = `cart_user_${userId}`;
-      const existingCart = JSON.parse(localStorage.getItem(cartKey)) || [];
-
-      const existingIndex = existingCart.findIndex((item) => item.id === phone.id);
-      let updatedCart;
-      if (existingIndex !== -1) {
-        updatedCart = [...existingCart];
-        updatedCart[existingIndex].quantity += 1;
-      } else {
-        updatedCart = [...existingCart, getCartItemFields(phone)];
-      }
-
-      updateCart(updatedCart, userId);
+      await updateCart(cart);
 
       setCartMessage(`${phone.brand} ${phone.model} added to cart!`);
       setTimeout(() => setCartMessage(null), 3500);
     } catch (error) {
       console.error('Error adding to cart:', error);
-      navigate('/sign-in');
+      if (error.status === 401 || error.status === 403) {
+        navigate('/sign-in');
+        return;
+      }
+
+      setCartMessage(error.message || 'Unable to add item to cart');
+      setTimeout(() => setCartMessage(null), 3500);
     }
   };
 

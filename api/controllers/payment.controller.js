@@ -26,6 +26,7 @@ export async function createOrderController(req, res) {
       currency,
       paymentMethod,
       checkoutPayload: {
+        source: req.body.source || "buyNow",
         items,
         totalAmount: totalAmount || amount,
         subtotal: subtotal ?? amount,

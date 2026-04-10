@@ -4,6 +4,7 @@ import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
 import { ShoppingCart } from 'lucide-react';
 import { useCart } from '../context/CartContent';
+import { addCartItem } from '../services/cartApi';
 
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
@@ -47,37 +48,22 @@ const SearchResults = () => {
 
   const handleAddToCart = async (product) => {
     try {
-      const user = JSON.parse(localStorage.getItem('user'));
-      if (!user) {
+      const cart = await addCartItem({
+        productType: product.type,
+        productId: product.id,
+        quantity: 1,
+      });
+
+      await updateCart(cart);
+      alert('Product added to cart!');
+    } catch (err) {
+      console.error('Error adding to cart:', err);
+      if (err.status === 401 || err.status === 403) {
         navigate('/sign-in');
         return;
       }
 
-      const cartItem = {
-        productId: product.id,
-        productType: product.type,
-        quantity: 1,
-        price: product.finalPrice,
-      };
-
-      const response = await fetch('/api/orders/cart', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(cartItem),
-      });
-
-      if (response.ok) {
-        updateCart();
-        alert('Product added to cart!');
-      } else {
-        throw new Error('Failed to add to cart');
-      }
-    } catch (err) {
-      console.error('Error adding to cart:', err);
-      alert('Failed to add product to cart');
+      alert(err.message || 'Failed to add product to cart');
     }
   };
 

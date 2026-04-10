@@ -5,6 +5,7 @@ import '../styles/FilterPhones.css';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
 import { Check, X, ShoppingCart, Zap } from 'lucide-react';
+import { addCartItem } from '../services/cartApi';
 
 // PhoneFilter Component (now integrated)
 const PhoneFilter = ({ filters, onFilterChange, onClearFilters }) => {
@@ -562,6 +563,35 @@ const FilterPhones = () => {
     }
   };
 
+  const addToCartBackend = async (phone) => {
+    try {
+      if (!phone || !phone.id) {
+        console.error('Phone data not available');
+        return;
+      }
+
+      const cart = await addCartItem({
+        productType: 'phone',
+        productId: phone.id,
+        quantity: 1,
+      });
+
+      await updateCart(cart);
+
+      setCartItem(`${phone.brand} ${phone.model} added to cart!`);
+      setTimeout(() => setCartItem(null), 3000);
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      if (error.status === 401 || error.status === 403) {
+        navigate('/sign-in');
+        return;
+      }
+
+      setCartItem(error.message || 'Unable to add item to cart');
+      setTimeout(() => setCartItem(null), 3000);
+    }
+  };
+
   // ✅ NEW: Buy Now functionality (same as AccessoryDetails.jsx)
   const buyNow = async (phone) => {
     try {
@@ -676,7 +706,7 @@ const FilterPhones = () => {
                 <ProductCard 
                   key={phone.id} 
                   product={phone}
-                  onAddToCart={addToCart}
+                  onAddToCart={addToCartBackend}
                   onBuyNow={buyNow}
                 />
               ))

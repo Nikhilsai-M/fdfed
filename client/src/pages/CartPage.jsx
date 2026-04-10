@@ -1,50 +1,26 @@
-// --- Cart.jsx ---
 import React, { useEffect, useState } from "react";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from "react-router-dom";
 import Header from "../components/common/Header";
 import Footer from "../components/common/Footer";
 import { useCart } from "../context/CartContent";
+import { getCart, removeCartItem, updateCartItem } from "../services/cartApi";
 
 const Cart = () => {
   const [cartItems, setCartItems] = useState([]);
   const [subtotal, setSubtotal] = useState(0);
   const [shipping, setShipping] = useState(0);
   const [total, setTotal] = useState(0);
-
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
   const { fetchCartCount } = useCart();
 
-  const getDiscountPrice = (item) => {
-    if (item.discountPrice) return item.discountPrice;
-
-    if (item.price && item.discountPercentage)
-      return item.price - (item.price * item.discountPercentage) / 100;
-
-    return item.price || 0;
-  };
-
-  useEffect(() => {
-    const allKeys = Object.keys(localStorage);
-    const cartKey = allKeys.find((key) => key.startsWith("cart_user"));
-    let items = [];
-
-    if (cartKey) {
-      try {
-        items = JSON.parse(localStorage.getItem(cartKey)) || [];
-      } catch (e) {
-        console.error("Cart error:", e);
-      }
-    }
-
-    setCartItems(items);
-    updateTotals(items);
-  }, []);
+  const getItemUnitPrice = (item) => Number(item.unitPrice || item.price || 0);
 
   const updateTotals = (items) => {
-    const sub = items.reduce((acc, item) => {
-      const d = getDiscountPrice(item);
-      return acc + d * (item.quantity || 1);
-    }, 0);
-
+    const sub = items.reduce(
+      (acc, item) => acc + getItemUnitPrice(item) * (item.quantity || 1),
+      0
+    );
     const ship = sub > 0 ? 100 : 0;
 
     setSubtotal(sub);
@@ -52,30 +28,54 @@ const Cart = () => {
     setTotal(sub + ship);
   };
 
-  const handleQuantityChange = (i, qty) => {
-    if (qty < 1) return;
-    const updated = [...cartItems];
-    updated[i].quantity = qty;
-    setCartItems(updated);
-    updateTotals(updated);
+  useEffect(() => {
+    const loadCart = async () => {
+      try {
+        const cart = await getCart();
+        const items = cart?.items || [];
+        setCartItems(items);
+        updateTotals(items);
+      } catch (error) {
+        console.error("Cart error:", error);
+        if (error.status === 401 || error.status === 403) {
+          navigate("/sign-in");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    const allKeys = Object.keys(localStorage);
-    const key = allKeys.find((k) => k.startsWith("cart_user"));
-    if (key) localStorage.setItem(key, JSON.stringify(updated));
+    loadCart();
+  }, [navigate]);
 
-    fetchCartCount();
+  const handleQuantityChange = async (itemId, quantity) => {
+    if (quantity < 1) {
+      return;
+    }
+
+    try {
+      const cart = await updateCartItem(itemId, quantity);
+      const items = cart?.items || [];
+      setCartItems(items);
+      updateTotals(items);
+      await fetchCartCount();
+    } catch (error) {
+      console.error("Quantity update error:", error);
+      alert(error.message || "Unable to update quantity");
+    }
   };
 
-  const handleRemove = (i) => {
-    const updated = cartItems.filter((_, idx) => idx !== i);
-    setCartItems(updated);
-    updateTotals(updated);
-
-    const allKeys = Object.keys(localStorage);
-    const key = allKeys.find((k) => k.startsWith("cart_user"));
-    if (key) localStorage.setItem(key, JSON.stringify(updated));
-
-    fetchCartCount();
+  const handleRemove = async (itemId) => {
+    try {
+      const cart = await removeCartItem(itemId);
+      const items = cart?.items || [];
+      setCartItems(items);
+      updateTotals(items);
+      await fetchCartCount();
+    } catch (error) {
+      console.error("Remove item error:", error);
+      alert(error.message || "Unable to remove item");
+    }
   };
 
   return (
@@ -88,17 +88,17 @@ const Cart = () => {
         </h2>
 
         <div className="grid md:grid-cols-3 gap-6">
-
-          {/* CART ITEMS */}
           <div className="md:col-span-2 bg-white p-6 rounded-2xl shadow-sm">
-            {cartItems.length === 0 ? (
+            {loading ? (
+              <p className="text-gray-500 text-center">Loading your cart...</p>
+            ) : cartItems.length === 0 ? (
               <p className="text-gray-500 text-center">Your cart is empty.</p>
             ) : (
-              cartItems.map((item, index) => {
-                const discounted = getDiscountPrice(item);
+              cartItems.map((item) => {
+                const unitPrice = getItemUnitPrice(item);
 
                 return (
-                  <div key={index} className="flex justify-between py-4 border-b">
+                  <div key={item.itemId} className="flex justify-between py-4 border-b">
                     <div className="flex space-x-4">
                       <img
                         src={item.image}
@@ -109,13 +109,12 @@ const Cart = () => {
                       <div>
                         <h4 className="font-semibold text-lg">{item.title}</h4>
                         <p className="text-gray-600 text-sm">
-                          {item.brand} | {item.category}
+                          {item.brand} | {item.type}
                         </p>
 
-                        {/* Quantity controls */}
                         <div className="flex items-center mt-2 space-x-3">
                           <button
-                            onClick={() => handleQuantityChange(index, item.quantity - 1)}
+                            onClick={() => handleQuantityChange(item.itemId, item.quantity - 1)}
                             className="px-2 py-1 border rounded hover:bg-gray-100"
                           >
                             -
@@ -124,32 +123,33 @@ const Cart = () => {
                           <span className="font-semibold">{item.quantity}</span>
 
                           <button
-                            onClick={() => handleQuantityChange(index, item.quantity + 1)}
-                            className="px-2 py-1 border rounded hover:bg-gray-100"
+                            onClick={() => handleQuantityChange(item.itemId, item.quantity + 1)}
+                            className="px-2 py-1 border rounded hover:bg-gray-100 disabled:opacity-50"
+                            disabled={typeof item.stock === "number" && item.quantity >= item.stock}
                           >
                             +
                           </button>
                         </div>
+
+                        {typeof item.stock === "number" ? (
+                          <p className="text-xs text-gray-500 mt-2">Stock left: {item.stock}</p>
+                        ) : null}
                       </div>
                     </div>
 
-                    {/* PRICE */}
                     <div className="text-right">
-
-                      {/* Discounted price */}
                       <div className="font-semibold text-blue-700">
-                        ₹{Number(discounted * item.quantity).toLocaleString("en-IN")}
+                        Rs.{Number(unitPrice * item.quantity).toLocaleString("en-IN")}
                       </div>
 
-                      {/* Original price (line through) */}
-                      {item.originalPrice && item.originalPrice > discounted && (
+                      {item.originalPrice && item.originalPrice > unitPrice ? (
                         <div className="text-sm text-gray-500 line-through">
-                          ₹{Number(item.originalPrice * item.quantity).toLocaleString("en-IN")}
+                          Rs.{Number(item.originalPrice * item.quantity).toLocaleString("en-IN")}
                         </div>
-                      )}
+                      ) : null}
 
                       <button
-                        onClick={() => handleRemove(index)}
+                        onClick={() => handleRemove(item.itemId)}
                         className="text-sm text-red-500 hover:underline mt-1"
                       >
                         Remove
@@ -161,7 +161,6 @@ const Cart = () => {
             )}
           </div>
 
-          {/* ORDER SUMMARY */}
           <div className="bg-white p-6 rounded-2xl shadow-sm">
             <h3 className="text-xl font-semibold mb-4">Order Summary</h3>
 
@@ -172,19 +171,19 @@ const Cart = () => {
 
             <div className="flex justify-between mb-2">
               <span>Subtotal:</span>
-              <span>₹{subtotal}</span>
+              <span>Rs.{subtotal.toLocaleString("en-IN")}</span>
             </div>
 
             <div className="flex justify-between mb-2">
               <span>Shipping:</span>
-              <span>₹{shipping}</span>
+              <span>Rs.{shipping.toLocaleString("en-IN")}</span>
             </div>
 
             <hr className="my-3" />
 
             <div className="flex justify-between text-lg font-bold">
               <span>Total:</span>
-              <span>₹{total}</span>
+              <span>Rs.{total.toLocaleString("en-IN")}</span>
             </div>
 
             <Link
@@ -195,13 +194,12 @@ const Cart = () => {
             </Link>
 
             <button
-              onClick={() => (window.location.href = "/products")}
+              onClick={() => navigate("/products")}
               className="w-full mt-3 border border-blue-600 text-blue-600 hover:bg-blue-50 py-2 rounded-lg font-semibold"
             >
               Continue Shopping
             </button>
           </div>
-
         </div>
       </div>
 
