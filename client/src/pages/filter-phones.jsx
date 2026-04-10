@@ -5,6 +5,7 @@ import '../styles/FilterPhones.css';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
 import { Check, X, ShoppingCart, Zap } from 'lucide-react';
+import { addCartItem } from '../services/cartApi';
 
 // PhoneFilter Component (now integrated)
 const PhoneFilter = ({ filters, onFilterChange, onClearFilters }) => {
@@ -493,16 +494,100 @@ const FilterPhones = () => {
   // ✅ Updated addToCart with proper authentication and cart functionality
   const addToCart = async (phone) => {
     try {
-      await addItem('phone', phone.id, 1);
+      // Verify user session via API
+      const response = await fetch('/api/user/profile', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        navigate('/sign-in');
+        return;
+      }
+
+      const userData = await response.json();
+      if (!userData.success || !userData.user) {
+        navigate('/sign-in');
+        return;
+      }
+
+      const userId = userData.user.user_id;
+      const userCartKey = `cart_user_${userId}`;
+
+      if (!phone || !phone.id) {
+        console.error('Phone data not available');
+        return;
+      }
+
+      let currentCart = JSON.parse(localStorage.getItem(userCartKey)) || [];
+
+      const existingProductIndex = currentCart.findIndex((item) => item.id === phone.id);
+
+      let updatedCart;
+      if (existingProductIndex !== -1) {
+        updatedCart = [...currentCart];
+        updatedCart[existingProductIndex].quantity += 1;
+      } else {
+        updatedCart = [...currentCart, {
+          id: phone.id,
+          name: `${phone.brand} ${phone.model}`,
+          brand: phone.brand,
+          model: phone.model,
+          ram: phone.ram,
+          rom: phone.rom,
+          image: phone.image,
+          price: phone.pricing.basePrice,
+          discount: parseFloat(phone.pricing.discount),
+          quantity: 1,
+          type: 'phone'
+        }];
+      }
+
+      // ✅ Save to localStorage immediately after updating the cart
+      localStorage.setItem(userCartKey, JSON.stringify(updatedCart));
+
+      // Update the context (assumes this syncs to server if needed)
+      updateCart(updatedCart, userId);
+
+      // Keep the UI feedback
       setCartItem(`${phone.brand} ${phone.model} added to cart!`);
       setTimeout(() => setCartItem(null), 3000);
     } catch (error) {
       console.error('Error adding to cart:', error);
-      if (/unauthorized|forbidden/i.test(error.message || '')) {
+      
+      // Fallback: Add to cart without authentication but prompt login
+      navigate('/sign-in');
+      setCartItem(`${phone.brand} ${phone.model} added to cart! (Please log in to sync)`);
+      setTimeout(() => setCartItem(null), 3000);
+    }
+  };
+
+  const addToCartBackend = async (phone) => {
+    try {
+      if (!phone || !phone.id) {
+        console.error('Phone data not available');
+        return;
+      }
+
+      const cart = await addCartItem({
+        productType: 'phone',
+        productId: phone.id,
+        quantity: 1,
+      });
+
+      await updateCart(cart);
+
+      setCartItem(`${phone.brand} ${phone.model} added to cart!`);
+      setTimeout(() => setCartItem(null), 3000);
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      if (error.status === 401 || error.status === 403) {
         navigate('/sign-in');
         return;
       }
-      alert(error.message || 'Failed to add item to cart');
+
+      setCartItem(error.message || 'Unable to add item to cart');
+      setTimeout(() => setCartItem(null), 3000);
     }
   };
 
@@ -620,7 +705,7 @@ const FilterPhones = () => {
                 <ProductCard 
                   key={phone.id} 
                   product={phone}
-                  onAddToCart={addToCart}
+                  onAddToCart={addToCartBackend}
                   onBuyNow={buyNow}
                 />
               ))
@@ -635,4 +720,3 @@ const FilterPhones = () => {
 };
 
 export default FilterPhones;
-

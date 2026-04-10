@@ -1,43 +1,27 @@
-import React, { useEffect, useMemo } from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Header from "../components/common/Header";
 import Footer from "../components/common/Footer";
 import { useCart } from "../context/CartContent";
+import { getCart, removeCartItem, updateCartItem } from "../services/cartApi";
 
 const Cart = () => {
-  const {
-    cartItems,
-    fetchCart,
-    updateItemQuantity,
-    removeItem,
-    isCartLoading,
-  } = useCart();
+  const [cartItems, setCartItems] = useState([]);
+  const [subtotal, setSubtotal] = useState(0);
+  const [shipping, setShipping] = useState(0);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const { fetchCartCount } = useCart();
 
-  const getDiscountPrice = (item) => {
-    if (item.discountPrice != null) return Number(item.discountPrice);
+  const getItemUnitPrice = (item) => Number(item.unitPrice || item.price || 0);
 
-    if (item.price && item.discount != null) {
-      return Number(item.price) - (Number(item.price) * Number(item.discount)) / 100;
-    }
-
-    if (item.price && item.discountPercentage != null) {
-      return Number(item.price) - (Number(item.price) * Number(item.discountPercentage)) / 100;
-    }
-
-    return Number(item.price || 0);
-  };
-
-  useEffect(() => {
-    fetchCart().catch(() => {});
-  }, [fetchCart]);
-
-  const totals = useMemo(() => {
-    const subtotal = cartItems.reduce((acc, item) => {
-      const discounted = getDiscountPrice(item);
-      return acc + discounted * Number(item.quantity || 1);
-    }, 0);
-
-    const shipping = subtotal > 0 ? 100 : 0;
+  const updateTotals = (items) => {
+    const sub = items.reduce(
+      (acc, item) => acc + getItemUnitPrice(item) * (item.quantity || 1),
+      0
+    );
+    const ship = sub > 0 ? 100 : 0;
 
     return {
       subtotal,
@@ -46,23 +30,53 @@ const Cart = () => {
     };
   }, [cartItems]);
 
-  const handleQuantityChange = async (item, quantity) => {
-    if (quantity < 1) return;
+  useEffect(() => {
+    const loadCart = async () => {
+      try {
+        const cart = await getCart();
+        const items = cart?.items || [];
+        setCartItems(items);
+        updateTotals(items);
+      } catch (error) {
+        console.error("Cart error:", error);
+        if (error.status === 401 || error.status === 403) {
+          navigate("/sign-in");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCart();
+  }, [navigate]);
+
+  const handleQuantityChange = async (itemId, quantity) => {
+    if (quantity < 1) {
+      return;
+    }
 
     try {
-      await updateItemQuantity(item.productType, item.productId || item.id, quantity);
+      const cart = await updateCartItem(itemId, quantity);
+      const items = cart?.items || [];
+      setCartItems(items);
+      updateTotals(items);
+      await fetchCartCount();
     } catch (error) {
-      console.error("Cart quantity update error:", error);
-      alert(error.message || "Failed to update cart quantity");
+      console.error("Quantity update error:", error);
+      alert(error.message || "Unable to update quantity");
     }
   };
 
-  const handleRemove = async (item) => {
+  const handleRemove = async (itemId) => {
     try {
-      await removeItem(item.productType, item.productId || item.id);
+      const cart = await removeCartItem(itemId);
+      const items = cart?.items || [];
+      setCartItems(items);
+      updateTotals(items);
+      await fetchCartCount();
     } catch (error) {
-      console.error("Cart remove error:", error);
-      alert(error.message || "Failed to remove item from cart");
+      console.error("Remove item error:", error);
+      alert(error.message || "Unable to remove item");
     }
   };
 
@@ -77,16 +91,16 @@ const Cart = () => {
 
         <div className="grid md:grid-cols-3 gap-6">
           <div className="md:col-span-2 bg-white p-6 rounded-2xl shadow-sm">
-            {isCartLoading ? (
+            {loading ? (
               <p className="text-gray-500 text-center">Loading your cart...</p>
             ) : cartItems.length === 0 ? (
               <p className="text-gray-500 text-center">Your cart is empty.</p>
             ) : (
               cartItems.map((item) => {
-                const discounted = getDiscountPrice(item);
+                const unitPrice = getItemUnitPrice(item);
 
                 return (
-                  <div key={`${item.productType}-${item.productId || item.id}`} className="flex justify-between py-4 border-b">
+                  <div key={item.itemId} className="flex justify-between py-4 border-b">
                     <div className="flex space-x-4">
                       <img
                         src={item.image}
@@ -96,13 +110,13 @@ const Cart = () => {
 
                       <div>
                         <h4 className="font-semibold text-lg">{item.title}</h4>
-                        <p className="text-gray-600 text-sm capitalize">
-                          {item.brand} | {item.category || item.productType}
+                        <p className="text-gray-600 text-sm">
+                          {item.brand} | {item.type}
                         </p>
 
                         <div className="flex items-center mt-2 space-x-3">
                           <button
-                            onClick={() => handleQuantityChange(item, Number(item.quantity || 1) - 1)}
+                            onClick={() => handleQuantityChange(item.itemId, item.quantity - 1)}
                             className="px-2 py-1 border rounded hover:bg-gray-100"
                             disabled={Number(item.quantity || 1) <= 1}
                           >
@@ -112,28 +126,33 @@ const Cart = () => {
                           <span className="font-semibold">{item.quantity}</span>
 
                           <button
-                            onClick={() => handleQuantityChange(item, Number(item.quantity || 1) + 1)}
-                            className="px-2 py-1 border rounded hover:bg-gray-100"
+                            onClick={() => handleQuantityChange(item.itemId, item.quantity + 1)}
+                            className="px-2 py-1 border rounded hover:bg-gray-100 disabled:opacity-50"
+                            disabled={typeof item.stock === "number" && item.quantity >= item.stock}
                           >
                             +
                           </button>
                         </div>
+
+                        {typeof item.stock === "number" ? (
+                          <p className="text-xs text-gray-500 mt-2">Stock left: {item.stock}</p>
+                        ) : null}
                       </div>
                     </div>
 
                     <div className="text-right">
                       <div className="font-semibold text-blue-700">
-                        ?{Number(discounted * Number(item.quantity || 1)).toLocaleString("en-IN")}
+                        Rs.{Number(unitPrice * item.quantity).toLocaleString("en-IN")}
                       </div>
 
-                      {item.originalPrice && Number(item.originalPrice) > discounted && (
+                      {item.originalPrice && item.originalPrice > unitPrice ? (
                         <div className="text-sm text-gray-500 line-through">
-                          ?{Number(Number(item.originalPrice) * Number(item.quantity || 1)).toLocaleString("en-IN")}
+                          Rs.{Number(item.originalPrice * item.quantity).toLocaleString("en-IN")}
                         </div>
-                      )}
+                      ) : null}
 
                       <button
-                        onClick={() => handleRemove(item)}
+                        onClick={() => handleRemove(item.itemId)}
                         className="text-sm text-red-500 hover:underline mt-1"
                       >
                         Remove
@@ -155,19 +174,19 @@ const Cart = () => {
 
             <div className="flex justify-between mb-2">
               <span>Subtotal:</span>
-              <span>?{totals.subtotal}</span>
+              <span>Rs.{subtotal.toLocaleString("en-IN")}</span>
             </div>
 
             <div className="flex justify-between mb-2">
               <span>Shipping:</span>
-              <span>?{totals.shipping}</span>
+              <span>Rs.{shipping.toLocaleString("en-IN")}</span>
             </div>
 
             <hr className="my-3" />
 
             <div className="flex justify-between text-lg font-bold">
               <span>Total:</span>
-              <span>?{totals.total}</span>
+              <span>Rs.{total.toLocaleString("en-IN")}</span>
             </div>
 
             <Link
@@ -178,7 +197,7 @@ const Cart = () => {
             </Link>
 
             <button
-              onClick={() => (window.location.href = "/products")}
+              onClick={() => navigate("/products")}
               className="w-full mt-3 border border-blue-600 text-blue-600 hover:bg-blue-50 py-2 rounded-lg font-semibold"
             >
               Continue Shopping

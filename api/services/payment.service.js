@@ -2,7 +2,7 @@ import crypto from "crypto";
 import Razorpay from "razorpay";
 import Payment from "../models/payment.model.js";
 import { createOrder } from "../crud/orders.js";
-import { clearCartByUserId } from "../crud/cart.js";
+import { clearCartByUserId } from "./cart.service.js";
 
 const CURRENCY = "INR";
 

@@ -1,70 +1,153 @@
-import { Router } from "express";
+import express from "express";
 import { verifyToken } from "../middleware/auth.middleware.js";
 import {
-  addItemToCart,
-  clearCartByUserId,
-  getCartByUserId,
-  removeItemFromCart,
-  updateCartItemQuantity,
-} from "../crud/cart.js";
+  addCartItem,
+  clearCart,
+  getCart,
+  removeCartItem,
+  updateCartItem,
+} from "../controllers/cart.controller.js";
 
-const router = Router();
+const router = express.Router();
 
-router.get("/", verifyToken, async (req, res) => {
-  try {
-    const cart = await getCartByUserId(req.user.user_id);
-    return res.status(200).json({ success: true, cart });
-  } catch (error) {
-    console.error("GET_CART_ERROR", error);
-    return res.status(500).json({ success: false, message: error.message || "Failed to fetch cart" });
-  }
-});
+/**
+ * @swagger
+ * tags:
+ *   name: Cart
+ *   description: Authenticated user cart APIs
+ */
 
-router.post("/items", verifyToken, async (req, res) => {
-  try {
-    const { productType, productId, quantity = 1 } = req.body;
-    const cart = await addItemToCart(req.user.user_id, productType, productId, quantity);
-    return res.status(200).json({ success: true, cart, message: "Item added to cart" });
-  } catch (error) {
-    console.error("ADD_CART_ITEM_ERROR", error);
-    return res.status(400).json({ success: false, message: error.message || "Failed to add item to cart" });
-  }
-});
+/**
+ * @swagger
+ * /api/cart:
+ *   get:
+ *     summary: Get the logged-in user's cart
+ *     tags: [Cart]
+ *     security:
+ *       - bearerAuth: []
+ *       - accessTokenCookie: []
+ *     responses:
+ *       200:
+ *         description: Cart fetched successfully
+ *       401:
+ *         description: Unauthorized
+ *   delete:
+ *     summary: Clear the logged-in user's cart
+ *     tags: [Cart]
+ *     security:
+ *       - bearerAuth: []
+ *       - accessTokenCookie: []
+ *     responses:
+ *       200:
+ *         description: Cart cleared successfully
+ *       401:
+ *         description: Unauthorized
+ */
+router.get("/", verifyToken, getCart);
+router.delete("/", verifyToken, clearCart);
 
-router.put("/items/:productType/:productId", verifyToken, async (req, res) => {
-  try {
-    const cart = await updateCartItemQuantity(
-      req.user.user_id,
-      req.params.productType,
-      req.params.productId,
-      req.body.quantity
-    );
+/**
+ * @swagger
+ * /api/cart/items:
+ *   post:
+ *     summary: Add a product to the logged-in user's cart
+ *     tags: [Cart]
+ *     security:
+ *       - bearerAuth: []
+ *       - accessTokenCookie: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - productType
+ *               - productId
+ *             properties:
+ *               productType:
+ *                 type: string
+ *                 enum: [phone, laptop, charger, earphone, mouse, smartwatch]
+ *               productId:
+ *                 type: string
+ *               quantity:
+ *                 type: integer
+ *                 minimum: 1
+ *             example:
+ *               productType: phone
+ *               productId: "1"
+ *               quantity: 1
+ *     responses:
+ *       200:
+ *         description: Item added to cart successfully
+ *       400:
+ *         description: Invalid request or out of stock
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Product not found
+ */
+router.post("/items", verifyToken, addCartItem);
 
-    return res.status(200).json({ success: true, cart, message: "Cart updated" });
-  } catch (error) {
-    console.error("UPDATE_CART_ITEM_ERROR", error);
-    return res.status(400).json({ success: false, message: error.message || "Failed to update cart item" });
-  }
-});
-
-router.delete("/items/:productType/:productId", verifyToken, async (req, res) => {
-  try {
-    const cart = await removeItemFromCart(req.user.user_id, req.params.productType, req.params.productId);
-    return res.status(200).json({ success: true, cart, message: "Item removed from cart" });
-  } catch (error) {
-    console.error("REMOVE_CART_ITEM_ERROR", error);
-    return res.status(400).json({ success: false, message: error.message || "Failed to remove cart item" });
-  }
-});
-
-router.delete("/", verifyToken, async (req, res) => {
-  try {
-    const cart = await clearCartByUserId(req.user.user_id);
-    return res.status(200).json({ success: true, cart, message: "Cart cleared" });
-  } catch (error) {
-    console.error("CLEAR_CART_ERROR", error);
-    return res.status(500).json({ success: false, message: error.message || "Failed to clear cart" });
-  }
-});
+/**
+ * @swagger
+ * /api/cart/items/{itemId}:
+ *   put:
+ *     summary: Update quantity for a cart item
+ *     tags: [Cart]
+ *     security:
+ *       - bearerAuth: []
+ *       - accessTokenCookie: []
+ *     parameters:
+ *       - in: path
+ *         name: itemId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - quantity
+ *             properties:
+ *               quantity:
+ *                 type: integer
+ *                 minimum: 1
+ *             example:
+ *               quantity: 2
+ *     responses:
+ *       200:
+ *         description: Cart item updated successfully
+ *       400:
+ *         description: Invalid request or out of stock
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Cart item not found
+ *   delete:
+ *     summary: Remove an item from the cart
+ *     tags: [Cart]
+ *     security:
+ *       - bearerAuth: []
+ *       - accessTokenCookie: []
+ *     parameters:
+ *       - in: path
+ *         name: itemId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Cart item removed successfully
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Cart item not found
+ */
+router.put("/items/:itemId", verifyToken, updateCartItem);
+router.delete("/items/:itemId", verifyToken, removeCartItem);
 
 export default router;

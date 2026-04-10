@@ -5,7 +5,7 @@ import {
   getOrdersByUserId,
   createOrder
 } from "../crud/orders.js";
-import { clearCartByUserId } from "../crud/cart.js";
+import { clearCartByUserId } from "../services/cart.service.js";
 
 import { getPhoneById } from "../crud/phones.js";
 import { getLaptopById } from "../crud/laptops.js";
@@ -78,6 +78,10 @@ router.post("/orders", verifyToken, async (req, res) => {
 
     if (!result.success) {
       return res.status(500).json({ success: false, message: result.message });
+    }
+
+    if (source === "cart") {
+      await clearCartByUserId(userId);
     }
 
     return res.status(201).json({

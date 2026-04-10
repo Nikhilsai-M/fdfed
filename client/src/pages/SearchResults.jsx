@@ -4,6 +4,7 @@ import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
 import { ShoppingCart } from 'lucide-react';
 import { useCart } from '../context/CartContent';
+import { addCartItem } from '../services/cartApi';
 
 const SearchResults = () => {
   const [searchParams] = useSearchParams();

@@ -11,48 +11,62 @@ const cartItemSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    sellerId: {
+      type: String,
+      default: null,
+    },
     quantity: {
       type: Number,
       required: true,
       min: 1,
       default: 1,
     },
-    seller_id: {
-      type: String,
+    unitPrice: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    originalPrice: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    discount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    stock: {
+      type: Number,
       default: null,
     },
-    item: {
+    available: {
+      type: Boolean,
+      default: true,
+    },
+    snapshot: {
       type: mongoose.Schema.Types.Mixed,
-      required: true,
       default: {},
     },
-    added_at: {
-      type: Date,
-      default: Date.now,
-    },
   },
-  { _id: false }
+  { _id: true }
 );
 
-const cartSchema = new mongoose.Schema({
-  user_id: {
-    type: String,
-    required: true,
-    unique: true,
-    index: true,
+const cartSchema = new mongoose.Schema(
+  {
+    user_id: {
+      type: String,
+      required: true,
+      unique: true,
+      index: true,
+    },
+    items: {
+      type: [cartItemSchema],
+      default: [],
+    },
   },
-  items: {
-    type: [cartItemSchema],
-    default: [],
-  },
-  updated_at: {
-    type: Date,
-    default: Date.now,
-  },
-});
-
-cartSchema.index({ user_id: 1, updated_at: -1 });
-cartSchema.index({ "items.productType": 1, "items.productId": 1 });
+  { timestamps: true }
+);
 
 const Cart = mongoose.models.Cart || mongoose.model("Cart", cartSchema);
 

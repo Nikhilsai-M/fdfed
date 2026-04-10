@@ -10,6 +10,7 @@ import CartMessage from '../components/CartMessage';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
 import { useCart } from '../context/CartContent';
+import { addCartItem } from '../services/cartApi';
 
 const LaptopDetails = () => {
   const { id } = useParams();
@@ -80,16 +81,25 @@ const LaptopDetails = () => {
   // Add to Cart using Context
   const addToCart = async () => {
     try {
-      await addItem('laptop', laptop.id, 1);
+      const cart = await addCartItem({
+        productType: 'laptop',
+        productId: laptop.id,
+        quantity: 1,
+      });
+
+      await updateCart(cart);
+
       setCartMessage(`${laptop.brand} ${laptop.series} added to cart!`);
       setTimeout(() => setCartMessage(null), 3500);
     } catch (error) {
       console.error('Error adding to cart:', error);
-      if (/unauthorized|forbidden/i.test(error.message || '')) {
+      if (error.status === 401 || error.status === 403) {
         navigate('/sign-in');
         return;
       }
-      alert(error.message || 'Failed to add item to cart');
+
+      setCartMessage(error.message || 'Unable to add item to cart');
+      setTimeout(() => setCartMessage(null), 3500);
     }
   };
 
@@ -235,4 +245,3 @@ const LaptopDetails = () => {
 };
 
 export default LaptopDetails;
-

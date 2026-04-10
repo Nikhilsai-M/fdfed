@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, CheckCircle2, CreditCard, RefreshCw, ShieldCheck } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAppSelector } from "../hooks/redux";
-import { useCart } from "../context/CartContent";
+import { clearCart as clearBackendCart, getCart as getBackendCart } from "../services/cartApi";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 const RAZORPAY_SCRIPT = "https://checkout.razorpay.com/v1/checkout.js";
@@ -146,40 +146,42 @@ const PaymentPage = () => {
       return;
     }
 
-    const userId = user?.user_id || location.state?.userId;
+    const loadCartFallback = async () => {
+      try {
+        const cart = await getBackendCart();
 
-    if (!cartItems.length && !cartLoadedRef.current) {
-      cartLoadedRef.current = true;
-      fetchCart().catch(() => {});
-      return;
-    }
+        if (!cart?.items?.length) {
+          return;
+        }
 
-    if (!cartItems.length) {
-      return;
-    }
+        const subtotal = cart.items.reduce((total, item) => total + calculateItemTotal(item), 0);
+        const shipping = subtotal > 10000 ? 0 : 99;
 
-    const subtotal = cartItems.reduce((total, item) => total + calculateItemTotal(item), 0);
-    const shipping = subtotal > 10000 ? 0 : 99;
+        setCheckoutData({
+          source: "cart",
+          paymentMethod: "razorpay",
+          userId: cart.userId || user?.user_id || location.state?.userId,
+          items: cart.items.map((item) => ({
+            type: item.type || determineItemType(item),
+            id: item.productId || item.id,
+            seller_id: item.seller_id || item.sellerId || null,
+            accessory: sanitizeAccessory(item),
+            quantity: item.quantity || 1,
+            amount: calculateItemTotal(item),
+          })),
+          subtotal,
+          shipping,
+          discountAmount: 0,
+          discountPercent: 0,
+          totalAmount: subtotal + shipping,
+        });
+      } catch (error) {
+        console.error("Payment cart fallback error:", error);
+      }
+    };
 
-    setCheckoutData({
-      source: "cart",
-      paymentMethod: "razorpay",
-      userId,
-      items: cartItems.map((item) => ({
-        type: determineItemType(item),
-        id: item.productId || item.id,
-        seller_id: item.seller_id || item.sellerId || null,
-        accessory: sanitizeAccessory(item),
-        quantity: item.quantity || 1,
-        amount: calculateItemTotal(item),
-      })),
-      subtotal,
-      shipping,
-      discountAmount: 0,
-      discountPercent: 0,
-      totalAmount: subtotal + shipping,
-    });
-  }, [cartItems, checkoutData, fetchCart, location.state, user]);
+    loadCartFallback();
+  }, [checkoutData, location.state, user]);
 
   const createBackendOrder = async () => {
     if (!checkoutData?.items?.length) {
@@ -196,6 +198,7 @@ const PaymentPage = () => {
         headers: authHeaders,
         credentials: "include",
         body: JSON.stringify({
+          source: checkoutData.source || "buyNow",
           userId: user?.user_id || checkoutData.userId,
           amount: checkoutData.totalAmount,
           currency: "INR",
@@ -245,12 +248,12 @@ const PaymentPage = () => {
     createBackendOrder();
   }, [checkoutData, paymentSession, isCreatingOrder]);
 
-  const clearCartData = async () => {
-    if (checkoutData?.source !== "cart") {
-      return;
+  const clearCart = async () => {
+    try {
+      await clearBackendCart();
+    } catch (error) {
+      console.error("Unable to clear cart after payment:", error);
     }
-
-    await clearCart();
   };
 
   const createCodOrder = async () => {
@@ -264,6 +267,7 @@ const PaymentPage = () => {
         headers: authHeaders,
         credentials: "include",
         body: JSON.stringify({
+          source: checkoutData.source || "buyNow",
           totalAmount: checkoutData.totalAmount,
           paymentMethod: "cod",
           source: checkoutData.source,
@@ -276,7 +280,7 @@ const PaymentPage = () => {
         throw new Error(result.message || "Unable to place COD order");
       }
 
-      await clearCartData();
+      await clearCart();
       navigate("/myorders", {
         replace: true,
         state: { paymentSuccess: true, orderId: result.orderId },
@@ -313,7 +317,7 @@ const PaymentPage = () => {
         throw new Error(result.message || result.reason || "Payment verification failed");
       }
 
-      await clearCartData();
+      await clearCart();
       setStatusMessage("Payment verified. Redirecting to your orders...");
 
       navigate("/myorders", {

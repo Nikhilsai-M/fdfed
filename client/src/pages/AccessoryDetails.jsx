@@ -11,6 +11,7 @@ import Header from "../components/common/Header";
 import Footer from "../components/common/Footer";
 
 import { useCart } from "../context/CartContent";
+import { addCartItem } from "../services/cartApi";
 
 const AccessoryDetails = ({ type }) => {
   console.log("AccessoryDetails component loaded");
@@ -133,16 +134,25 @@ const AccessoryDetails = ({ type }) => {
 
   const addToCart = async () => {
     try {
-      await addItem(type, product.id, 1);
+      const cart = await addCartItem({
+        productType: type,
+        productId: product.id,
+        quantity: 1,
+      });
+
+      await updateCart(cart);
+
       setCartMessage(`${product.title} added to cart!`);
       setTimeout(() => setCartMessage(null), 3000);
     } catch (error) {
       console.error("Add to cart error:", error);
-      if (/unauthorized|forbidden/i.test(error.message || "")) {
+      if (error.status === 401 || error.status === 403) {
         navigate("/sign-in");
         return;
       }
-      alert(error.message || "Failed to add item to cart");
+
+      setCartMessage(error.message || "Unable to add item to cart");
+      setTimeout(() => setCartMessage(null), 3000);
     }
   };
   const buyNow = async () => {

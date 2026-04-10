@@ -2,14 +2,33 @@ import React, { useState } from "react";
 import { ShoppingCart, X, Check } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContent";
+import { addCartItem } from "../services/cartApi";
 
 const inferProductType = (product) => {
-  if (product?.productType) return product.productType;
-  if (product?.type === "phone" || product?.type === "laptop") return product.type;
-  if (product?.wattage && product?.outputCurrent) return "charger";
-  if (product?.design && product?.batteryLife) return "earphone";
-  if (product?.displaySize && product?.displayType && product?.batteryRuntime) return "smartwatch";
-  if (product?.resolution && product?.connectivity) return "mouse";
+  if (product?.type === "phone" || (product?.model && product?.ram && product?.rom)) {
+    return "phone";
+  }
+
+  if (product?.type === "laptop" || product?.series) {
+    return "laptop";
+  }
+
+  if (product?.wattage && product?.outputCurrent) {
+    return "charger";
+  }
+
+  if (product?.design && product?.batteryLife) {
+    return "earphone";
+  }
+
+  if (product?.displaySize && product?.displayType && product?.batteryRuntime) {
+    return "smartwatch";
+  }
+
+  if (product?.resolution && product?.connectivity) {
+    return "mouse";
+  }
+
   return null;
 };
 
@@ -23,21 +42,28 @@ const AddToCartButton = ({ product }) => {
       const productType = inferProductType(product);
 
       if (!productType || !product?.id) {
-        throw new Error("Product details are incomplete");
+        console.error("Unable to determine product type for cart item", product);
+        return;
       }
 
-      await addItem(productType, product.id, 1);
+      const cart = await addCartItem({
+        productType,
+        productId: product.id,
+        quantity: 1,
+      });
+
+      await updateCart(cart);
+
       setMessage("Item added to cart");
       setTimeout(() => setMessage(null), 2500);
     } catch (error) {
       console.error("Cart error:", error);
-
-      if (/unauthorized|forbidden/i.test(error.message || "")) {
+      if (error.status === 401 || error.status === 403) {
         navigate("/sign-in");
         return;
       }
 
-      alert(error.message || "Failed to add item to cart");
+      alert(error.message || "Unable to add item to cart");
     }
   };
 

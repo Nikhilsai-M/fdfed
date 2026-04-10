@@ -1,86 +1,96 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useCart } from "../context/CartContent";
-import { useAppSelector } from "../hooks/redux";
+import { getCart } from "../services/cartApi";
+
+const sanitizeAccessory = (item) => {
+  const accessory = { ...item };
+  delete accessory.itemId;
+  delete accessory.quantity;
+  delete accessory.price;
+  delete accessory.unitPrice;
+  delete accessory.originalPrice;
+  delete accessory.discount;
+  delete accessory.stock;
+  delete accessory.available;
+  return accessory;
+};
+
+const calculateItemTotal = (item) =>
+  Number(((Number(item.unitPrice || item.price || 0)) * (item.quantity || 1)).toFixed(2));
+
+const getItemDetails = (item) => {
+  if (item.type === "phone") {
+    return `${item.brand} ${item.model}\n${item.ram} RAM | ${item.rom} Storage`;
+  }
+
+  if (item.type === "laptop") {
+    return `${item.title}\n${item.ram} RAM | ${item.storage}`;
+  }
+
+  if (item.type === "charger") {
+    return `${item.title}\n${item.wattage}W`;
+  }
+
+  if (item.type === "earphone") {
+    return `${item.title}\n${item.design}`;
+  }
+
+  if (item.type === "smartwatch") {
+    return `${item.title}\n${item.displaySize}"`;
+  }
+
+  if (item.type === "mouse") {
+    return `${item.title}\n${item.mouseType || item.connectorType || "Accessory"}`;
+  }
+
+  return item.title || "Unknown Item";
+};
 
 const Checkout = () => {
-  const { cartItems, fetchCart } = useCart();
-  const { user } = useAppSelector((state) => state.auth);
+  const [cart, setCart] = useState([]);
   const [userId, setUserId] = useState(null);
   const [message, setMessage] = useState({ text: "", type: "" });
   const [isProcessing, setIsProcessing] = useState(false);
   const [couponCode, setCouponCode] = useState("");
   const [discountPercent, setDiscountPercent] = useState(0);
-
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const cart = cartItems;
 
   useEffect(() => {
-    fetchCart().catch(() => {});
+    const loadCart = async () => {
+      try {
+        const loadedCart = await getCart();
+        setCart(loadedCart?.items || []);
+        setUserId(loadedCart?.userId || null);
+      } catch (error) {
+        console.error("Error reading cart:", error);
+        if (error.status === 401 || error.status === 403) {
+          navigate("/sign-in");
+          return;
+        }
 
-    const storedUser = JSON.parse(localStorage.getItem("user") || "null");
-    setUserId(user?.user_id || storedUser?.user_id || null);
-  }, [fetchCart, user]);
+        setMessage({ text: error.message || "Unable to load cart.", type: "error" });
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const determineItemType = (item) => {
-    if (item.productType) return item.productType;
-    if (item.type === "phone") return "phone";
-    if (item.type === "laptop") return "laptop";
-    if (item.wattage && item.outputCurrent) return "charger";
-    if (item.design && item.batteryLife) return "earphone";
-    if (item.displaySize && item.displayType && item.batteryRuntime) return "smartwatch";
-    if (item.resolution && item.connectivity && item.type) return "mouse";
-    return "unknown";
-  };
-
-  const sanitizeAccessory = (item) => {
-    const accessory = { ...item };
-    delete accessory.quantity;
-    delete accessory.productType;
-    delete accessory.productId;
-    return accessory;
-  };
-
-  const calculateItemTotal = (item) => {
-    const price = Number(item.discountPrice ?? item.price ?? 0);
-    return price * Number(item.quantity || 1);
-  };
-
-  const getItemDetails = (item) => {
-    if (item.model && item.ram && item.rom) {
-      return `${item.brand} ${item.model}\n${item.ram} RAM | ${item.rom} Storage`;
-    }
-
-    if (item.wattage && item.outputCurrent) {
-      return `${item.title}\n${item.wattage}W`;
-    }
-
-    if (item.design && item.batteryLife) {
-      return `${item.title}\n${item.design}`;
-    }
-
-    if (item.displaySize && item.displayType && item.batteryRuntime) {
-      return `${item.title}\n${item.displaySize}"`;
-    }
-
-    if (item.resolution && item.connectivity && item.type) {
-      return `${item.title}\n${item.type}`;
-    }
-
-    if (item.processor && item.ram) {
-      return `${item.brand} ${item.title || ""}\n${item.ram} RAM`;
-    }
-
-    return item.title || "Unknown Item";
-  };
+    loadCart();
+  }, [navigate]);
 
   const { subtotal, shipping, discountAmount, total } = useMemo(() => {
-    const subtotal = cart.reduce((t, item) => t + calculateItemTotal(item), 0);
-    const shipping = subtotal > 10000 ? 0 : 99;
-    const discountAmount = (subtotal * discountPercent) / 100;
-    const total = subtotal - discountAmount + shipping;
+    const calculatedSubtotal = cart.reduce((sum, item) => sum + calculateItemTotal(item), 0);
+    const calculatedShipping = calculatedSubtotal > 10000 ? 0 : 99;
+    const calculatedDiscountAmount = (calculatedSubtotal * discountPercent) / 100;
+    const calculatedTotal = calculatedSubtotal - calculatedDiscountAmount + calculatedShipping;
 
-    return { subtotal, shipping, discountAmount, total };
+    return {
+      subtotal: calculatedSubtotal,
+      shipping: calculatedShipping,
+      discountAmount: calculatedDiscountAmount,
+      total: calculatedTotal,
+    };
   }, [cart, discountPercent]);
 
   const handleApplyCoupon = () => {
@@ -106,26 +116,17 @@ const Checkout = () => {
       }
 
       setCouponCode("");
-    } else {
-      setDiscountPercent(0);
-      setMessage({ text: "Invalid coupon code.", type: "error" });
-      setCouponCode("");
+      return;
     }
+
+    setDiscountPercent(0);
+    setMessage({ text: "Invalid coupon code.", type: "error" });
+    setCouponCode("");
   };
 
   const handlePay = async () => {
     if (cart.length === 0) {
       setMessage({ text: "Your cart is empty.", type: "error" });
-      return;
-    }
-
-    const invalidItems = cart.filter((item) => determineItemType(item) === "unknown");
-
-    if (invalidItems.length > 0) {
-      setMessage({
-        text: "Invalid items in cart. Please remove them.",
-        type: "error",
-      });
       return;
     }
 
@@ -142,7 +143,7 @@ const Checkout = () => {
       discountPercent,
       totalAmount: total,
       items: cart.map((item) => ({
-        type: determineItemType(item),
+        type: item.type,
         id: item.productId || item.id,
         seller_id: item.seller_id || null,
         accessory: sanitizeAccessory(item),
@@ -166,22 +167,42 @@ const Checkout = () => {
         <h1 className="text-4xl font-bold mb-4">Checkout</h1>
 
         <Link to="/cart" className="text-blue-600 mb-6 inline-block">
-          ? Back to Shopping
+          Back to Cart
         </Link>
 
         <div className="bg-white rounded-xl p-6 shadow mb-6">
           <h2 className="text-2xl font-bold mb-4">Order Summary</h2>
 
-          {cart.length === 0 ? (
+          {loading ? (
+            <p>Loading your cart...</p>
+          ) : cart.length === 0 ? (
             <p>Your cart is empty</p>
           ) : (
-            cart.map((item, index) => (
-              <div key={`${item.productType}-${item.productId || index}`} className="flex justify-between border-b py-3">
-                <span>{getItemDetails(item)}</span>
-                <span>?{calculateItemTotal(item).toLocaleString("en-IN")}</span>
+            cart.map((item) => (
+              <div key={item.itemId} className="flex justify-between border-b py-3">
+                <span className="whitespace-pre-line">{getItemDetails(item)}</span>
+                <span>Rs.{calculateItemTotal(item).toLocaleString("en-IN")}</span>
               </div>
             ))
           )}
+        </div>
+
+        <div className="bg-white rounded-xl p-6 shadow mb-6">
+          <h2 className="text-xl font-bold mb-4">Apply Coupon</h2>
+          <div className="flex gap-3">
+            <input
+              value={couponCode}
+              onChange={(event) => setCouponCode(event.target.value)}
+              placeholder="Enter coupon code"
+              className="flex-1 rounded border border-gray-300 px-4 py-2"
+            />
+            <button
+              onClick={handleApplyCoupon}
+              className="rounded bg-emerald-600 px-4 py-2 font-semibold text-white"
+            >
+              Apply
+            </button>
+          </div>
         </div>
 
         <div className="bg-white rounded-xl p-6 shadow mb-6">
@@ -189,42 +210,24 @@ const Checkout = () => {
 
           <div className="flex justify-between">
             <span>Subtotal</span>
-            <span>?{subtotal}</span>
+            <span>Rs.{subtotal.toLocaleString("en-IN")}</span>
           </div>
 
           <div className="flex justify-between">
             <span>Shipping</span>
-            <span>{shipping === 0 ? "FREE" : `?${shipping}`}</span>
+            <span>{shipping === 0 ? "FREE" : `Rs.${shipping}`}</span>
           </div>
 
-          {discountPercent > 0 && (
+          {discountPercent > 0 ? (
             <div className="flex justify-between text-green-600">
               <span>Discount ({discountPercent}%)</span>
-              <span>-?{discountAmount}</span>
+              <span>-Rs.{discountAmount.toLocaleString("en-IN")}</span>
             </div>
-          )}
+          ) : null}
 
           <div className="flex justify-between font-bold text-lg mt-3">
             <span>Total</span>
-            <span>?{total}</span>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl p-6 shadow mb-6">
-          <h2 className="text-xl font-bold mb-4">Coupon</h2>
-          <div className="flex gap-3">
-            <input
-              value={couponCode}
-              onChange={(e) => setCouponCode(e.target.value)}
-              placeholder="Enter coupon code"
-              className="flex-1 border rounded px-4 py-2"
-            />
-            <button
-              onClick={handleApplyCoupon}
-              className="bg-emerald-600 text-white px-4 py-2 rounded"
-            >
-              Apply
-            </button>
+            <span>Rs.{total.toLocaleString("en-IN")}</span>
           </div>
         </div>
 
@@ -236,18 +239,14 @@ const Checkout = () => {
 
           <button
             onClick={handlePay}
-            disabled={isProcessing || cart.length === 0}
-            className="w-full py-3 bg-blue-600 text-white rounded"
+            disabled={loading || isProcessing || cart.length === 0}
+            className="w-full py-3 bg-blue-600 text-white rounded disabled:opacity-50"
           >
-            Pay Now - ?{total}
+            Pay Now - Rs.{total.toLocaleString("en-IN")}
           </button>
         </div>
 
-        {message.text && (
-          <div className="mt-6 p-4 border rounded">
-            {message.text}
-          </div>
-        )}
+        {message.text ? <div className="mt-6 p-4 border rounded">{message.text}</div> : null}
       </div>
     </div>
   );
