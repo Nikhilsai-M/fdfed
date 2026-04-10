@@ -1,0 +1,53 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: fdfed-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    container_name: fdfed-api
+    restart: unless-stopped
+    working_dir: /app/api
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      PORT: 3000
+      MONGO: mongodb://mongo:27017/fdfed
+      CLIENT_ORIGIN: http://localhost:5173
+      SWAGGER_SERVER_URL: http://localhost:3000
+    volumes:
+      - .:/app
+      - /app/api/node_modules
+    depends_on:
+      - mongo
+    command: npm run dev
+
+  client:
+    build:
+      context: .
+      dockerfile: client/Dockerfile
+    container_name: fdfed-client
+    restart: unless-stopped
+    working_dir: /app/client
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_PROXY_TARGET: http://api:3000
+    volumes:
+      - .:/app
+      - /app/client/node_modules
+    depends_on:
+      - api
+    command: npm run dev -- --host 0.0.0.0
+
+volumes:
+  mongo_data:
