@@ -65,6 +65,9 @@ const supervisorSchema = new mongoose.Schema({
   timestamps: true,
 });
 
+supervisorSchema.index({ role: 1, type: 1, user_id: 1 });
+supervisorActivitySchema.index({ supervisor_id: 1, timestamp: -1 });
+
 const Supervisor = mongoose.model("Supervisor", supervisorSchema);
 const SupervisorActivity = mongoose.model("SupervisorActivity", supervisorActivitySchema);
 

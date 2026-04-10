@@ -20,7 +20,7 @@ const LaptopDetails = () => {
   const [error, setError] = useState(null);
   const [cartMessage, setCartMessage] = useState(null);
 
-  const { updateCart } = useCart();
+  const { addItem } = useCart();
 
   // Fetch laptop details
   useEffect(() => {
@@ -80,42 +80,20 @@ const LaptopDetails = () => {
   // Add to Cart using Context
   const addToCart = async () => {
     try {
-      const response = await fetch('/api/user/profile', { method: 'GET', credentials: 'include' });
-      if (!response.ok) {
-        navigate('/sign-in');
-        return;
-      }
-
-      const userData = await response.json();
-      const userId = userData?.user?.user_id;
-      if (!userId) {
-        navigate('/sign-in');
-        return;
-      }
-
-      const cartKey = `cart_user_${userId}`;
-      const existingCart = JSON.parse(localStorage.getItem(cartKey)) || [];
-
-      const existingIndex = existingCart.findIndex((item) => item.id === laptop.id);
-      let updatedCart;
-      if (existingIndex !== -1) {
-        updatedCart = [...existingCart];
-        updatedCart[existingIndex].quantity += 1;
-      } else {
-        updatedCart = [...existingCart, getCartItemFields(laptop)];
-      }
-
-      updateCart(updatedCart, userId);
-
+      await addItem('laptop', laptop.id, 1);
       setCartMessage(`${laptop.brand} ${laptop.series} added to cart!`);
       setTimeout(() => setCartMessage(null), 3500);
     } catch (error) {
       console.error('Error adding to cart:', error);
-      navigate('/sign-in');
+      if (/unauthorized|forbidden/i.test(error.message || '')) {
+        navigate('/sign-in');
+        return;
+      }
+      alert(error.message || 'Failed to add item to cart');
     }
   };
 
-  // Buy Now function - SAME as FilterLaptops page
+  // Buy Now function - SAME as FilterLaptops page  // Buy Now function - SAME as FilterLaptops page
   const buyNow = async () => {
     try {
       console.log('Buy Now clicked for laptop:', laptop);
@@ -257,3 +235,4 @@ const LaptopDetails = () => {
 };
 
 export default LaptopDetails;
+

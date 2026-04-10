@@ -12,7 +12,7 @@ const SearchResults = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchInput, setSearchInput] = useState(query);
-  const { updateCart } = useCart();
+  const { addItem } = useCart();
   const navigate = useNavigate();
 
   const fetchSearchResults = useCallback(async () => {
@@ -47,41 +47,19 @@ const SearchResults = () => {
 
   const handleAddToCart = async (product) => {
     try {
-      const user = JSON.parse(localStorage.getItem('user'));
-      if (!user) {
+      await addItem(product.type, product.id, 1);
+      alert('Product added to cart!');
+    } catch (err) {
+      console.error('Error adding to cart:', err);
+      if (/unauthorized|forbidden/i.test(err.message || '')) {
         navigate('/sign-in');
         return;
       }
-
-      const cartItem = {
-        productId: product.id,
-        productType: product.type,
-        quantity: 1,
-        price: product.finalPrice,
-      };
-
-      const response = await fetch('/api/orders/cart', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(cartItem),
-      });
-
-      if (response.ok) {
-        updateCart();
-        alert('Product added to cart!');
-      } else {
-        throw new Error('Failed to add to cart');
-      }
-    } catch (err) {
-      console.error('Error adding to cart:', err);
-      alert('Failed to add product to cart');
+      alert(err.message || 'Failed to add product to cart');
     }
   };
 
-  const getProductLink = (product) => {
+  const getProductLink = (product) => {  const getProductLink = (product) => {
     switch (product.type) {
       case 'phone':
         return `/product/${product.id}`;
@@ -248,4 +226,6 @@ const SearchResults = () => {
 };
 
 export default SearchResults;
+
+
 

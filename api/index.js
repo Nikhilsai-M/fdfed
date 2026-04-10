@@ -54,6 +54,7 @@ import adminSellerActivityRoutes from "./routes/adminSellerActivity.route.js";
 import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
 import paymentRouter from "./routes/payment.route.js";
+import cartRouter from "./routes/cart.route.js";
 
 const options = {
   definition: {
@@ -214,6 +215,7 @@ app.use("/api/admin/product-analytics", adminProductAnalyticsRouter);
 app.use("/api/admin/sales-analytics", adminSalesAnalyticsRouter);
 app.use("/api/admin/seller-activity", adminSellerActivityRoutes);
 app.use("/api/payment", paymentRouter);
+app.use("/api/cart", cartRouter);
 
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
@@ -233,3 +235,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}!!!`);
 });
+

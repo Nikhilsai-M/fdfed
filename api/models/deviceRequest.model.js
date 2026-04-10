@@ -42,5 +42,7 @@ const deviceRequestSchema = new mongoose.Schema(
 
 deviceRequestSchema.index({ user_id: 1, device_type: 1, active: 1 });
 
+deviceRequestSchema.index({ device_type: 1, active: 1, fulfilled: 1 });
+
 const DeviceRequest = mongoose.model("DeviceRequest", deviceRequestSchema);
 export default DeviceRequest;

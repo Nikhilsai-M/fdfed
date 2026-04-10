@@ -22,7 +22,7 @@ const AccessoryDetails = ({ type }) => {
   const [error, setError] = useState(null);
   const [cartMessage, setCartMessage] = useState(null);
 
-  const { updateCart } = useCart();
+  const { addItem } = useCart();
 
   const getApiEndpoint = () => {
     switch (type) {
@@ -133,45 +133,18 @@ const AccessoryDetails = ({ type }) => {
 
   const addToCart = async () => {
     try {
-      const response = await fetch("/api/user/profile", {
-        method: "GET",
-        credentials: "include",
-      });
-
-      if (!response.ok) return navigate("/sign-in");
-
-      const userData = await response.json();
-      const userId = userData?.user?.user_id;
-
-      if (!userId) return navigate("/sign-in");
-
-      const cartKey = `cart_${userId}`;
-      const existingCart =
-        JSON.parse(localStorage.getItem(cartKey)) || [];
-
-      const index = existingCart.findIndex(
-        (item) => item.id === product.id
-      );
-
-      let updatedCart;
-
-      if (index !== -1) {
-        updatedCart = [...existingCart];
-        updatedCart[index].quantity += 1;
-      } else {
-        updatedCart = [...existingCart, getCartItemFields(product)];
-      }
-
-      updateCart(updatedCart, userId);
-
+      await addItem(type, product.id, 1);
       setCartMessage(`${product.title} added to cart!`);
       setTimeout(() => setCartMessage(null), 3000);
     } catch (error) {
       console.error("Add to cart error:", error);
-      navigate("/sign-in");
+      if (/unauthorized|forbidden/i.test(error.message || "")) {
+        navigate("/sign-in");
+        return;
+      }
+      alert(error.message || "Failed to add item to cart");
     }
   };
-
   const buyNow = async () => {
     try {
       const response = await fetch("/api/user/profile", {

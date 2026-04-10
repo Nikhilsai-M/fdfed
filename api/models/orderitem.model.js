@@ -43,6 +43,11 @@ const orderItemSchema = new mongoose.Schema({
   }
 
 });
+orderItemSchema.index({ order_id: 1 });
+orderItemSchema.index({ seller_id: 1, created_at: -1 });
+orderItemSchema.index({ seller_id: 1, order_id: 1 });
+orderItemSchema.index({ item_type: 1, created_at: -1 });
+
 const OrderItem =
   mongoose.models.OrderItem ||
   mongoose.model("OrderItem", orderItemSchema);

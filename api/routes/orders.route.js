@@ -5,6 +5,7 @@ import {
   getOrdersByUserId,
   createOrder
 } from "../crud/orders.js";
+import { clearCartByUserId } from "../crud/cart.js";
 
 import { getPhoneById } from "../crud/phones.js";
 import { getLaptopById } from "../crud/laptops.js";
@@ -57,7 +58,7 @@ const router = Router();
 router.post("/orders", verifyToken, async (req, res) => {
   try {
     const userId = req.user.user_id;
-    const { totalAmount, paymentMethod, items } = req.body;
+    const { totalAmount, paymentMethod, items, source } = req.body;
 
     if (!totalAmount || !paymentMethod || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ success: false, message: "Invalid order data" });
@@ -70,6 +71,10 @@ router.post("/orders", verifyToken, async (req, res) => {
     }
 
     const result = await createOrder(userId, totalAmount, paymentMethod, items);
+
+    if (result.success && source === "cart") {
+      await clearCartByUserId(userId);
+    }
 
     if (!result.success) {
       return res.status(500).json({ success: false, message: result.message });
@@ -232,3 +237,4 @@ router.get("/buy/:type/:id", verifyToken, async (req, res) => {
 });
 
 export default router;
+

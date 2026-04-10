@@ -29,6 +29,10 @@ isActive: {
 created_at: { type: Date, default: Date.now },
 });
 
+smartwatchSchema.index({ sellerId: 1, isActive: 1, created_at: -1 });
+
+smartwatchSchema.index({ title: "text", brand: "text", displayType: "text", batteryRuntime: "text" });
+
 const Smartwatch = mongoose.model("Smartwatch", smartwatchSchema);
 
 export default Smartwatch;

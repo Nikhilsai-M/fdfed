@@ -68,5 +68,7 @@ notificationSchema.index({ user_id: 1, archived: 1, created_at: -1 });
 // ✅ Speeds up unread count queries and markAllAsRead
 notificationSchema.index({ user_id: 1, read: 1 });
 
+notificationSchema.index({ user_id: 1, application_id: 1, application_type: 1 });
+
 const Notification = mongoose.model("Notification", notificationSchema);
 export default Notification;

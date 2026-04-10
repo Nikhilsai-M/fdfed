@@ -1,81 +1,69 @@
-// --- Cart.jsx ---
-import React, { useEffect, useState } from "react";
-import { Link } from 'react-router-dom';
+import React, { useEffect, useMemo } from "react";
+import { Link } from "react-router-dom";
 import Header from "../components/common/Header";
 import Footer from "../components/common/Footer";
 import { useCart } from "../context/CartContent";
 
 const Cart = () => {
-  const [cartItems, setCartItems] = useState([]);
-  const [subtotal, setSubtotal] = useState(0);
-  const [shipping, setShipping] = useState(0);
-  const [total, setTotal] = useState(0);
-
-  const { fetchCartCount } = useCart();
+  const {
+    cartItems,
+    fetchCart,
+    updateItemQuantity,
+    removeItem,
+    isCartLoading,
+  } = useCart();
 
   const getDiscountPrice = (item) => {
-    if (item.discountPrice) return item.discountPrice;
+    if (item.discountPrice != null) return Number(item.discountPrice);
 
-    if (item.price && item.discountPercentage)
-      return item.price - (item.price * item.discountPercentage) / 100;
+    if (item.price && item.discount != null) {
+      return Number(item.price) - (Number(item.price) * Number(item.discount)) / 100;
+    }
 
-    return item.price || 0;
+    if (item.price && item.discountPercentage != null) {
+      return Number(item.price) - (Number(item.price) * Number(item.discountPercentage)) / 100;
+    }
+
+    return Number(item.price || 0);
   };
 
   useEffect(() => {
-    const allKeys = Object.keys(localStorage);
-    const cartKey = allKeys.find((key) => key.startsWith("cart_user"));
-    let items = [];
+    fetchCart().catch(() => {});
+  }, [fetchCart]);
 
-    if (cartKey) {
-      try {
-        items = JSON.parse(localStorage.getItem(cartKey)) || [];
-      } catch (e) {
-        console.error("Cart error:", e);
-      }
-    }
-
-    setCartItems(items);
-    updateTotals(items);
-  }, []);
-
-  const updateTotals = (items) => {
-    const sub = items.reduce((acc, item) => {
-      const d = getDiscountPrice(item);
-      return acc + d * (item.quantity || 1);
+  const totals = useMemo(() => {
+    const subtotal = cartItems.reduce((acc, item) => {
+      const discounted = getDiscountPrice(item);
+      return acc + discounted * Number(item.quantity || 1);
     }, 0);
 
-    const ship = sub > 0 ? 100 : 0;
+    const shipping = subtotal > 0 ? 100 : 0;
 
-    setSubtotal(sub);
-    setShipping(ship);
-    setTotal(sub + ship);
+    return {
+      subtotal,
+      shipping,
+      total: subtotal + shipping,
+    };
+  }, [cartItems]);
+
+  const handleQuantityChange = async (item, quantity) => {
+    if (quantity < 1) return;
+
+    try {
+      await updateItemQuantity(item.productType, item.productId || item.id, quantity);
+    } catch (error) {
+      console.error("Cart quantity update error:", error);
+      alert(error.message || "Failed to update cart quantity");
+    }
   };
 
-  const handleQuantityChange = (i, qty) => {
-    if (qty < 1) return;
-    const updated = [...cartItems];
-    updated[i].quantity = qty;
-    setCartItems(updated);
-    updateTotals(updated);
-
-    const allKeys = Object.keys(localStorage);
-    const key = allKeys.find((k) => k.startsWith("cart_user"));
-    if (key) localStorage.setItem(key, JSON.stringify(updated));
-
-    fetchCartCount();
-  };
-
-  const handleRemove = (i) => {
-    const updated = cartItems.filter((_, idx) => idx !== i);
-    setCartItems(updated);
-    updateTotals(updated);
-
-    const allKeys = Object.keys(localStorage);
-    const key = allKeys.find((k) => k.startsWith("cart_user"));
-    if (key) localStorage.setItem(key, JSON.stringify(updated));
-
-    fetchCartCount();
+  const handleRemove = async (item) => {
+    try {
+      await removeItem(item.productType, item.productId || item.id);
+    } catch (error) {
+      console.error("Cart remove error:", error);
+      alert(error.message || "Failed to remove item from cart");
+    }
   };
 
   return (
@@ -88,17 +76,17 @@ const Cart = () => {
         </h2>
 
         <div className="grid md:grid-cols-3 gap-6">
-
-          {/* CART ITEMS */}
           <div className="md:col-span-2 bg-white p-6 rounded-2xl shadow-sm">
-            {cartItems.length === 0 ? (
+            {isCartLoading ? (
+              <p className="text-gray-500 text-center">Loading your cart...</p>
+            ) : cartItems.length === 0 ? (
               <p className="text-gray-500 text-center">Your cart is empty.</p>
             ) : (
-              cartItems.map((item, index) => {
+              cartItems.map((item) => {
                 const discounted = getDiscountPrice(item);
 
                 return (
-                  <div key={index} className="flex justify-between py-4 border-b">
+                  <div key={`${item.productType}-${item.productId || item.id}`} className="flex justify-between py-4 border-b">
                     <div className="flex space-x-4">
                       <img
                         src={item.image}
@@ -108,15 +96,15 @@ const Cart = () => {
 
                       <div>
                         <h4 className="font-semibold text-lg">{item.title}</h4>
-                        <p className="text-gray-600 text-sm">
-                          {item.brand} | {item.category}
+                        <p className="text-gray-600 text-sm capitalize">
+                          {item.brand} | {item.category || item.productType}
                         </p>
 
-                        {/* Quantity controls */}
                         <div className="flex items-center mt-2 space-x-3">
                           <button
-                            onClick={() => handleQuantityChange(index, item.quantity - 1)}
+                            onClick={() => handleQuantityChange(item, Number(item.quantity || 1) - 1)}
                             className="px-2 py-1 border rounded hover:bg-gray-100"
+                            disabled={Number(item.quantity || 1) <= 1}
                           >
                             -
                           </button>
@@ -124,7 +112,7 @@ const Cart = () => {
                           <span className="font-semibold">{item.quantity}</span>
 
                           <button
-                            onClick={() => handleQuantityChange(index, item.quantity + 1)}
+                            onClick={() => handleQuantityChange(item, Number(item.quantity || 1) + 1)}
                             className="px-2 py-1 border rounded hover:bg-gray-100"
                           >
                             +
@@ -133,23 +121,19 @@ const Cart = () => {
                       </div>
                     </div>
 
-                    {/* PRICE */}
                     <div className="text-right">
-
-                      {/* Discounted price */}
                       <div className="font-semibold text-blue-700">
-                        ₹{Number(discounted * item.quantity).toLocaleString("en-IN")}
+                        ?{Number(discounted * Number(item.quantity || 1)).toLocaleString("en-IN")}
                       </div>
 
-                      {/* Original price (line through) */}
-                      {item.originalPrice && item.originalPrice > discounted && (
+                      {item.originalPrice && Number(item.originalPrice) > discounted && (
                         <div className="text-sm text-gray-500 line-through">
-                          ₹{Number(item.originalPrice * item.quantity).toLocaleString("en-IN")}
+                          ?{Number(Number(item.originalPrice) * Number(item.quantity || 1)).toLocaleString("en-IN")}
                         </div>
                       )}
 
                       <button
-                        onClick={() => handleRemove(index)}
+                        onClick={() => handleRemove(item)}
                         className="text-sm text-red-500 hover:underline mt-1"
                       >
                         Remove
@@ -161,7 +145,6 @@ const Cart = () => {
             )}
           </div>
 
-          {/* ORDER SUMMARY */}
           <div className="bg-white p-6 rounded-2xl shadow-sm">
             <h3 className="text-xl font-semibold mb-4">Order Summary</h3>
 
@@ -172,19 +155,19 @@ const Cart = () => {
 
             <div className="flex justify-between mb-2">
               <span>Subtotal:</span>
-              <span>₹{subtotal}</span>
+              <span>?{totals.subtotal}</span>
             </div>
 
             <div className="flex justify-between mb-2">
               <span>Shipping:</span>
-              <span>₹{shipping}</span>
+              <span>?{totals.shipping}</span>
             </div>
 
             <hr className="my-3" />
 
             <div className="flex justify-between text-lg font-bold">
               <span>Total:</span>
-              <span>₹{total}</span>
+              <span>?{totals.total}</span>
             </div>
 
             <Link
@@ -201,7 +184,6 @@ const Cart = () => {
               Continue Shopping
             </button>
           </div>
-
         </div>
       </div>
 

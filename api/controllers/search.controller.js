@@ -5,139 +5,107 @@ import Charger from '../models/charger.model.js';
 import Mouse from '../models/mouse.model.js';
 import Smartwatch from '../models/smartwatch.model.js';
 
+const COLLECTION_LIMIT = 20;
+
+const CATEGORY_TERMS = {
+  phone: ['phone', 'phones', 'mobile', 'mobiles'],
+  laptop: ['laptop', 'laptops', 'notebook', 'notebooks'],
+  earphone: ['earphone', 'earphones', 'earbud', 'earbuds', 'headphone', 'headphones'],
+  charger: ['charger', 'chargers', 'adapter', 'adapters'],
+  mouse: ['mouse', 'mouses', 'mice'],
+  smartwatch: ['smartwatch', 'smartwatches', 'watch', 'watches']
+};
+
+const buildTextQuery = (term) => ({ $text: { $search: term } });
+const buildTextProjection = () => ({ score: { $meta: 'textScore' } });
+const buildTextSort = () => ({ score: { $meta: 'textScore' }, created_at: -1, _id: -1 });
+
+const isCategoryQuery = (term, values) => values.includes(term.toLowerCase());
+
 export const searchProducts = async (req, res) => {
   try {
     const { q } = req.query;
-    
+
     if (!q || q.trim() === '') {
       return res.json({ success: true, results: [] });
     }
 
     const searchTerm = q.trim();
-    const searchRegex = new RegExp(searchTerm, 'i'); // Case-insensitive search
     const lowerTerm = searchTerm.toLowerCase();
 
-    // Allow generic queries like "phone", "laptop", etc. to return all items of that type
-    const isPhoneQuery = ['phone', 'phones', 'mobile', 'mobiles'].includes(lowerTerm);
-    const isLaptopQuery = ['laptop', 'laptops', 'notebook', 'notebooks'].includes(lowerTerm);
-    const isEarphoneQuery = ['earphone', 'earphones', 'earbud', 'earbuds', 'headphone', 'headphones'].includes(lowerTerm);
-    const isChargerQuery = ['charger', 'chargers', 'adapter', 'adapters'].includes(lowerTerm);
-    const isMouseQuery = ['mouse', 'mouses', 'mice'].includes(lowerTerm);
-    const isSmartwatchQuery = ['smartwatch', 'smartwatches', 'watch', 'watches'].includes(lowerTerm);
+    const phoneFilter = isCategoryQuery(lowerTerm, CATEGORY_TERMS.phone) ? {} : buildTextQuery(searchTerm);
+    const laptopFilter = isCategoryQuery(lowerTerm, CATEGORY_TERMS.laptop) ? {} : buildTextQuery(searchTerm);
+    const earphoneFilter = isCategoryQuery(lowerTerm, CATEGORY_TERMS.earphone)
+      ? { isActive: true }
+      : { isActive: true, ...buildTextQuery(searchTerm) };
+    const chargerFilter = isCategoryQuery(lowerTerm, CATEGORY_TERMS.charger)
+      ? { isActive: true }
+      : { isActive: true, ...buildTextQuery(searchTerm) };
+    const mouseFilter = isCategoryQuery(lowerTerm, CATEGORY_TERMS.mouse)
+      ? { isActive: true }
+      : { isActive: true, ...buildTextQuery(searchTerm) };
+    const smartwatchFilter = isCategoryQuery(lowerTerm, CATEGORY_TERMS.smartwatch)
+      ? { isActive: true }
+      : { isActive: true, ...buildTextQuery(searchTerm) };
 
-    // Build queries per collection (empty filter = all documents)
-    const phoneFilter = isPhoneQuery
-      ? {}
-      : {
-          $or: [
-            { brand: searchRegex },
-            { model: searchRegex },
-            { color: searchRegex },
-            { processor: searchRegex },
-            { os: searchRegex },
-          ],
-        };
+    const genericProjection = {};
+    const genericSort = { created_at: -1, _id: -1 };
 
-    const laptopFilter = isLaptopQuery
-      ? {}
-      : {
-          $or: [
-            { brand: searchRegex },
-            { series: searchRegex },
-            { processor_name: searchRegex },
-            { os: searchRegex },
-          ],
-        };
-
-    const earphoneFilter = isEarphoneQuery
-      ? {}
-      : {
-          $or: [
-            { title: searchRegex },
-            { brand: searchRegex },
-            { design: searchRegex },
-          ],
-        };
-
-    const chargerFilter = isChargerQuery
-      ? {}
-      : {
-          $or: [
-            { title: searchRegex },
-            { brand: searchRegex },
-            { type: searchRegex },
-            { wattage: searchRegex },
-          ],
-        };
-
-    const mouseFilter = isMouseQuery
-      ? {}
-      : {
-          $or: [
-            { title: searchRegex },
-            { brand: searchRegex },
-            { type: searchRegex },
-          ],
-        };
-
-    const smartwatchFilter = isSmartwatchQuery
-      ? {}
-      : {
-          $or: [
-            { title: searchRegex },
-            { brand: searchRegex },
-            { displayType: searchRegex },
-          ],
-        };
-
-    // Search across all product types
     const [phones, laptops, earphones, chargers, mouses, smartwatches] = await Promise.all([
-      // Search phones
-      Phone.find(phoneFilter).lean(),
-
-      // Search laptops
-      Laptop.find(laptopFilter).lean(),
-
-      // Search earphones
-      Earphone.find(earphoneFilter).lean(),
-
-      // Search chargers
-      Charger.find(chargerFilter).lean(),
-
-      // Search mouses
-      Mouse.find(mouseFilter).lean(),
-
-      // Search smartwatches
-      Smartwatch.find(smartwatchFilter).lean(),
+      Phone.find(phoneFilter, phoneFilter.$text ? buildTextProjection() : genericProjection)
+        .sort(phoneFilter.$text ? buildTextSort() : genericSort)
+        .limit(COLLECTION_LIMIT)
+        .lean(),
+      Laptop.find(laptopFilter, laptopFilter.$text ? buildTextProjection() : genericProjection)
+        .sort(laptopFilter.$text ? buildTextSort() : genericSort)
+        .limit(COLLECTION_LIMIT)
+        .lean(),
+      Earphone.find(earphoneFilter, earphoneFilter.$text ? buildTextProjection() : genericProjection)
+        .sort(earphoneFilter.$text ? buildTextSort() : genericSort)
+        .limit(COLLECTION_LIMIT)
+        .lean(),
+      Charger.find(chargerFilter, chargerFilter.$text ? buildTextProjection() : genericProjection)
+        .sort(chargerFilter.$text ? buildTextSort() : genericSort)
+        .limit(COLLECTION_LIMIT)
+        .lean(),
+      Mouse.find(mouseFilter, mouseFilter.$text ? buildTextProjection() : genericProjection)
+        .sort(mouseFilter.$text ? buildTextSort() : genericSort)
+        .limit(COLLECTION_LIMIT)
+        .lean(),
+      Smartwatch.find(smartwatchFilter, smartwatchFilter.$text ? buildTextProjection() : genericProjection)
+        .sort(smartwatchFilter.$text ? buildTextSort() : genericSort)
+        .limit(COLLECTION_LIMIT)
+        .lean(),
     ]);
 
-    // Format results with product type
     const results = [
-      ...phones.map(phone => ({
+      ...phones.map((phone) => ({
         id: phone.id,
         type: 'phone',
-        title: `${phone.brand} ${phone.model}`,
+        title: phone.brand + " " + phone.model,
         brand: phone.brand,
         model: phone.model,
         image: phone.image,
         price: phone.base_price,
         discount: phone.discount || 0,
         condition: phone.condition,
-        finalPrice: phone.base_price * (1 - (phone.discount || 0) / 100)
+        finalPrice: phone.base_price * (1 - (phone.discount || 0) / 100),
+        score: phone.score || 0,
       })),
-      ...laptops.map(laptop => ({
+      ...laptops.map((laptop) => ({
         id: laptop.id,
         type: 'laptop',
-        title: `${laptop.brand} ${laptop.series}`,
+        title: laptop.brand + " " + laptop.series,
         brand: laptop.brand,
         series: laptop.series,
         image: laptop.image,
         price: laptop.base_price,
         discount: laptop.discount || 0,
         condition: laptop.condition,
-        finalPrice: laptop.base_price * (1 - (laptop.discount || 0) / 100)
+        finalPrice: laptop.base_price * (1 - (laptop.discount || 0) / 100),
+        score: laptop.score || 0,
       })),
-      ...earphones.map(earphone => ({
+      ...earphones.map((earphone) => ({
         id: earphone.id,
         type: 'earphone',
         title: earphone.title,
@@ -145,9 +113,10 @@ export const searchProducts = async (req, res) => {
         image: earphone.image,
         price: earphone.originalPrice,
         discount: earphone.discount || 0,
-        finalPrice: earphone.originalPrice * (1 - (earphone.discount || 0) / 100)
+        finalPrice: earphone.originalPrice * (1 - (earphone.discount || 0) / 100),
+        score: earphone.score || 0,
       })),
-      ...chargers.map(charger => ({
+      ...chargers.map((charger) => ({
         id: charger.id,
         type: 'charger',
         title: charger.title,
@@ -155,9 +124,10 @@ export const searchProducts = async (req, res) => {
         image: charger.image,
         price: charger.originalPrice,
         discount: charger.discount || 0,
-        finalPrice: charger.originalPrice * (1 - (charger.discount || 0) / 100)
+        finalPrice: charger.originalPrice * (1 - (charger.discount || 0) / 100),
+        score: charger.score || 0,
       })),
-      ...mouses.map(mouse => ({
+      ...mouses.map((mouse) => ({
         id: mouse.id,
         type: 'mouse',
         title: mouse.title,
@@ -165,9 +135,10 @@ export const searchProducts = async (req, res) => {
         image: mouse.image,
         price: mouse.originalPrice,
         discount: mouse.discount || 0,
-        finalPrice: mouse.originalPrice * (1 - (mouse.discount || 0) / 100)
+        finalPrice: mouse.originalPrice * (1 - (mouse.discount || 0) / 100),
+        score: mouse.score || 0,
       })),
-      ...smartwatches.map(smartwatch => ({
+      ...smartwatches.map((smartwatch) => ({
         id: smartwatch.id,
         type: 'smartwatch',
         title: smartwatch.title,
@@ -175,24 +146,23 @@ export const searchProducts = async (req, res) => {
         image: smartwatch.image,
         price: smartwatch.originalPrice,
         discount: smartwatch.discount || 0,
-        finalPrice: smartwatch.originalPrice * (1 - (smartwatch.discount || 0) / 100)
+        finalPrice: smartwatch.originalPrice * (1 - (smartwatch.discount || 0) / 100),
+        score: smartwatch.score || 0,
       }))
-    ];
+    ].sort((a, b) => (b.score || 0) - (a.score || 0));
 
-    // Sort by relevance (you can enhance this later)
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       results,
       count: results.length,
       query: searchTerm
     });
   } catch (error) {
     console.error('Error searching products:', error);
-    res.status(500).json({ 
-      success: false, 
+    res.status(500).json({
+      success: false,
       message: 'Error searching products',
-      error: error.message 
+      error: error.message
     });
   }
 };
-

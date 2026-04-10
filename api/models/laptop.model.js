@@ -20,5 +20,7 @@ const laptopSchema = new mongoose.Schema({
   
 });
 
+laptopSchema.index({ brand: "text", series: "text", processor_name: "text", os: "text" });
+
 const Laptop = mongoose.model("Laptop", laptopSchema);
 export default Laptop;

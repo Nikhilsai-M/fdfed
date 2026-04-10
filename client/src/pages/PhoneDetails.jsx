@@ -21,7 +21,7 @@ const PhoneDetails = () => {
   const [error, setError] = useState(null);
   const [cartMessage, setCartMessage] = useState(null);
 
-  const { updateCart } = useCart();
+  const { addItem } = useCart();
 
   // Fetch phone details
   useEffect(() => {
@@ -81,41 +81,18 @@ const PhoneDetails = () => {
   // Add to Cart using Context
   const addToCart = async () => {
     try {
-      const response = await fetch('/api/user/profile', { method: 'GET', credentials: 'include' });
-      if (!response.ok) {
-        navigate('/sign-in');
-        return;
-      }
-
-      const userData = await response.json();
-      const userId = userData?.user?.user_id;
-      if (!userId) {
-        navigate('/sign-in');
-        return;
-      }
-
-      const cartKey = `cart_user_${userId}`;
-      const existingCart = JSON.parse(localStorage.getItem(cartKey)) || [];
-
-      const existingIndex = existingCart.findIndex((item) => item.id === phone.id);
-      let updatedCart;
-      if (existingIndex !== -1) {
-        updatedCart = [...existingCart];
-        updatedCart[existingIndex].quantity += 1;
-      } else {
-        updatedCart = [...existingCart, getCartItemFields(phone)];
-      }
-
-      updateCart(updatedCart, userId);
-
+      await addItem('phone', phone.id, 1);
       setCartMessage(`${phone.brand} ${phone.model} added to cart!`);
       setTimeout(() => setCartMessage(null), 3500);
     } catch (error) {
       console.error('Error adding to cart:', error);
-      navigate('/sign-in');
+      if (/unauthorized|forbidden/i.test(error.message || '')) {
+        navigate('/sign-in');
+        return;
+      }
+      alert(error.message || 'Failed to add item to cart');
     }
   };
-
   const buyNow = async () => {
     try {
       const response = await fetch('/api/user/profile', { credentials: 'include' });
@@ -233,3 +210,4 @@ const PhoneDetails = () => {
 };
 
 export default PhoneDetails;
+

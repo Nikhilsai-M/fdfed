@@ -2,6 +2,7 @@ import crypto from "crypto";
 import Razorpay from "razorpay";
 import Payment from "../models/payment.model.js";
 import { createOrder } from "../crud/orders.js";
+import { clearCartByUserId } from "../crud/cart.js";
 
 const CURRENCY = "INR";
 
@@ -180,6 +181,10 @@ export async function verifyPayment({
 
     orderId = result.orderId;
     payment.orderId = orderId;
+
+    if (payload.source === "cart") {
+      await clearCartByUserId(userId);
+    }
   }
 
   payment.status = "success";
@@ -214,3 +219,4 @@ export function getPaymentPublicConfig() {
     keyId: process.env.RAZORPAY_KEY_ID || "rzp_test_dummy",
   };
 }
+

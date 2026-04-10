@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, CheckCircle2, CreditCard, RefreshCw, ShieldCheck } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAppSelector } from "../hooks/redux";
+import { useCart } from "../context/CartContent";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 const RAZORPAY_SCRIPT = "https://checkout.razorpay.com/v1/checkout.js";
@@ -115,6 +116,7 @@ const PaymentPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const autoOpenedRef = useRef(false);
+  const cartLoadedRef = useRef(false);
   const [checkoutData, setCheckoutData] = useState(() => buildCheckoutDataFromState(location.state));
   const [paymentSession, setPaymentSession] = useState(null);
   const [statusMessage, setStatusMessage] = useState("");
@@ -123,6 +125,7 @@ const PaymentPage = () => {
   const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
   const [hasPaymentFailed, setHasPaymentFailed] = useState(false);
   const { user, token } = useAppSelector((state) => state.auth);
+  const { cartItems, fetchCart, clearCart } = useCart();
 
   const authHeaders = useMemo(() => {
     const headers = { "Content-Type": "application/json" };
@@ -144,23 +147,27 @@ const PaymentPage = () => {
     }
 
     const userId = user?.user_id || location.state?.userId;
-    const cartKey = userId ? `cart_user_${userId}` : null;
-    const cart = cartKey ? JSON.parse(localStorage.getItem(cartKey) || "[]") : [];
 
-    if (!cart.length) {
+    if (!cartItems.length && !cartLoadedRef.current) {
+      cartLoadedRef.current = true;
+      fetchCart().catch(() => {});
       return;
     }
 
-    const subtotal = cart.reduce((total, item) => total + calculateItemTotal(item), 0);
+    if (!cartItems.length) {
+      return;
+    }
+
+    const subtotal = cartItems.reduce((total, item) => total + calculateItemTotal(item), 0);
     const shipping = subtotal > 10000 ? 0 : 99;
 
     setCheckoutData({
       source: "cart",
       paymentMethod: "razorpay",
       userId,
-      items: cart.map((item) => ({
+      items: cartItems.map((item) => ({
         type: determineItemType(item),
-        id: item._id || item.id,
+        id: item.productId || item.id,
         seller_id: item.seller_id || item.sellerId || null,
         accessory: sanitizeAccessory(item),
         quantity: item.quantity || 1,
@@ -172,7 +179,7 @@ const PaymentPage = () => {
       discountPercent: 0,
       totalAmount: subtotal + shipping,
     });
-  }, [checkoutData, location.state, user]);
+  }, [cartItems, checkoutData, fetchCart, location.state, user]);
 
   const createBackendOrder = async () => {
     if (!checkoutData?.items?.length) {
@@ -199,6 +206,7 @@ const PaymentPage = () => {
           discountPercent: checkoutData.discountPercent,
           totalAmount: checkoutData.totalAmount,
           paymentMethod: checkoutData.paymentMethod || "razorpay",
+          source: checkoutData.source || "buyNow",
         }),
       });
 
@@ -237,13 +245,12 @@ const PaymentPage = () => {
     createBackendOrder();
   }, [checkoutData, paymentSession, isCreatingOrder]);
 
-  const clearCart = () => {
-    const resolvedUserId = user?.user_id || checkoutData?.userId;
-    if (!resolvedUserId) {
+  const clearCartData = async () => {
+    if (checkoutData?.source !== "cart") {
       return;
     }
 
-    localStorage.setItem(`cart_user_${resolvedUserId}`, JSON.stringify([]));
+    await clearCart();
   };
 
   const createCodOrder = async () => {
@@ -259,6 +266,7 @@ const PaymentPage = () => {
         body: JSON.stringify({
           totalAmount: checkoutData.totalAmount,
           paymentMethod: "cod",
+          source: checkoutData.source,
           items: checkoutData.items,
         }),
       });
@@ -268,7 +276,7 @@ const PaymentPage = () => {
         throw new Error(result.message || "Unable to place COD order");
       }
 
-      clearCart();
+      await clearCartData();
       navigate("/myorders", {
         replace: true,
         state: { paymentSuccess: true, orderId: result.orderId },
@@ -305,7 +313,7 @@ const PaymentPage = () => {
         throw new Error(result.message || result.reason || "Payment verification failed");
       }
 
-      clearCart();
+      await clearCartData();
       setStatusMessage("Payment verified. Redirecting to your orders...");
 
       navigate("/myorders", {
@@ -595,3 +603,8 @@ const PaymentPage = () => {
 };
 
 export default PaymentPage;
+
+
+
+
+

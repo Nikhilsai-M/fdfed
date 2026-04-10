@@ -415,7 +415,7 @@ const FilterLaptops = () => {
   
   const [cartItem, setCartItem] = useState(null);
   const navigate = useNavigate();
-  const { updateCart } = useCart();
+  const { addItem } = useCart();
 
   // Get URL parameters
   const brandFromUrl = searchParams.get('brand');
@@ -626,78 +626,20 @@ const FilterLaptops = () => {
   // Add to cart function
   const addToCart = async (laptop) => {
     try {
-      console.log('Adding to cart:', laptop);
-      
-      // Verify user session via API
-      const response = await fetch('/api/user/profile', {
-        method: 'GET',
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        navigate('/sign-in');
-        return;
-      }
-
-      const userData = await response.json();
-      if (!userData.success || !userData.user) {
-        navigate('/sign-in');
-        return;
-      }
-
-      const userId = userData.user.user_id;
-      const userCartKey = `cart_user_${userId}`;
-
-      if (!laptop || !laptop.id) {
-        console.error('Laptop data not available');
-        return;
-      }
-
-      let currentCart = JSON.parse(localStorage.getItem(userCartKey)) || [];
-
-      const existingProductIndex = currentCart.findIndex((item) => item.id === laptop.id);
-
-      let updatedCart;
-      if (existingProductIndex !== -1) {
-        updatedCart = [...currentCart];
-        updatedCart[existingProductIndex].quantity += 1;
-      } else {
-        const finalPrice = calculateFinalPrice(laptop);
-        updatedCart = [...currentCart, {
-          id: laptop.id,
-          name: `${laptop.brand} ${laptop.series}`,
-          brand: laptop.brand,
-          processor: `${laptop.processor.name} ${laptop.processor.generation}`,
-          ram: laptop.memory.ram,
-          storage: `${laptop.memory.storage.type} ${laptop.memory.storage.capacity}`,
-          display: `${laptop.displaysize}"`,
-          os: laptop.os,
-          image: laptop.image,
-          price: finalPrice,
-          originalPrice: laptop.pricing.basePrice,
-          discount: laptop.pricing.discount,
-          quantity: 1,
-          type: 'laptop'
-        }];
-      }
-
-      // Save to localStorage
-      localStorage.setItem(userCartKey, JSON.stringify(updatedCart));
-
-      // Update the context
-      updateCart(updatedCart, userId);
-
-      // Show success message
+      await addItem('laptop', laptop.id, 1);
       setCartItem(`${laptop.brand} ${laptop.series} added to cart!`);
       setTimeout(() => setCartItem(null), 3000);
-
     } catch (error) {
       console.error('Error adding to cart:', error);
-      navigate('/sign-in');
+      if (/unauthorized|forbidden/i.test(error.message || '')) {
+        navigate('/sign-in');
+        return;
+      }
+      alert(error.message || 'Failed to add item to cart');
     }
   };
 
-  // Buy Now function for laptops
+  // Buy Now function for laptops  // Buy Now function for laptops
   const buyNow = async (laptop) => {
     try {
       console.log('Buy Now clicked for:', laptop);
@@ -828,3 +770,4 @@ const FilterLaptops = () => {
 };
 
 export default FilterLaptops;
+

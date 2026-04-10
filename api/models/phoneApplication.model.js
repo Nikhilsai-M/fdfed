@@ -34,5 +34,10 @@ const phoneApplicationSchema = new mongoose.Schema({
   created_at: { type: Date, default: Date.now },
 });
 
+phoneApplicationSchema.index({ user_id: 1, created_at: -1 });
+phoneApplicationSchema.index({ status: 1, created_at: -1 });
+phoneApplicationSchema.index({ assigned_supervisor_id: 1, status: 1, created_at: -1 });
+phoneApplicationSchema.index({ status: 1, assigned_supervisor_id: 1, id: 1 });
+
 const PhoneApplication = mongoose.model("PhoneApplication", phoneApplicationSchema);
 export default PhoneApplication;
