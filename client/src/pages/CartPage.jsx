@@ -22,13 +22,10 @@ const Cart = () => {
       0
     );
     const ship = sub > 0 ? 100 : 0;
-
-    return {
-      subtotal,
-      shipping,
-      total: subtotal + shipping,
-    };
-  }, [cartItems]);
+    setSubtotal(sub);
+    setShipping(ship);
+    setTotal(sub + ship);
+  };
 
   useEffect(() => {
     const loadCart = async () => {

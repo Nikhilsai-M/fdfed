@@ -116,7 +116,6 @@ const PaymentPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const autoOpenedRef = useRef(false);
-  const cartLoadedRef = useRef(false);
   const [checkoutData, setCheckoutData] = useState(() => buildCheckoutDataFromState(location.state));
   const [paymentSession, setPaymentSession] = useState(null);
   const [statusMessage, setStatusMessage] = useState("");
@@ -125,7 +124,6 @@ const PaymentPage = () => {
   const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
   const [hasPaymentFailed, setHasPaymentFailed] = useState(false);
   const { user, token } = useAppSelector((state) => state.auth);
-  const { cartItems, fetchCart, clearCart } = useCart();
 
   const authHeaders = useMemo(() => {
     const headers = { "Content-Type": "application/json" };
@@ -209,7 +207,6 @@ const PaymentPage = () => {
           discountPercent: checkoutData.discountPercent,
           totalAmount: checkoutData.totalAmount,
           paymentMethod: checkoutData.paymentMethod || "razorpay",
-          source: checkoutData.source || "buyNow",
         }),
       });
 
@@ -248,7 +245,7 @@ const PaymentPage = () => {
     createBackendOrder();
   }, [checkoutData, paymentSession, isCreatingOrder]);
 
-  const clearCart = async () => {
+  const clearCartAfterPayment = async () => {
     try {
       await clearBackendCart();
     } catch (error) {
@@ -270,7 +267,6 @@ const PaymentPage = () => {
           source: checkoutData.source || "buyNow",
           totalAmount: checkoutData.totalAmount,
           paymentMethod: "cod",
-          source: checkoutData.source,
           items: checkoutData.items,
         }),
       });
@@ -280,7 +276,7 @@ const PaymentPage = () => {
         throw new Error(result.message || "Unable to place COD order");
       }
 
-      await clearCart();
+      await clearCartAfterPayment();
       navigate("/myorders", {
         replace: true,
         state: { paymentSuccess: true, orderId: result.orderId },
@@ -317,7 +313,7 @@ const PaymentPage = () => {
         throw new Error(result.message || result.reason || "Payment verification failed");
       }
 
-      await clearCart();
+      await clearCartAfterPayment();
       setStatusMessage("Payment verified. Redirecting to your orders...");
 
       navigate("/myorders", {
@@ -607,8 +603,3 @@ const PaymentPage = () => {
 };
 
 export default PaymentPage;
-
-
-
-
-
