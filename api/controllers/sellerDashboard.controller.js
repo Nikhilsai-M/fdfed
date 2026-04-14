@@ -1,5 +1,9 @@
 import OrderItem from "../models/orderitem.model.js";
 
+export function getSellerDashboardCacheKey(sellerId) {
+  return `seller-dashboard:${sellerId}`;
+}
+
 export const getSellerDashboard = async (req, res) => {
   try {
     const sellerId = req.user.id;

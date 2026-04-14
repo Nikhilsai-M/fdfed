@@ -8,7 +8,7 @@ const CURRENCY = "INR";
 
 let razorpayClient = null;
 
-function isRazorpayConfigured() {
+export function isRazorpayConfigured() {
   return Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET);
 }
 
@@ -25,30 +25,30 @@ function getRazorpayClient() {
   return razorpayClient;
 }
 
-function toPaise(amount) {
+export function toPaise(amount) {
   return Math.round(Number(amount) * 100);
 }
 
-function fromPaise(amount) {
+export function fromPaise(amount) {
   return Number((Number(amount) / 100).toFixed(2));
 }
 
-function buildExpectedSignature(orderId, paymentId) {
+export function buildExpectedSignature(orderId, paymentId) {
   return crypto
     .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
     .update(`${orderId}|${paymentId}`)
     .digest("hex");
 }
 
-function buildDummyOrderId() {
+export function buildDummyOrderId() {
   return `dummy_order_${Date.now()}`;
 }
 
-function buildLog(prefix, data = {}) {
+export function buildLog(prefix, data = {}) {
   return `[${new Date().toISOString()}] ${prefix} ${JSON.stringify(data)}`;
 }
 
-function generateReceipt() {
+export function generateReceipt() {
   return `rcpt_${Date.now()}`;
 }
 
@@ -219,4 +219,3 @@ export function getPaymentPublicConfig() {
     keyId: process.env.RAZORPAY_KEY_ID || "rzp_test_dummy",
   };
 }
-

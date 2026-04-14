@@ -16,11 +16,15 @@ const CATEGORY_TERMS = {
   smartwatch: ['smartwatch', 'smartwatches', 'watch', 'watches']
 };
 
-const buildTextQuery = (term) => ({ $text: { $search: term } });
-const buildTextProjection = () => ({ score: { $meta: 'textScore' } });
-const buildTextSort = () => ({ score: { $meta: 'textScore' }, created_at: -1, _id: -1 });
+export const buildTextQuery = (term) => ({ $text: { $search: term } });
+export const buildTextProjection = () => ({ score: { $meta: 'textScore' } });
+export const buildTextSort = () => ({ score: { $meta: 'textScore' }, created_at: -1, _id: -1 });
 
-const isCategoryQuery = (term, values) => values.includes(term.toLowerCase());
+export const isCategoryQuery = (term, values) => values.includes(term.toLowerCase());
+
+export function getSearchCacheKey(term) {
+  return `search:${String(term || "").trim().toLowerCase()}`;
+}
 
 export const searchProducts = async (req, res) => {
   try {

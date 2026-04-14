@@ -1,5 +1,6 @@
 import express from 'express';
-import { searchProducts } from '../controllers/search.controller.js';
+import { getSearchCacheKey, searchProducts } from '../controllers/search.controller.js';
+import { cacheResponse } from '../middleware/cache.middleware.js';
 
 const router = express.Router();
 
@@ -26,6 +27,13 @@ const router = express.Router();
  *       200:
  *         description: Search results fetched successfully
  */
-router.get('/', searchProducts);
+router.get(
+  '/',
+  cacheResponse({
+    keyBuilder: (req) => getSearchCacheKey(req.query.q),
+    ttlSeconds: parseInt(process.env.SEARCH_CACHE_TTL_SECONDS || "120", 10),
+  }),
+  searchProducts
+);
 
 export default router;

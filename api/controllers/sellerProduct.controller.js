@@ -21,6 +21,7 @@ import {
   uploadBufferToCloudinary,
   deleteFromCloudinary
 } from "../utils/cloudinary.js";
+import { invalidateCatalogCaches } from "../config/redis.js";
 
 /* ===============================
    ADD PRODUCT
@@ -64,12 +65,13 @@ export const addProduct = async (req, res, next) => {
       result = await addSmartwatch({ ...data, sellerId });
     }
     if (result?.success) {
-  await matchRequests(category, {
-    id: result.id,
-    brand: data.brand,
-    model: data.model || data.title || "",
-  });
-}
+      await matchRequests(category, {
+        id: result.id,
+        brand: data.brand,
+        model: data.model || data.title || "",
+      });
+      await invalidateCatalogCaches();
+    }
     res.json({ success: true, product: result });
 
   } catch (err) {
@@ -149,6 +151,7 @@ export const updateProduct = async (req, res, next) => {
       result = await updateSmartwatch(id, updateData, sellerId);
     }
 
+    await invalidateCatalogCaches();
     res.json(result);
 
   } catch (err) {
@@ -184,6 +187,7 @@ export const deleteProduct = async (req, res, next) => {
       result = await deleteSmartwatch(id, sellerId);
     }
 
+    await invalidateCatalogCaches();
     res.json(result);
 
   } catch (err) {

@@ -1,6 +1,10 @@
 import express from "express";
 import { verifyToken } from "../middleware/auth.middleware.js";
-import { getSellerDashboard } from "../controllers/sellerDashboard.controller.js";
+import {
+  getSellerDashboard,
+  getSellerDashboardCacheKey,
+} from "../controllers/sellerDashboard.controller.js";
+import { cacheResponse } from "../middleware/cache.middleware.js";
 
 const router = express.Router();
 
@@ -26,6 +30,14 @@ const router = express.Router();
  *       401:
  *         description: Unauthorized
  */
-router.get("/dashboard", verifyToken, getSellerDashboard);
+router.get(
+  "/dashboard",
+  verifyToken,
+  cacheResponse({
+    keyBuilder: (req) => getSellerDashboardCacheKey(req.user.id),
+    ttlSeconds: parseInt(process.env.SELLER_DASHBOARD_CACHE_TTL_SECONDS || "180", 10),
+  }),
+  getSellerDashboard
+);
 
 export default router;
