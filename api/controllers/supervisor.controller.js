@@ -13,6 +13,7 @@ import {
   getNextSupervisorId,
   getSupervisorIdsByType,
 } from "../services/supervisorAssignment.service.js";
+import { invalidateCatalogCaches } from "../config/redis.js";
 
 // Helper: return the correct Application model based on supervisor type
 const getApplicationModel = (supervisorType) => {
@@ -227,6 +228,8 @@ export const updateApplicationStatus = async (req, res, next) => {
       action: `Updated ${type} application #${id} to ${status}${price ? ` with price ₹${price}` : ''}`
     });
 
+    await invalidateCatalogCaches();
+
     res.status(200).json({
       success: true,
       message: `Application status updated to ${status}`
@@ -336,6 +339,8 @@ export const addToInventory = async (req, res, next) => {
       supervisor_id: req.user.user_id,
       action: `Added ${type} #${id} to inventory with condition: ${condition} and discount: ${discount}%`
     });
+
+    await invalidateCatalogCaches();
 
     res.status(200).json({
       success: true,

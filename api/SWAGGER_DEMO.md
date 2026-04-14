@@ -4,6 +4,15 @@
 
 - URL: `http://localhost:3000/api-docs`
 
+## Review endpoints worth showing
+
+- `GET /api/health`
+- `GET /api/search?q=iphone`
+- `GET /api/admin/statistics`
+- `GET /api/seller/dashboard`
+
+For cached endpoints, run the same request twice and show the `X-Cache` header changing from `MISS` to `HIT` when Redis is enabled.
+
 ## Seeded Credentials
 
 ### Admin
@@ -23,6 +32,7 @@
 - After a successful login, stay in the same browser tab/session when trying protected routes.
 - Seller accounts are not seeded by default. For seller demo, first use the signup flow.
 - Customer accounts are not seeded by default. For customer demo, use an existing user account or the signup flow if email OTP is available.
+- This project uses REST for exposed APIs. It also consumes third-party service APIs such as Razorpay and Cloudinary.
 
 ## Safe Demo Order
 

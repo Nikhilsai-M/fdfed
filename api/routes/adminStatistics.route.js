@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  getAdminStatisticsCacheKey,
   getAdminStatistics,
   getSupervisorListings,
   getRevenueAnalytics,
@@ -10,6 +11,7 @@ import {
   getSupervisorActivityById,
 } from "../controllers/adminStatistics.controller.js";
 import { verifyAdmin } from "../middleware/admin.middleware.js";
+import { cacheResponse } from "../middleware/cache.middleware.js";
 
 const router = express.Router();
 
@@ -35,7 +37,15 @@ const router = express.Router();
  *       401:
  *         description: Unauthorized
  */
-router.get("/statistics", verifyAdmin, getAdminStatistics);
+router.get(
+  "/statistics",
+  verifyAdmin,
+  cacheResponse({
+    keyBuilder: (req) => getAdminStatisticsCacheKey(req.query.range || "7"),
+    ttlSeconds: parseInt(process.env.ANALYTICS_CACHE_TTL_SECONDS || "180", 10),
+  }),
+  getAdminStatistics
+);
 
 /**
  * @swagger

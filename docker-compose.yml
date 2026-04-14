@@ -7,6 +7,26 @@ services:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: fdfed-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   api:
     build:
@@ -21,14 +41,18 @@ services:
       - .env
     environment:
       PORT: 3000
-      MONGO: mongodb://mongo:27017/fdfed
+      MONGO: "mongodb+srv://abhinavysns03_db_user:hJYgZCIZ2CVsBfW2@fdfed-project.f7iosrr.mongodb.net/?retryWrites=true&w=majority&appName=fdfed-project"
+      REDIS_URL: redis://redis:6379
       CLIENT_ORIGIN: http://localhost:5173
       SWAGGER_SERVER_URL: http://localhost:3000
     volumes:
       - .:/app
       - /app/api/node_modules
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     command: npm run dev
 
   client:
@@ -51,3 +75,4 @@ services:
 
 volumes:
   mongo_data:
+  redis_data:

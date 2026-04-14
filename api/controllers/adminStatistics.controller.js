@@ -19,6 +19,10 @@ const coalesceTotalExpr = () => ({
 
 const PAID_STATES = ["paid", "completed", "delivered", "success", "fulfilled"];
 
+export function getAdminStatisticsCacheKey(range = "7") {
+  return `analytics:admin-statistics:${range}`;
+}
+
 export const getAdminStatistics = async (req, res) => {
   try {
     const rangeDays = Math.max(1, Math.min(180, parseInt(req.query.range || "7", 10)));
