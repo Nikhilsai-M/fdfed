@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { handleAxiosUnauthorized } from '../../utils/sessionRedirect';
 
 const globalStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap');
@@ -93,34 +94,34 @@ export default function SellerDashboard() {
   const fetchProducts = async () => {
     try {
       const res = await axios.get("http://localhost:3000/api/seller/products", {
-        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
       });
       setProducts(res.data.products);
-    } catch (err) { console.error(err); }
+    } catch (err) { if (handleAxiosUnauthorized(err, 'seller')) return; console.error(err); }
   };
 
   const fetchStats = async () => {
     try {
       const res = await axios.get("http://localhost:3000/api/seller/dashboard", {
-        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
       });
       setStats(res.data.stats);
-    } catch (err) { console.error(err); }
+    } catch (err) { if (handleAxiosUnauthorized(err, 'seller')) return; console.error(err); }
   };
 
   const deleteProduct = async (id, category) => {
     try {
       await axios.delete(`http://localhost:3000/api/seller/products/${id}`, {
         data: { category },
-        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
       });
       fetchProducts();
-    } catch (err) { console.error(err); }
+    } catch (err) { if (handleAxiosUnauthorized(err, 'seller')) return; console.error(err); }
   };
 
   const logout = async () => {
     try {
-      await axios.post("http://localhost:3000/api/seller/logout");
+      await axios.post("http://localhost:3000/api/seller/logout", {}, { withCredentials: true });
     } catch (err) { console.error(err); }
     localStorage.removeItem("sellerToken");
     window.location.href = "/seller/login";

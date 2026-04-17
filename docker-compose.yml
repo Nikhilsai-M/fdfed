@@ -28,6 +28,21 @@ services:
       timeout: 5s
       retries: 5
 
+
+  solr:
+    image: solr:9
+    container_name: fdfed-solr
+    restart: unless-stopped
+    ports:
+      - "8983:8983"
+    command: ["solr-precreate", "smart_exchange"]
+    volumes:
+      - solr_data:/var/solr
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8983/solr/admin/cores?action=STATUS"]
+      interval: 15s
+      timeout: 10s
+      retries: 8
   api:
     build:
       context: .
@@ -41,8 +56,10 @@ services:
       - .env
     environment:
       PORT: 3000
-      MONGO: "mongodb+srv://abhinavysns03_db_user:hJYgZCIZ2CVsBfW2@fdfed-project.f7iosrr.mongodb.net/?retryWrites=true&w=majority&appName=fdfed-project"
       REDIS_URL: redis://redis:6379
+      SEARCH_ENGINE: ${SEARCH_ENGINE:-solr}
+      SOLR_URL: http://solr:8983/solr
+      SOLR_CORE: smart_exchange
       CLIENT_ORIGIN: http://localhost:5173
       SWAGGER_SERVER_URL: http://localhost:3000
     volumes:
@@ -52,6 +69,8 @@ services:
       mongo:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      solr:
         condition: service_healthy
     command: npm run dev
 
@@ -76,3 +95,6 @@ services:
 volumes:
   mongo_data:
   redis_data:
+  solr_data:
+
+

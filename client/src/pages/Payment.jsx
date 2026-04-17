@@ -1,9 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, CheckCircle2, CreditCard, RefreshCw, ShieldCheck } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAppSelector } from "../hooks/redux";
 import { clearCart as clearBackendCart, getCart as getBackendCart } from "../services/cartApi";
+import { redirectIfUnauthorizedResponse } from "../utils/sessionRedirect";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 const RAZORPAY_SCRIPT = "https://checkout.razorpay.com/v1/checkout.js";
@@ -123,15 +124,7 @@ const PaymentPage = () => {
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
   const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
   const [hasPaymentFailed, setHasPaymentFailed] = useState(false);
-  const { user, token } = useAppSelector((state) => state.auth);
-
-  const authHeaders = useMemo(() => {
-    const headers = { "Content-Type": "application/json" };
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
-    return headers;
-  }, [token]);
+  const { user } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
     if (checkoutData?.items?.length) {
@@ -193,7 +186,7 @@ const PaymentPage = () => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/payment/create-order`, {
         method: "POST",
-        headers: authHeaders,
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
           source: checkoutData.source || "buyNow",
@@ -209,6 +202,10 @@ const PaymentPage = () => {
           paymentMethod: checkoutData.paymentMethod || "razorpay",
         }),
       });
+
+      if (redirectIfUnauthorizedResponse(response)) {
+        return;
+      }
 
       const result = await response.json();
 
@@ -261,7 +258,7 @@ const PaymentPage = () => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/orders`, {
         method: "POST",
-        headers: authHeaders,
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
           source: checkoutData.source || "buyNow",
@@ -270,6 +267,10 @@ const PaymentPage = () => {
           items: checkoutData.items,
         }),
       });
+
+      if (redirectIfUnauthorizedResponse(response)) {
+        return;
+      }
 
       const result = await response.json();
       if (!response.ok || !result.success) {
@@ -298,7 +299,7 @@ const PaymentPage = () => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/payment/verify-payment`, {
         method: "POST",
-        headers: authHeaders,
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
           razorpay_order_id,
@@ -306,6 +307,10 @@ const PaymentPage = () => {
           razorpay_signature,
         }),
       });
+
+      if (redirectIfUnauthorizedResponse(response)) {
+        return;
+      }
 
       const result = await response.json();
 

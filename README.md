@@ -2,15 +2,15 @@
 
 Smart Exchange is a full-stack marketplace for buying, selling, and managing phones, laptops, and accessories. The stack is React + Vite on the client and Express + MongoDB on the backend, with role-based flows for customers, sellers, supervisors, and admins.
 
-## What is covered for the final review
+## Final Review Coverage
 
-- DB optimization with MongoDB indexes and query-plan reporting
-- Redis caching for expensive read endpoints with measurable warm-cache improvement support
+- MongoDB indexing and query-plan based DB optimization
+- Redis caching for repeated search, analytics, and dashboard reads
+- Optional Solr-backed search with Mongo text-search fallback
 - REST web services with Swagger/OpenAPI documentation
-- Exposed APIs for the marketplace frontend and admin/seller/supervisor flows
-- Consumed external APIs such as Razorpay and Cloudinary
-- Unit and API tests with coverage reporting
-- Dockerized local stack with MongoDB and Redis
+- External API consumption through Razorpay and Cloudinary
+- Unit/API tests with coverage output in `api/coverage/`
+- Dockerized local stack with MongoDB, Redis, and Solr
 - GitHub Actions CI
 - Deployment-ready frontend and backend configuration
 
@@ -20,8 +20,9 @@ Smart Exchange is a full-stack marketplace for buying, selling, and managing pho
 - Backend local: `http://localhost:3000`
 - Swagger UI: `http://localhost:3000/api-docs`
 - Health endpoint: `http://localhost:3000/api/health`
+- Solr admin: `http://localhost:8983/solr`
 
-## Local setup
+## Local Setup
 
 1. Copy `.env.example` to `.env` and fill the required secrets.
 2. Install dependencies:
@@ -41,10 +42,18 @@ This starts:
 
 - `mongo`
 - `redis`
+- `solr`
 - `api`
 - `client`
 
-## Review commands
+4. If `SEARCH_ENGINE=solr`, sync MongoDB products into Solr after startup:
+
+```bash
+cd api
+npm run search:solr:sync
+```
+
+## Review Commands
 
 Run these from `api/`:
 
@@ -52,6 +61,7 @@ Run these from `api/`:
 npm test
 npm run benchmark:db
 npm run benchmark:cache
+npm run search:solr:sync
 ```
 
 What each one gives you:
@@ -59,18 +69,26 @@ What each one gives you:
 - `npm test`: unit/API test report plus coverage files in `api/coverage/`
 - `npm run benchmark:db`: query-plan evidence for indexed search
 - `npm run benchmark:cache`: cold vs warm cache timings and Redis improvement
+- `npm run search:solr:sync`: populates the external Solr index for search demos
 
-## API documentation
+## Search Strategy
+
+- Default fallback: MongoDB text indexes for resilient local search
+- External search option: Solr via `SEARCH_ENGINE=solr`
+- Search responses include an `engine` field so you can show whether the request was served by `solr` or `mongo-text`
+
+## API Documentation
 
 - Swagger/OpenAPI is generated from route annotations and served at `/api-docs`.
-- Demo notes: [api/SWAGGER_DEMO.md](/Users/nagavenkatesh/Documents/untitled%20folder%202/api/SWAGGER_DEMO.md)
+- Demo notes: `api/SWAGGER_DEMO.md`
 
 ## Deployment
 
-- Frontend is prepared for Vercel with [vercel.json](/Users/nagavenkatesh/Documents/untitled%20folder%202/vercel.json).
-- Backend should be deployed as a Node service with MongoDB and Redis connectivity.
-- Full deployment notes: [DEPLOYMENT.md](/Users/nagavenkatesh/Documents/untitled%20folder%202/DEPLOYMENT.md)
+- Frontend is prepared for Vercel with `vercel.json`.
+- Backend should be deployed as a Node service with MongoDB, Redis, and optionally Solr connectivity.
+- Full deployment notes: `DEPLOYMENT.md`
 
-## Performance notes
+## Performance Notes
 
-- Optimization details and review steps: [PERFORMANCE.md](/Users/nagavenkatesh/Documents/untitled%20folder%202/PERFORMANCE.md)
+- Optimization details and review steps: `PERFORMANCE.md`
+- Performance reporting template: `PERFORMANCE_REPORT.md`

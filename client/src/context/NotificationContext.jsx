@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import axios from 'axios';
 import { useAppSelector } from '../hooks/redux';
+import { handleAxiosUnauthorized } from '../utils/sessionRedirect';
 
 const NotificationContext = createContext();
 
@@ -87,12 +88,11 @@ export const NotificationProvider = ({ children }) => {
   setNotifications(normalized);
 }
     }catch (error) {
-  if (error.response?.status === 401) {
-    // User not authenticated — silently ignore
+  if (handleAxiosUnauthorized(error)) {
     return;
   }
 
-  console.error('❌ Error fetching notifications:', error);
+  console.error('? Error fetching notifications:', error);
 }finally {
       if (!silent) setLoading(false);
     }
