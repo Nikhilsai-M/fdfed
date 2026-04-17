@@ -23,7 +23,7 @@ const AccessoryDetails = ({ type }) => {
   const [error, setError] = useState(null);
   const [cartMessage, setCartMessage] = useState(null);
 
-  const { addItem } = useCart();
+  const { updateCart } = useCart();
 
   const getApiEndpoint = () => {
     switch (type) {

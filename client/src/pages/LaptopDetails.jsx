@@ -21,7 +21,7 @@ const LaptopDetails = () => {
   const [error, setError] = useState(null);
   const [cartMessage, setCartMessage] = useState(null);
 
-  const { addItem } = useCart();
+  const { updateCart } = useCart();
 
   // Fetch laptop details
   useEffect(() => {

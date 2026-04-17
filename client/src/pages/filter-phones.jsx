@@ -327,7 +327,7 @@ const FilterPhones = () => {
   const navigate = useNavigate();
 
   // ✅ Get the updateCart function from the context
-  const { addItem } = useCart();
+  const { updateCart } = useCart();
 
   // Get URL parameters
   const brandFromUrl = searchParams.get('brand');
