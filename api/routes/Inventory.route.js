@@ -76,6 +76,21 @@ router.post("/", verifySupervisor, addInventoryItem);
  *         required: true
  *         schema:
  *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: true
+ *             example:
+ *               brand: Samsung
+ *               pricing:
+ *                 base_price: 45999
+ *                 discount: 8
+ *               model: Galaxy S22
+ *               condition: Excellent
+ *               image: https://example.com/phone.jpg
  *     responses:
  *       200:
  *         description: Inventory item updated successfully
