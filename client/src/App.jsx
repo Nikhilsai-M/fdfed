@@ -279,6 +279,7 @@ function App() {
                     <Route path="/sell-phone" element={<SellPhoneForm />} />
                     <Route path="/sell-laptop" element={<SellLaptop />} />
                     <Route path="/sign-in" element={<SignIn />} />
+                    <Route path="/signin" element={<Navigate to="/sign-in" replace />} />
                     <Route path="/sign-up" element={<SignUp />} />
                     <Route path="/verify-otp" element={<OTPVerification />} />
                     <Route path="/cart" element={<ProtectedRoute allowedRoles={['customer']}><CartPage /></ProtectedRoute>} />
@@ -299,6 +300,7 @@ function App() {
                     <Route path="/forgot-password" element={<ForgotPassword />} />
                     <Route path="/search" element={<SearchResults />} />
                     <Route path="/notifications" element={<ProtectedRoute allowedRoles={['customer']}><Notifications /></ProtectedRoute>} />
+                    <Route path="/products" element={<Navigate to="/" replace />} />
                     <Route path="/supervisor-dashboard" element={<ProtectedRoute allowedRoles={['supervisor']}><SupervisorDashboard /></ProtectedRoute>} />
                     <Route path="/supervisor/verify-listings" element={<ProtectedRoute allowedRoles={['supervisor']}><VerifyListings /></ProtectedRoute>} />
                     <Route path="/supervisor/manage-inventory" element={<ProtectedRoute allowedRoles={['supervisor']}><ManageInventory /></ProtectedRoute>} />
@@ -317,6 +319,7 @@ function App() {
                     <Route path="/seller/add-product" element={<SellerProtectedRoute><AddProduct /></SellerProtectedRoute>} />
                     <Route path="/seller/orders" element={<SellerProtectedRoute><SellerOrders /></SellerProtectedRoute>} />
                     <Route path="/seller/profile" element={<SellerProtectedRoute><SellerProfile /></SellerProtectedRoute>} />
+                    <Route path="/seller/benefits" element={<Navigate to="/seller/signup" replace />} />
                     <Route path="/seller/verify-otp" element={<SellerOTPVerification />} />
                   </Routes>
                 </main>

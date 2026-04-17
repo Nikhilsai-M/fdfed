@@ -194,7 +194,7 @@ const Cart = () => {
             </Link>
 
             <button
-              onClick={() => navigate("/products")}
+              onClick={() => navigate("/")}
               className="w-full mt-3 border border-blue-600 text-blue-600 hover:bg-blue-50 py-2 rounded-lg font-semibold"
             >
               Continue Shopping

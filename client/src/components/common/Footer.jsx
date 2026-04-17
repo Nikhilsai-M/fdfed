@@ -194,7 +194,7 @@ const Footer = () => {
                 <Link to="/seller/signup" className="footer-link text-gray-200 text-sm">Become an Accessory Seller</Link>
               </li>
               <li className="footer-item">
-                <Link to="/seller/benefits" className="footer-link text-gray-200 text-sm">Seller Benefits</Link>
+                <Link to="/seller/signup" className="footer-link text-gray-200 text-sm">Seller Benefits</Link>
               </li>
             </ul>
           </div>

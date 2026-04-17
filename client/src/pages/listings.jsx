@@ -50,7 +50,7 @@ const Listings = () => {
         if (error.response?.status === 401) {
           setError("Please login to view your listings");
           // Redirect to login after 2 seconds
-          setTimeout(() => navigate('/signin'), 2000);
+          setTimeout(() => navigate('/sign-in'), 2000);
         } else {
           setError(error.response?.data?.message || "Error loading listings. Please try again.");
         }
