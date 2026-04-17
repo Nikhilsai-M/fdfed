@@ -4,7 +4,7 @@ import {
   buildTextSort,
   getSearchCacheKey,
   isCategoryQuery,
-} from "../controllers/search.controller.js";
+} from "../services/search.service.js";
 
 describe("search.controller helpers", () => {
   it("normalizes cache keys for repeated searches", () => {

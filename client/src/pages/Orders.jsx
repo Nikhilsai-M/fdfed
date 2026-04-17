@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { redirectIfUnauthorizedResponse } from '../utils/sessionRedirect';
 import { motion } from "framer-motion";
 import { Download, ArrowLeft } from "lucide-react";
-import { useAppSelector } from "../hooks/redux";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 
@@ -11,15 +11,17 @@ const Orders = () => {
   const [order, setOrder] = useState(null);
   const [error, setError] = useState("");
   const billRef = useRef();
-  const { token } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
     const fetchOrder = async () => {
       try {
         const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}`, {
           credentials: "include",
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
+
+        if (redirectIfUnauthorizedResponse(response)) {
+          return;
+        }
 
         const result = await response.json();
         if (!response.ok || !result.success) {
@@ -34,7 +36,7 @@ const Orders = () => {
     };
 
     fetchOrder();
-  }, [orderId, token]);
+  }, [orderId]);
 
   const getItemDisplayName = (item) => {
     const acc = item.accessory;
@@ -159,8 +161,8 @@ const Orders = () => {
                 </td>
 
                 <td className="p-3">{item.quantity}</td>
-                <td className="p-3">₹{(item.amount / item.quantity).toFixed(2)}</td>
-                <td className="p-3">₹{item.amount.toFixed(2)}</td>
+                <td className="p-3">?{(item.amount / item.quantity).toFixed(2)}</td>
+                <td className="p-3">?{item.amount.toFixed(2)}</td>
               </tr>
             ))}
           </tbody>
@@ -168,7 +170,7 @@ const Orders = () => {
 
         <div className="text-right mt-6 space-y-1 text-gray-800">
           <p className="text-xl font-semibold border-t pt-2">
-            Total: ₹{Number(order.totalAmount || 0).toFixed(2)}
+            Total: ?{Number(order.totalAmount || 0).toFixed(2)}
           </p>
         </div>
       </motion.div>

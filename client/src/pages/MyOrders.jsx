@@ -1,10 +1,9 @@
-// src/components/MyOrders.jsx
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion'; 
+import { redirectIfUnauthorizedResponse } from '../utils/sessionRedirect';
+import { motion } from 'framer-motion';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
-import { useAppSelector } from '../hooks/redux';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
@@ -13,18 +12,22 @@ const MyOrders = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const location = useLocation();
-  const { token } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
         const response = await fetch(`${API_BASE_URL}/api/myorders`, {
           credentials: 'include',
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
+
+        if (redirectIfUnauthorizedResponse(response)) {
+          return;
+        }
+
         if (!response.ok) {
           throw new Error(`HTTP error: ${response.status}`);
         }
+
         const result = await response.json();
         if (result.success) {
           setOrders(result.orders || []);
@@ -39,7 +42,7 @@ const MyOrders = () => {
     };
 
     fetchOrders();
-  }, [token]);
+  }, []);
 
   const getPaymentBadgeStyles = (status) => {
     switch ((status || '').toLowerCase()) {
@@ -185,7 +188,7 @@ const MyOrders = () => {
                             <div className="text-sm text-gray-600">Quantity: {item.quantity || 1}</div>
                           </div>
                           <div className="text-right font-bold text-green-600 ml-4">
-                            ₹{item.amount.toLocaleString('en-IN')}
+                            &#8377;{item.amount.toLocaleString('en-IN')}
                           </div>
                         </motion.li>
                       ))}
@@ -215,7 +218,7 @@ const MyOrders = () => {
                       Order #{index + 1} - {order.orderId}
                     </h3>
                     <div className="text-right">
-                      <span className="block text-2xl font-bold text-green-600">₹{(order.totalAmount || 0).toLocaleString('en-IN')}</span>
+                      <span className="block text-2xl font-bold text-green-600">&#8377;{(order.totalAmount || 0).toLocaleString('en-IN')}</span>
                       <span className="text-sm text-gray-500">Total Paid</span>
                       <span className={`mt-3 inline-flex rounded-full px-3 py-1 text-xs font-semibold ${getPaymentBadgeStyles(order.paymentStatus)}`}>
                         Payment: {(order.paymentStatus || 'pending').toUpperCase()}
@@ -240,9 +243,7 @@ const MyOrders = () => {
                       <span className="font-medium text-green-700">Order Date</span>
                       <span className="font-semibold text-gray-800">{order.timestamp ? new Date(order.timestamp).toLocaleString() : new Date().toLocaleString()}</span>
                     </div>
-                    <div className="md:col-span-1 lg:col-span-1 flex justify-center md:justify-end">
-                     
-                    </div>
+                    <div className="md:col-span-1 lg:col-span-1 flex justify-center md:justify-end"></div>
                   </div>
                 </motion.div>
               );
@@ -260,7 +261,7 @@ const MyOrders = () => {
             to="/"
             className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-xl hover:from-green-600 hover:to-emerald-700 shadow-lg transform hover:scale-105 transition-all duration-300"
           >
-            <i className="fas fa-arrow-left mr-2"></i>← Back to Home
+            <i className="fas fa-arrow-left mr-2"></i>? Back to Home
           </Link>
         </motion.div>
       </div>

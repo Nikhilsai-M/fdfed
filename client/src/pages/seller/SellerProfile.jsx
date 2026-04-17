@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { handleAxiosUnauthorized } from '../../utils/sessionRedirect';
 import {
   PieChart, Pie, Cell,
   BarChart, Bar, XAxis, YAxis,
@@ -122,8 +123,7 @@ const SectionLabel = ({ icon, text }) => (
 );
 
 export default function SellerProfile() {
-  const [data, setData] = useState(null);
-  const token = localStorage.getItem("sellerToken");
+  const [data, setData] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -132,12 +132,12 @@ export default function SellerProfile() {
   const fetchData = async () => {
     const res = await axios.get(
       "http://localhost:3000/api/seller/profile-analytics",
-      { headers: { Authorization: `Bearer ${token}` } }
+      { withCredentials: true }
     );
     setData(res.data.data);
   };
 
-  if (!data) return (
+  if (!data && !error) return (
     <>
       <style>{globalStyles}</style>
       <div style={{

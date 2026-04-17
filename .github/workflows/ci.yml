@@ -32,6 +32,7 @@ jobs:
           JWT_SECRET: ci-secret
           SESSION_SECRET: ci-session
           REDIS_DISABLED: "true"
+          SEARCH_ENGINE: mongo
         run: npm test
 
       - name: Install client dependencies

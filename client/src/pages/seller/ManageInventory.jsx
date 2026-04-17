@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { handleAxiosUnauthorized } from '../../utils/sessionRedirect';
 
 const globalStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap');
@@ -92,32 +93,49 @@ export default function ManageInventorySeller() {
   useEffect(() => { fetchProducts(); }, []);
 
   const fetchProducts = async () => {
-    const res = await axios.get("http://localhost:3000/api/seller/products", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setProducts(res.data.products);
+    try {
+      const res = await axios.get("http://localhost:3000/api/seller/products", {
+        withCredentials: true,
+      });
+      setProducts(res.data.products);
+    } catch (error) {
+      if (handleAxiosUnauthorized(error, 'seller')) return;
+      console.error(error);
+    }
   };
 
   const updateStock = async (id, stock, category) => {
     setSaving(id + "_stock");
-    await axios.put(
-      `http://localhost:3000/api/seller/products/${id}`,
-      { stock, category },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    setSaving(null);
-    fetchProducts();
+    try {
+      await axios.put(
+        `http://localhost:3000/api/seller/products/${id}`,
+        { stock, category },
+        { withCredentials: true }
+      );
+      fetchProducts();
+    } catch (error) {
+      if (handleAxiosUnauthorized(error, 'seller')) return;
+      console.error(error);
+    } finally {
+      setSaving(null);
+    }
   };
 
   const toggleActive = async (id, isActive, category) => {
     setSaving(id + "_toggle");
-    await axios.put(
-      `http://localhost:3000/api/seller/products/${id}`,
-      { isActive: !isActive, category },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    setSaving(null);
-    fetchProducts();
+    try {
+      await axios.put(
+        `http://localhost:3000/api/seller/products/${id}`,
+        { isActive: !isActive, category },
+        { withCredentials: true }
+      );
+      fetchProducts();
+    } catch (error) {
+      if (handleAxiosUnauthorized(error, 'seller')) return;
+      console.error(error);
+    } finally {
+      setSaving(null);
+    }
   };
 
   const activeCount = products.filter(p => p.isActive).length;

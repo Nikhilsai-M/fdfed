@@ -1,5 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
+import { handleAxiosUnauthorized } from '../../utils/sessionRedirect';
 
 const globalStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap');
@@ -175,7 +176,8 @@ export default function AddProduct() {
       });
       if (imageFile) data.append("image", imageFile);
       await axios.post("http://localhost:3000/api/seller/products", data, {
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" }
+        withCredentials: true,
+        headers: { "Content-Type": "multipart/form-data" }
       });
       alert("Product Added Successfully!");
       window.location.href = "/seller/dashboard";

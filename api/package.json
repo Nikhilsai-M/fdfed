@@ -11,7 +11,8 @@
     "test:watch": "vitest",
     "benchmark:db": "node scripts/db-query-plan-report.js",
     "benchmark:cache": "node scripts/cache-benchmark.js",
-    "benchmark:db:compare": "node scripts/db-search-benchmark.js"
+    "benchmark:db:compare": "node scripts/db-search-benchmark.js",
+    "search:solr:sync": "node scripts/solr-sync.js"
   },
   "keywords": [],
   "author": "",
@@ -48,3 +49,4 @@
     "vitest": "^3.2.4"
   }
 }
+

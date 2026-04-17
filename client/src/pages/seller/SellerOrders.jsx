@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { handleAxiosUnauthorized } from '../../utils/sessionRedirect';
 
 const globalStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap');
@@ -121,7 +122,7 @@ export default function SellerOrders() {
     try {
       const res = await axios.get(
         "http://localhost:3000/api/seller/orders",
-        { headers: { Authorization: `Bearer ${token}` } }
+        { withCredentials: true }
       );
       setOrders(res.data.orders);
     } catch (error) {
