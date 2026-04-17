@@ -13,7 +13,7 @@ const SearchResults = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchInput, setSearchInput] = useState(query);
-  const { addItem } = useCart();
+  const { updateCart } = useCart();
   const navigate = useNavigate();
 
   const fetchSearchResults = useCallback(async () => {

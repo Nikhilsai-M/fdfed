@@ -416,7 +416,7 @@ const FilterLaptops = () => {
   
   const [cartItem, setCartItem] = useState(null);
   const navigate = useNavigate();
-  const { addItem } = useCart();
+  const { updateCart } = useCart();
 
   // Get URL parameters
   const brandFromUrl = searchParams.get('brand');

@@ -34,7 +34,7 @@ const inferProductType = (product) => {
 
 const AddToCartButton = ({ product }) => {
   const [message, setMessage] = useState(null);
-  const { addItem } = useCart();
+  const { updateCart } = useCart();
   const navigate = useNavigate();
 
   const handleAddToCart = async () => {
