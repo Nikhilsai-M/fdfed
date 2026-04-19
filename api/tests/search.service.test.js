@@ -41,7 +41,7 @@ describe("search.service helpers", () => {
     const params = buildMeiliSearchParams("iphone case");
     expect(params.query).toBe("iphone case");
     expect(params.options.sort).toEqual(["created_at:desc"]);
-    expect(getMeiliHost()).toContain("meilisearch-production-cb5d.up.railway.app");
+    expect(getMeiliHost()).toBe("http://127.0.0.1:7700");
   });
 
   it("builds Meilisearch documents for phones and accessories", () => {
