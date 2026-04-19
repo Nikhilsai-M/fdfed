@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import SupervisorLayout from '../../components/supervisor/SupervisorLayout';
-import '/src/styles/ManageInventory.css';
+import '../../styles/ManageInventory.css';
+import { buildApiUrl } from '../../utils/api';
 
 const ManageInventory = () => {
     const [inventory, setInventory] = useState([]);
@@ -13,7 +14,7 @@ const ManageInventory = () => {
     // Fetch supervisor type from API
     const fetchSupervisorType = async () => {
         try {
-            const res = await fetch('/api/supervisor/dashboard', { credentials: 'include' });
+            const res = await fetch(buildApiUrl('/api/supervisor/dashboard'), { credentials: 'include' });
             const data = await res.json();
             if (data.success) setSupervisorType(data.supervisorType);
         } catch (error) {
@@ -24,7 +25,7 @@ const ManageInventory = () => {
     // Fetch inventory
     const fetchInventory = async () => {
         try {
-            const response = await fetch('/api/supervisor/inventory', { credentials: 'include' });
+            const response = await fetch(buildApiUrl('/api/supervisor/inventory'), { credentials: 'include' });
             if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
             const data = await response.json();
             if (data.success) setInventory(data.items);
@@ -157,7 +158,7 @@ const ManageInventory = () => {
 
         try {
             const response = await fetch(
-                `/api/supervisor/inventory/${selectedProduct.type}/${selectedProduct.id}`,
+                buildApiUrl(`/api/supervisor/inventory/${selectedProduct.type}/${selectedProduct.id}`),
                 {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
@@ -185,7 +186,7 @@ const ManageInventory = () => {
 
         try {
             const response = await fetch(
-                `/api/supervisor/inventory/${selectedProduct.type}/${selectedProduct.id}`,
+                buildApiUrl(`/api/supervisor/inventory/${selectedProduct.type}/${selectedProduct.id}`),
                 { method: 'DELETE', credentials: 'include' }
             );
             const result = await response.json();

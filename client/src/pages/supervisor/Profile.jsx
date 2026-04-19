@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { buildApiUrl } from '../../utils/api';
 
 const Profile = () => {
   const [supervisor, setSupervisor] = useState(null);
@@ -20,7 +21,7 @@ const Profile = () => {
 
   const fetchSupervisorProfile = async () => {
     try {
-      const response = await fetch('/api/supervisor/profile', {
+      const response = await fetch(buildApiUrl('/api/supervisor/profile'), {
         credentials: 'include'
       });
       const result = await response.json();
@@ -68,7 +69,7 @@ const Profile = () => {
     setMessage({ type: '', text: '' });
 
     try {
-      const response = await fetch('/api/supervisor/profile', {
+      const response = await fetch(buildApiUrl('/api/supervisor/profile'), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -109,7 +110,7 @@ const Profile = () => {
     }
 
     try {
-      const response = await fetch('/api/supervisor/password', {
+      const response = await fetch(buildApiUrl('/api/supervisor/password'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -143,7 +144,7 @@ const Profile = () => {
 
   const handleLogout = async () => {
     try {
-      const response = await fetch('/api/supervisor/logout', {
+      const response = await fetch(buildApiUrl('/api/supervisor/logout'), {
         credentials: 'include'
       });
       const result = await response.json();

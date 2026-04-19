@@ -4,7 +4,7 @@ import Header from "../components/common/Header";
 import Footer from "../components/common/Footer";
 import { Link } from "react-router-dom";
 import AddToCartButton from "../components/AddToCartButton";
-import { buildAssetUrl } from "../utils/api";
+import { buildApiUrl, buildAssetUrl } from "../utils/api";
 
 const MousePage = () => {
   const [mouses, setMouses] = useState([]);
@@ -36,7 +36,7 @@ const MousePage = () => {
     const fetchMouseData = async () => {
       try {
         setLoading(true);
-        const response = await fetch("/api/Accessories/mouses");
+        const response = await fetch(buildApiUrl("/api/Accessories/mouses"));
         if (!response.ok) throw new Error("Failed to fetch mouse data");
 
         const data = await response.json();

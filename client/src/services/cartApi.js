@@ -1,4 +1,6 @@
-const CART_API_BASE = "/api/cart";
+import { buildApiUrl } from "../utils/api";
+
+const CART_API_BASE = buildApiUrl("/api/cart");
 
 async function parseResponse(response) {
   const data = await response.json().catch(() => ({}));

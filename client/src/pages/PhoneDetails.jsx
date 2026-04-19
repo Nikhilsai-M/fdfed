@@ -12,6 +12,7 @@ import Footer from '../components/common/Footer';
 
 import { useCart } from '../context/CartContent';
 import { addCartItem } from '../services/cartApi';
+import { buildApiUrl } from '../utils/api';
 
 const PhoneDetails = () => {
   const { id } = useParams();
@@ -30,7 +31,7 @@ const PhoneDetails = () => {
       try {
         setLoading(true);
         setError(null);
-        const response = await fetch(`/api/phones/${id}`);
+        const response = await fetch(buildApiUrl(`/api/phones/${id}`));
         if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         const data = await response.json();
         if (!data || !data.id) throw new Error('Invalid phone data');
@@ -105,7 +106,7 @@ const PhoneDetails = () => {
   };
   const buyNow = async () => {
     try {
-      const response = await fetch('/api/user/profile', { credentials: 'include' });
+      const response = await fetch(buildApiUrl('/api/user/profile'), { credentials: 'include' });
       if (!response.ok) {
         navigate('/sign-in');
         return;
