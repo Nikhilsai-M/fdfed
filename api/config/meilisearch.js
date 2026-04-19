@@ -1,6 +1,6 @@
 import { MeiliSearch } from "meilisearch";
 
-const DEFAULT_MEILI_HOST = "https://meilisearch-production-cb5d.up.railway.app";
+const DEFAULT_MEILI_HOST = "http://127.0.0.1:7700";
 const DEFAULT_MEILI_INDEX = "products";
 
 export function getMeiliHost() {
