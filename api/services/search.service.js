@@ -93,6 +93,10 @@ function computeDiscountedPrice(price, discount) {
   return roundMoney(Number(price || 0) * (1 - Number(discount || 0) / 100));
 }
 
+function joinSearchTerms(values = []) {
+  return values.filter(Boolean).join(" ");
+}
+
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -312,7 +316,7 @@ export function buildSolrDocument(type, product) {
       price: Number(product.base_price || 0),
       discount: Number(product.discount || 0),
       finalPrice: computeDiscountedPrice(product.base_price, product.discount),
-      text: [product.brand, product.model, product.color, product.processor, product.os, product.ram, product.rom].filter(Boolean).join(" "),
+      text: joinSearchTerms([product.brand, product.model, product.color, product.processor, product.os, product.ram, product.rom]),
     };
   }
 
@@ -324,7 +328,78 @@ export function buildSolrDocument(type, product) {
       price: Number(product.base_price || 0),
       discount: Number(product.discount || 0),
       finalPrice: computeDiscountedPrice(product.base_price, product.discount),
-      text: [product.brand, product.series, product.processor_name, product.processor_generation, product.os, product.ram, product.storage_type, product.storage_capacity].filter(Boolean).join(" "),
+      text: joinSearchTerms([product.brand, product.series, product.processor_name, product.processor_generation, product.os, product.ram, product.storage_type, product.storage_capacity]),
+    };
+  }
+
+  if (type === "earphone") {
+    return {
+      ...base,
+      title: product.title || "",
+      condition: "",
+      price: Number(product.originalPrice || 0),
+      discount: Number(product.discount || 0),
+      finalPrice: computeDiscountedPrice(product.originalPrice, product.discount),
+      text: joinSearchTerms([
+        product.title,
+        product.brand,
+        product.design,
+        product.batteryLife,
+      ]),
+    };
+  }
+
+  if (type === "charger") {
+    return {
+      ...base,
+      title: product.title || "",
+      condition: "",
+      price: Number(product.originalPrice || 0),
+      discount: Number(product.discount || 0),
+      finalPrice: computeDiscountedPrice(product.originalPrice, product.discount),
+      text: joinSearchTerms([
+        product.title,
+        product.brand,
+        product.type,
+        product.wattage,
+        product.outputCurrent,
+      ]),
+    };
+  }
+
+  if (type === "mouse") {
+    return {
+      ...base,
+      title: product.title || "",
+      condition: "",
+      price: Number(product.originalPrice || 0),
+      discount: Number(product.discount || 0),
+      finalPrice: computeDiscountedPrice(product.originalPrice, product.discount),
+      text: joinSearchTerms([
+        product.title,
+        product.brand,
+        product.type,
+        product.connectivity,
+        product.resolution,
+      ]),
+    };
+  }
+
+  if (type === "smartwatch") {
+    return {
+      ...base,
+      title: product.title || "",
+      condition: "",
+      price: Number(product.originalPrice || 0),
+      discount: Number(product.discount || 0),
+      finalPrice: computeDiscountedPrice(product.originalPrice, product.discount),
+      text: joinSearchTerms([
+        product.title,
+        product.brand,
+        product.displaySize,
+        product.displayType,
+        product.batteryRuntime,
+      ]),
     };
   }
 
@@ -335,7 +410,7 @@ export function buildSolrDocument(type, product) {
     price: Number(product.originalPrice || 0),
     discount: Number(product.discount || 0),
     finalPrice: computeDiscountedPrice(product.originalPrice, product.discount),
-    text: [product.title, product.brand, product.type, product.design, product.wattage, product.displayType, product.connectivity, product.batteryLife, product.outputCurrent, product.resolution, product.batteryRuntime].filter(Boolean).join(" "),
+    text: joinSearchTerms([product.title, product.brand, product.type]),
   };
 }
 
