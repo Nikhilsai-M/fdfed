@@ -4,6 +4,10 @@ import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
 import { errorHandler } from "../utils/error.js";
 import { sendOTPEmail } from "../utils/mailer.js";
+import {
+  getAuthCookieOptions,
+  getClearCookieOptions,
+} from "../utils/http.js";
 
 // Temporary stores for OTPs and pending registrations
 const otpStore = {}; // For password reset (key: email)
@@ -125,10 +129,7 @@ export const verifySignupOTP = async (req, res, next) => {
 
     res
       .cookie("access_token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        ...getAuthCookieOptions(),
       })
       .status(201)
       .json({
@@ -213,10 +214,7 @@ export const signin = async (req, res, next) => {
 
     res
       .cookie("access_token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        ...getAuthCookieOptions(),
       })
       .status(200)
       .json({ success: true, user: rest, token });
@@ -362,10 +360,7 @@ export const resetPassword = async (req, res, next) => {
 
     res
       .cookie("access_token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        ...getAuthCookieOptions(),
       })
       .status(200)
       .json({
@@ -451,9 +446,7 @@ export const updateUserProfile = async (req, res, next) => {
 export const signout = async (req, res, next) => {
   try {
     res.clearCookie("access_token", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      ...getClearCookieOptions(),
     });
     res.status(200).json({ success: true, message: "Signed out successfully" });
   } catch (error) {

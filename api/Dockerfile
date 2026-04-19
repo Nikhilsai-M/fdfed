@@ -1,12 +1,11 @@
 FROM node:22-alpine
 
-WORKDIR /app/api
+WORKDIR /app
 
-COPY api/package*.json ./
+COPY package*.json ./
 RUN npm install
 
-COPY api/ ./
+COPY . .
 
 EXPOSE 3000
-
 CMD ["npm", "run", "dev"]
