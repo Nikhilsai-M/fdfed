@@ -20,6 +20,8 @@ export const CATEGORY_TERMS = {
 };
 
 const PRODUCT_COLLECTIONS = ["phone", "laptop", "earphone", "charger", "mouse", "smartwatch"];
+const SOLR_RETRY_ATTEMPTS = Math.max(1, Number.parseInt(process.env.SOLR_RETRY_ATTEMPTS || "8", 10));
+const SOLR_RETRY_DELAY_MS = Math.max(250, Number.parseInt(process.env.SOLR_RETRY_DELAY_MS || "1500", 10));
 
 export const buildTextQuery = (term) => ({ $text: { $search: term } });
 export const buildTextProjection = () => ({ score: { $meta: "textScore" } });
@@ -52,6 +54,33 @@ export function getSolrUpdateUrl() {
   return `${getSolrBaseUrl()}/${getSolrCore()}/update`;
 }
 
+export function getSolrJsonDocsUpdateUrl() {
+  return `${getSolrUpdateUrl()}/json/docs`;
+}
+
+export function getSolrHealthUrl() {
+  return `${getSolrBaseUrl()}/admin/cores`;
+}
+
+export function getSolrSchemaUrl() {
+  return `${getSolrBaseUrl()}/${getSolrCore()}/schema`;
+}
+
+const SOLR_SCHEMA_FIELDS = [
+  { name: "id", type: "string", indexed: true, stored: true, multiValued: false, required: true },
+  { name: "productId", type: "string", indexed: true, stored: true, multiValued: false },
+  { name: "type", type: "string", indexed: true, stored: true, multiValued: false },
+  { name: "brand", type: "text_general", indexed: true, stored: true, multiValued: false },
+  { name: "title", type: "text_general", indexed: true, stored: true, multiValued: false },
+  { name: "image", type: "string", indexed: false, stored: true, multiValued: false },
+  { name: "price", type: "pdouble", indexed: true, stored: true, multiValued: false },
+  { name: "discount", type: "pdouble", indexed: true, stored: true, multiValued: false },
+  { name: "finalPrice", type: "pdouble", indexed: true, stored: true, multiValued: false },
+  { name: "condition", type: "text_general", indexed: true, stored: true, multiValued: false },
+  { name: "created_at", type: "pdate", indexed: true, stored: true, multiValued: false },
+  { name: "text", type: "text_general", indexed: true, stored: true, multiValued: false },
+];
+
 export function escapeSolrTerm(term) {
   return String(term || "").replace(/([+\-!(){}\[\]^"~*?:\\/]|&&|\|\|)/g, "\\$1");
 }
@@ -62,6 +91,111 @@ function roundMoney(value) {
 
 function computeDiscountedPrice(price, discount) {
   return roundMoney(Number(price || 0) * (1 - Number(discount || 0) / 100));
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isRetryableSolrError(error) {
+  const status = error?.response?.status;
+  const message = String(error?.response?.data?.error?.msg || error?.message || "");
+
+  return (
+    error?.code === "ECONNREFUSED" ||
+    error?.code === "ECONNRESET" ||
+    error?.code === "ETIMEDOUT" ||
+    status === 404 ||
+    status === 503 ||
+    message.toLowerCase().includes("core") ||
+    message.toLowerCase().includes("unavailable") ||
+    message.toLowerCase().includes("not found")
+  );
+}
+
+async function solrRequestWithRetry(requestFactory, options = {}) {
+  const attempts = options.attempts || SOLR_RETRY_ATTEMPTS;
+  const delayMs = options.delayMs || SOLR_RETRY_DELAY_MS;
+  let lastError;
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      return await requestFactory();
+    } catch (error) {
+      lastError = error;
+
+      if (attempt === attempts || !isRetryableSolrError(error)) {
+        throw error;
+      }
+
+      await sleep(delayMs);
+    }
+  }
+
+  throw lastError;
+}
+
+function normalizeSchemaField(field = {}) {
+  return {
+    name: field.name,
+    type: field.type,
+    indexed: field.indexed !== false,
+    stored: field.stored !== false,
+    multiValued: field.multiValued === true,
+    required: field.required === true,
+  };
+}
+
+function shouldReplaceSolrField(existingField, expectedField) {
+  const current = normalizeSchemaField(existingField);
+  const expected = normalizeSchemaField(expectedField);
+
+  return (
+    current.type !== expected.type ||
+    current.indexed !== expected.indexed ||
+    current.stored !== expected.stored ||
+    current.multiValued !== expected.multiValued ||
+    current.required !== expected.required
+  );
+}
+
+async function mutateSolrSchema(operation, field) {
+  await solrRequestWithRetry(() =>
+    axios.post(
+      getSolrSchemaUrl(),
+      { [operation]: field },
+      {
+        headers: { "Content-Type": "application/json" },
+        timeout: Number(process.env.SOLR_TIMEOUT_MS || 8000),
+      }
+    )
+  );
+}
+
+export async function ensureSolrSchema() {
+  const response = await solrRequestWithRetry(() =>
+    axios.get(`${getSolrSchemaUrl()}/fields`, {
+      params: { wt: "json" },
+      timeout: Number(process.env.SOLR_TIMEOUT_MS || 4000),
+    })
+  );
+
+  const existingFields = new Map(
+    (response.data?.fields || []).map((field) => [field.name, field])
+  );
+
+  for (const field of SOLR_SCHEMA_FIELDS) {
+    const existing = existingFields.get(field.name);
+
+    if (!existing) {
+      await mutateSolrSchema("add-field", field);
+      continue;
+    }
+
+    if (shouldReplaceSolrField(existing, field)) {
+      await mutateSolrSchema("replace-field", field);
+    }
+  }
 }
 
 function mapPhone(phone) {
@@ -261,18 +395,75 @@ async function loadAllSearchableProducts() {
   ];
 }
 
-export async function syncMongoProductsToSolr() {
-  if (!isSolrEnabled()) {
+export async function syncMongoProductsToSolr(options = {}) {
+  const { force = false } = options;
+
+  if (!force && !isSolrEnabled()) {
     return { synced: false, reason: "solr-disabled", count: 0 };
   }
 
+  await ensureSolrSchema();
   const docs = await loadAllSearchableProducts();
-  await axios.post(`${getSolrUpdateUrl()}?commit=true`, docs, {
+  await axios.post(`${getSolrJsonDocsUpdateUrl()}?commit=true`, docs, {
     headers: { "Content-Type": "application/json" },
     timeout: Number(process.env.SOLR_TIMEOUT_MS || 8000),
   });
 
   return { synced: true, count: docs.length };
+}
+
+export async function getSearchHealth() {
+  const enabled = isSolrEnabled();
+  const configured = Boolean(process.env.SOLR_URL || process.env.SOLR_CORE);
+
+  if (!configured) {
+    return {
+      engine: getSearchEngine(),
+      solr: {
+        configured: false,
+        enabled,
+        ready: false,
+        core: getSolrCore(),
+        baseUrl: getSolrBaseUrl(),
+      },
+    };
+  }
+
+  try {
+    const response = await axios.get(getSolrHealthUrl(), {
+      params: {
+        action: "STATUS",
+        core: getSolrCore(),
+        wt: "json",
+      },
+      timeout: Number(process.env.SOLR_TIMEOUT_MS || 4000),
+    });
+
+    const coreStatus = response.data?.status?.[getSolrCore()];
+
+    return {
+      engine: getSearchEngine(),
+      solr: {
+        configured: true,
+        enabled,
+        ready: Boolean(coreStatus),
+        core: getSolrCore(),
+        baseUrl: getSolrBaseUrl(),
+      },
+    };
+  } catch (error) {
+    return {
+      engine: getSearchEngine(),
+      solr: {
+        configured: true,
+        enabled,
+        ready: false,
+        core: getSolrCore(),
+        baseUrl: getSolrBaseUrl(),
+        error: error.message,
+      },
+    };
+  }
 }
 
 let queuedSync = null;

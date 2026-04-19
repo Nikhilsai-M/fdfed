@@ -85,6 +85,7 @@ What each one gives you:
 ## Deployment
 
 - Frontend is prepared for Vercel with `vercel.json`.
+- Set `VITE_API_BASE_URL` in Vercel to your deployed backend URL, for example `https://your-api.onrender.com`.
 - Backend should be deployed as a Node service with MongoDB, Redis, and optionally Solr connectivity.
 - Full deployment notes: `DEPLOYMENT.md`
 

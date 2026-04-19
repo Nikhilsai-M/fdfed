@@ -15,7 +15,8 @@
 3. Build command: `npm run build`
 4. Output directory: `dist`
 5. Add frontend environment variables if needed for API base URL handling.
-6. Keep `vercel.json` for SPA route rewrites.
+6. Set `VITE_API_BASE_URL` to your deployed backend base URL, for example `https://your-api.onrender.com`.
+7. Keep `vercel.json` for SPA route rewrites.
 
 ## Backend deployment
 
@@ -31,6 +32,7 @@
 - `SESSION_SECRET`
 - `CLIENT_ORIGIN`
 - `SWAGGER_SERVER_URL`
+- `SOLR_TIMEOUT_MS` (optional but recommended)
 - Cloudinary and Razorpay credentials if those features are enabled
 4. Expose Swagger from `/api-docs`.
 5. Confirm health at `/api/health`.
