@@ -2,6 +2,10 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import Seller from "../models/seller.model.js";
 import { sendOTPEmail } from "../utils/mailer.js";
+import {
+  getAuthCookieOptions,
+  getClearCookieOptions,
+} from "../utils/http.js";
 
 const pendingSellerRegistrations = {};
 
@@ -145,10 +149,7 @@ export const sellerLogin = async (req, res) => {
 
     res
       .cookie("access_token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        ...getAuthCookieOptions(24 * 60 * 60 * 1000),
       })
       .json({
         success: true,
@@ -162,9 +163,7 @@ export const sellerLogin = async (req, res) => {
 
 export const sellerLogout = (req, res) => {
   res.clearCookie("access_token", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    ...getClearCookieOptions(),
   });
   res.status(200).json({
     success: true,

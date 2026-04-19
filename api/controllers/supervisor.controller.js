@@ -15,6 +15,7 @@ import {
 } from "../services/supervisorAssignment.service.js";
 import { invalidateCatalogCaches } from "../config/redis.js";
 import { queueSolrSync } from "../services/search.service.js";
+import { getClearCookieOptions } from "../utils/http.js";
 
 // Helper: return the correct Application model based on supervisor type
 const getApplicationModel = (supervisorType) => {
@@ -425,7 +426,7 @@ export const updateSupervisorPassword = async (req, res, next) => {
 
 export const supervisorLogout = async (req, res, next) => {
   try {
-    res.clearCookie('supervisor_access_token');
+    res.clearCookie('supervisor_access_token', getClearCookieOptions());
     res.status(200).json({ success: true, message: 'Logged out successfully' });
   } catch (error) {
     console.error('Error during logout:', error);

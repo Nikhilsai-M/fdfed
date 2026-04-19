@@ -2,6 +2,7 @@ import { Supervisor, SupervisorActivity } from "../models/supervisor.model.js";
 import bcrypt from "bcryptjs";
 import { errorHandler } from "../utils/error.js";
 import jwt from "jsonwebtoken";
+import { getAuthCookieOptions } from "../utils/http.js";
 
 export const supervisorSignin = async (req, res, next) => {
   const { username, email, usernameOrEmail, password } = req.body;
@@ -60,9 +61,7 @@ export const supervisorSignin = async (req, res, next) => {
 
     res
       .cookie("supervisor_access_token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        ...getAuthCookieOptions(24 * 60 * 60 * 1000),
       })
       .status(200)
       .json({
