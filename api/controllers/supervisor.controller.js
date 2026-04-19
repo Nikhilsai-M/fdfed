@@ -14,7 +14,6 @@ import {
   getSupervisorIdsByType,
 } from "../services/supervisorAssignment.service.js";
 import { invalidateCatalogCaches } from "../config/redis.js";
-import { queueMeiliSync } from "../services/search.service.js";
 import { getClearCookieOptions } from "../utils/http.js";
 
 // Helper: return the correct Application model based on supervisor type
