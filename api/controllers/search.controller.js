@@ -23,7 +23,7 @@ const buildTextSort = () => ({ score: { $meta: 'textScore' }, created_at: -1, _i
 
 const isCategoryQuery = (term, values) => values.includes(term.toLowerCase());
 
-const getSearchCacheKey = (term) =>
+export const getSearchCacheKey = (term) =>
   `search:${String(term || "").trim().toLowerCase()}`;
 export const searchProducts = async (req, res) => {
   try {
