@@ -1,6 +1,6 @@
 import { performance } from "node:perf_hooks";
 
-const API_BASE_URL = process.env.BENCHMARK_API_BASE_URL || "http://localhost:3000";
+const API_BASE_URL = process.env.BENCHMARK_API_BASE_URL || "https://fdfed-1-4u4f.onrender.com";
 const SEARCH_TERM = process.env.BENCHMARK_QUERY || "iphone";
 const ITERATIONS = Math.max(3, Number.parseInt(process.env.BENCHMARK_ITERATIONS || "10", 10));
 
