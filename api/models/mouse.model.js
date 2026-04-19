@@ -35,6 +35,7 @@ const mouseSchema = new mongoose.Schema({
 });
 
 mouseSchema.index({ sellerId: 1, isActive: 1, created_at: -1 });
+mouseSchema.index({ isActive: 1, created_at: -1 });
 
 mouseSchema.index({ title: "text", brand: "text", type: "text", connectivity: "text" });
 

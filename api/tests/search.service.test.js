@@ -4,8 +4,11 @@ import {
   buildMeiliSearchParams,
   buildTextQuery,
   buildTextSort,
+  getMeiliDocumentCount,
   getSearchCacheKey,
+  getSearchResultLimit,
   isCategoryQuery,
+  shouldSyncMeiliCatalog,
 } from "../services/search.service.js";
 import { getMeiliHost } from "../config/meilisearch.js";
 
@@ -34,13 +37,14 @@ describe("search.service helpers", () => {
       options: {
         filter: ['type = "phone"'],
         sort: ["created_at:desc"],
-        limit: 120,
+        limit: getSearchResultLimit(),
       },
     });
 
     const params = buildMeiliSearchParams("iphone case");
     expect(params.query).toBe("iphone case");
     expect(params.options.sort).toEqual(["created_at:desc"]);
+    expect(params.options.limit).toBe(getSearchResultLimit());
     expect(getMeiliHost()).toBe("http://127.0.0.1:7700");
   });
 
@@ -73,5 +77,13 @@ describe("search.service helpers", () => {
     expect(chargerDoc.uid).toBe("charger:c1");
     expect(chargerDoc.name).toBe("GaN Charger");
     expect(chargerDoc.text).toContain("65W");
+  });
+
+  it("detects when the Meilisearch catalog should be rebuilt", () => {
+    expect(getMeiliDocumentCount({ numberOfDocuments: 12 })).toBe(12);
+    expect(shouldSyncMeiliCatalog({ meiliDocuments: 0, mongoDocuments: 12 })).toBe(true);
+    expect(shouldSyncMeiliCatalog({ meiliDocuments: 10, mongoDocuments: 12 })).toBe(true);
+    expect(shouldSyncMeiliCatalog({ meiliDocuments: 12, mongoDocuments: 12 })).toBe(false);
+    expect(shouldSyncMeiliCatalog({ meiliDocuments: 12, mongoDocuments: 12, force: true })).toBe(true);
   });
 });

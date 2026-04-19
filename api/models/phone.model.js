@@ -22,6 +22,7 @@ const phoneSchema = new mongoose.Schema({
 });
 
 phoneSchema.index({ brand: "text", model: "text", color: "text", processor: "text", os: "text" });
+phoneSchema.index({ created_at: -1 });
 
 const Phone = mongoose.model("Phone", phoneSchema);
 export default Phone;
