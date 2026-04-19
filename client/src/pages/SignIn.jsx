@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { User, Lock, Shield, AlertCircle, Eye, EyeOff, LogIn } from "lucide-react";
-import { useAppDispatch, useAppSelector } from "/src/hooks/redux";
-import { loginUser, checkSupervisorExists, setUserType, clearError } from "/src/store/slices/authSlice";
+import { useAppDispatch, useAppSelector } from "../hooks/redux";
+import { loginUser, checkSupervisorExists, setUserType, clearError } from "../store/slices/authSlice";
 
 export default function SignIn() {
   const [formData, setFormData] = useState({

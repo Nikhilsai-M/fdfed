@@ -12,6 +12,7 @@ import Footer from "../components/common/Footer";
 
 import { useCart } from "../context/CartContent";
 import { addCartItem } from "../services/cartApi";
+import { buildApiUrl } from "../utils/api";
 
 const AccessoryDetails = ({ type }) => {
   console.log("AccessoryDetails component loaded");
@@ -28,13 +29,13 @@ const AccessoryDetails = ({ type }) => {
   const getApiEndpoint = () => {
     switch (type) {
       case "charger":
-        return `/api/Accessories/chargers/${id}`;
+        return buildApiUrl(`/api/Accessories/chargers/${id}`);
       case "mouse":
-        return `/api/Accessories/mouses/${id}`;
+        return buildApiUrl(`/api/Accessories/mouses/${id}`);
       case "smartwatch":
-        return `/api/Accessories/smartwatches/${id}`;
+        return buildApiUrl(`/api/Accessories/smartwatches/${id}`);
       case "earphone":
-        return `/api/Accessories/earphones/${id}`;
+        return buildApiUrl(`/api/Accessories/earphones/${id}`);
       default:
         return "";
     }
@@ -157,7 +158,7 @@ const AccessoryDetails = ({ type }) => {
   };
   const buyNow = async () => {
     try {
-      const response = await fetch("/api/user/profile", {
+      const response = await fetch(buildApiUrl("/api/user/profile"), {
         credentials: "include",
       });
 

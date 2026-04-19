@@ -2,6 +2,7 @@ import axios from "axios";
 
 const LEGACY_API_ORIGIN_PATTERN = /^https?:\/\/(?:localhost|127\.0\.0\.1|api):3000(?=\/|$)/i;
 const LEGACY_ASSET_PATH_PATTERN = /(?:^|\/)(?:client\/)?src\/assets\/images\/(.+)$/i;
+const RELATIVE_API_PATH_PATTERN = /^\/?api(?=\/|$)/i;
 
 function trimTrailingSlash(value) {
   return String(value || "").replace(/\/+$/, "");
@@ -79,7 +80,18 @@ export function normalizeApiUrl(url) {
     return url;
   }
 
-  return url.replace(LEGACY_API_ORIGIN_PATTERN, API_BASE_URL);
+  const normalizedUrl = url.replace(LEGACY_API_ORIGIN_PATTERN, API_BASE_URL);
+
+  if (!API_BASE_URL) {
+    return normalizedUrl;
+  }
+
+  if (RELATIVE_API_PATH_PATTERN.test(normalizedUrl)) {
+    const apiPath = normalizedUrl.startsWith("/") ? normalizedUrl : `/${normalizedUrl}`;
+    return `${API_BASE_URL}${apiPath}`;
+  }
+
+  return normalizedUrl;
 }
 
 export function buildApiUrl(path = "") {

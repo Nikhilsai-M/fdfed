@@ -11,6 +11,7 @@ import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
 import { useCart } from '../context/CartContent';
 import { addCartItem } from '../services/cartApi';
+import { buildApiUrl } from '../utils/api';
 
 const LaptopDetails = () => {
   const { id } = useParams();
@@ -29,7 +30,7 @@ const LaptopDetails = () => {
       try {
         setLoading(true);
         setError(null);
-        const response = await fetch(`/api/laptops/${id}`);
+        const response = await fetch(buildApiUrl(`/api/laptops/${id}`));
         if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         const data = await response.json();
         if (!data || !data.id) throw new Error('Invalid laptop data');
@@ -109,7 +110,7 @@ const LaptopDetails = () => {
       console.log('Buy Now clicked for laptop:', laptop);
       
       // Verify user session via API
-      const response = await fetch('/api/user/profile', {
+      const response = await fetch(buildApiUrl('/api/user/profile'), {
         method: 'GET',
         credentials: 'include',
       });
