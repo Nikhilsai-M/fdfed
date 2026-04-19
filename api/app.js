@@ -131,6 +131,7 @@ app.use("/api", orderRouter);
 app.use("/api", accessoryRouter);
 app.use("/api", productRouter);
 app.use("/api/search", searchRouter);
+app.use("/search", searchRouter);
 app.use("/api/admin", adminStatisticsRouter);
 app.use("/api/device-requests", deviceRequestRoutes);
 app.use("/api/customer/notifications", notificationRoutes);

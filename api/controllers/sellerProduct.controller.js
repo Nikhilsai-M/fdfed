@@ -22,7 +22,7 @@ import {
   deleteFromCloudinary
 } from "../utils/cloudinary.js";
 import { invalidateCatalogCaches } from "../config/redis.js";
-import { queueSolrSync } from "../services/search.service.js";
+import { queueMeiliSync } from "../services/search.service.js";
 import { generateAccessoryProductId } from "../services/productId.service.js";
 
 /* ===============================
@@ -93,7 +93,7 @@ export const addProduct = async (req, res, next) => {
         model: data.model || data.title || "",
       });
       await invalidateCatalogCaches();
-      queueSolrSync();
+      queueMeiliSync();
     }
     res.json({ success: true, product: result });
 
@@ -178,7 +178,7 @@ export const updateProduct = async (req, res, next) => {
     }
 
     await invalidateCatalogCaches();
-      queueSolrSync();
+      queueMeiliSync();
     res.json(result);
 
   } catch (err) {
@@ -215,7 +215,7 @@ export const deleteProduct = async (req, res, next) => {
     }
 
     await invalidateCatalogCaches();
-      queueSolrSync();
+      queueMeiliSync();
     res.json(result);
 
   } catch (err) {

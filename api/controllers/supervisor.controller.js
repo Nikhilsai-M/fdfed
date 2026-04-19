@@ -14,7 +14,7 @@ import {
   getSupervisorIdsByType,
 } from "../services/supervisorAssignment.service.js";
 import { invalidateCatalogCaches } from "../config/redis.js";
-import { queueSolrSync } from "../services/search.service.js";
+import { queueMeiliSync } from "../services/search.service.js";
 
 // Helper: return the correct Application model based on supervisor type
 const getApplicationModel = (supervisorType) => {
@@ -230,7 +230,7 @@ export const updateApplicationStatus = async (req, res, next) => {
     });
 
     await invalidateCatalogCaches();
-      queueSolrSync();
+      queueMeiliSync();
 
     res.status(200).json({
       success: true,
@@ -343,7 +343,7 @@ export const addToInventory = async (req, res, next) => {
     });
 
     await invalidateCatalogCaches();
-      queueSolrSync();
+      queueMeiliSync();
 
     res.status(200).json({
       success: true,

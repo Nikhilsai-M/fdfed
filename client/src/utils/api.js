@@ -1,16 +1,23 @@
 import axios from "axios";
 
 const LOCAL_API_ORIGIN_PATTERN = /^https?:\/\/(?:localhost|127\.0\.0\.1):3000(?=\/|$)/i;
-const DEFAULT_API_BASE_URL = "http://localhost:3000";
 
 function trimTrailingSlash(value) {
   return String(value || "").replace(/\/+$/, "");
 }
 
+function resolveDefaultApiBaseUrl() {
+  if (typeof window !== "undefined" && window.location?.origin) {
+    return trimTrailingSlash(window.location.origin);
+  }
+
+  return "";
+}
+
 export const API_BASE_URL = trimTrailingSlash(
   import.meta.env.VITE_API_BASE_URL ||
     import.meta.env.VITE_API_PROXY_TARGET ||
-    DEFAULT_API_BASE_URL
+    resolveDefaultApiBaseUrl()
 );
 
 export function normalizeApiUrl(url) {
@@ -29,10 +36,10 @@ export function buildApiUrl(path = "") {
   }
 
   if (!normalizedPath.startsWith("/")) {
-    return `${API_BASE_URL}/${normalizedPath}`;
+    return API_BASE_URL ? `${API_BASE_URL}/${normalizedPath}` : `/${normalizedPath}`;
   }
 
-  return `${API_BASE_URL}${normalizedPath}`;
+  return API_BASE_URL ? `${API_BASE_URL}${normalizedPath}` : normalizedPath;
 }
 
 export function buildAssetUrl(path = "") {

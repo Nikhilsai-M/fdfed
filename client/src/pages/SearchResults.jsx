@@ -1,50 +1,113 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
 import { ShoppingCart } from 'lucide-react';
 import { useCart } from '../context/CartContent';
-import { addCartItem } from '../services/cartApi';
+import { buildApiUrl } from '../utils/api';
+
+const SEARCH_DEBOUNCE_MS = 300;
 
 const SearchResults = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { updateCart } = useCart();
   const query = searchParams.get('q') || '';
   const [results, setResults] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(Boolean(query));
   const [error, setError] = useState(null);
   const [searchInput, setSearchInput] = useState(query);
-  const { updateCart } = useCart();
-  const navigate = useNavigate();
+  const activeRequestRef = useRef(0);
 
-  const fetchSearchResults = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch search results');
-      }
-      
-      const data = await response.json();
-      setResults(data.results || []);
-    } catch (err) {
-      setError(err.message);
-      console.error('Error fetching search results:', err);
-    } finally {
-      setLoading(false);
-    }
+  useEffect(() => {
+    setSearchInput(query);
   }, [query]);
 
   useEffect(() => {
-    if (query) {
-      setSearchInput(query);
-      fetchSearchResults();
-    } else {
+    const trimmed = searchInput.trim();
+
+    const timeoutId = window.setTimeout(() => {
+      if (trimmed === query) {
+        return;
+      }
+
+      if (!trimmed) {
+        setSearchParams({}, { replace: true });
+        return;
+      }
+
+      setSearchParams({ q: trimmed }, { replace: true });
+    }, SEARCH_DEBOUNCE_MS);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [query, searchInput, setSearchParams]);
+
+  useEffect(() => {
+    const trimmedQuery = query.trim();
+
+    if (!trimmedQuery) {
       setResults([]);
+      setError(null);
       setLoading(false);
+      return;
     }
-  }, [query, fetchSearchResults]);
+
+    const requestId = activeRequestRef.current + 1;
+    activeRequestRef.current = requestId;
+    const controller = new AbortController();
+
+    const fetchSearchResults = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const response = await fetch(buildApiUrl(`/api/search?q=${encodeURIComponent(trimmedQuery)}`), {
+          credentials: 'include',
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch search results');
+        }
+
+        const data = await response.json();
+
+        if (activeRequestRef.current !== requestId) {
+          return;
+        }
+
+        setResults(data.results || []);
+      } catch (err) {
+        if (err.name === 'AbortError') {
+          return;
+        }
+
+        if (activeRequestRef.current !== requestId) {
+          return;
+        }
+
+        setError(err.message);
+        setResults([]);
+        console.error('Error fetching search results:', err);
+      } finally {
+        if (activeRequestRef.current === requestId) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchSearchResults();
+
+    return () => controller.abort();
+  }, [query]);
+
+  const resultLabel = useMemo(() => {
+    if (!query || loading || error) {
+      return null;
+    }
+
+    return `Found ${results.length} ${results.length === 1 ? 'result' : 'results'}`;
+  }, [error, loading, query, results.length]);
 
   const handleAddToCart = async (product) => {
     try {
@@ -54,28 +117,26 @@ const SearchResults = () => {
         return;
       }
 
-      const cartItem = {
-        productId: product.id,
-        productType: product.type,
-        quantity: 1,
-        price: product.finalPrice,
-      };
-
-      const response = await fetch('/api/orders/cart', {
+      const response = await fetch(buildApiUrl('/api/orders/cart'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify(cartItem),
+        body: JSON.stringify({
+          productId: product.id,
+          productType: product.type,
+          quantity: 1,
+          price: product.finalPrice,
+        }),
       });
 
-      if (response.ok) {
-        updateCart();
-        alert('Product added to cart!');
-      } else {
+      if (!response.ok) {
         throw new Error('Failed to add to cart');
       }
+
+      updateCart();
+      alert('Product added to cart!');
     } catch (err) {
       console.error('Error adding to cart:', err);
       alert('Failed to add product to cart');
@@ -108,15 +169,10 @@ const SearchResults = () => {
       earphone: 'Earphone',
       charger: 'Charger',
       mouse: 'Mouse',
-      smartwatch: 'Smartwatch'
+      smartwatch: 'Smartwatch',
     };
-    return labels[type] || type;
-  };
 
-  const handleSearch = (searchQuery) => {
-    if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-    }
+    return labels[type] || type;
   };
 
   return (
@@ -124,44 +180,48 @@ const SearchResults = () => {
       <Header />
       <div className="min-h-screen bg-gray-50 pt-8 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Search Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-4">
               {query ? `Search Results for "${query}"` : 'Search Products'}
             </h1>
-            
-            {/* Search Input */}
-          
 
-            {results.length > 0 && query && (
-              <p className="text-gray-600">
-                Found {results.length} {results.length === 1 ? 'result' : 'results'}
-              </p>
+            <div className="max-w-2xl">
+              <div className="flex items-center bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm">
+                <i className="fa-solid fa-magnifying-glass text-gray-400 mr-3"></i>
+                <input
+                  type="text"
+                  value={searchInput}
+                  onChange={(event) => setSearchInput(event.target.value)}
+                  placeholder="Search phones, laptops, accessories and more"
+                  className="w-full bg-transparent outline-none text-gray-800 placeholder:text-gray-400"
+                />
+              </div>
+            </div>
+
+            {resultLabel && (
+              <p className="text-gray-600 mt-4">{resultLabel}</p>
             )}
           </div>
 
-          {/* Loading State */}
           {loading && (
             <div className="text-center py-12">
               <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-              <p className="mt-4 text-gray-600">Searching...</p>
+              <p className="mt-4 text-gray-600">Searching Meilisearch...</p>
             </div>
           )}
 
-          {/* Error State */}
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
               <p className="text-red-800">Error: {error}</p>
             </div>
           )}
 
-          {/* No Results */}
           {!loading && !error && results.length === 0 && query && (
             <div className="text-center py-12">
-              <div className="text-6xl mb-4">🔍</div>
+              <div className="text-6xl mb-4">Search</div>
               <h2 className="text-2xl font-semibold text-gray-900 mb-2">No results found</h2>
               <p className="text-gray-600 mb-6">
-                We couldn't find any products matching "{query}"
+                We could not find any products matching "{query}"
               </p>
               <button
                 onClick={() => navigate('/')}
@@ -172,7 +232,6 @@ const SearchResults = () => {
             </div>
           )}
 
-          {/* Results Grid */}
           {!loading && !error && results.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {results.map((product) => (
@@ -186,8 +245,8 @@ const SearchResults = () => {
                         src={product.image}
                         alt={product.title}
                         className="w-full h-48 object-contain"
-                        onError={(e) => {
-                          e.target.src = 'https://via.placeholder.com/300x300?text=No+Image';
+                        onError={(event) => {
+                          event.target.src = 'https://via.placeholder.com/300x300?text=No+Image';
                         }}
                       />
                     </div>
@@ -210,11 +269,11 @@ const SearchResults = () => {
                         <div>
                           {product.discount > 0 && (
                             <p className="text-sm text-gray-500 line-through">
-                              ₹{product.price.toLocaleString()}
+                              Rs {product.price.toLocaleString()}
                             </p>
                           )}
                           <p className="text-xl font-bold text-blue-600">
-                            ₹{product.finalPrice.toLocaleString()}
+                            Rs {product.finalPrice.toLocaleString()}
                           </p>
                           {product.discount > 0 && (
                             <p className="text-xs text-green-600 font-semibold">
@@ -227,8 +286,8 @@ const SearchResults = () => {
                   </Link>
                   <div className="px-4 pb-4">
                     <button
-                      onClick={(e) => {
-                        e.preventDefault();
+                      onClick={(event) => {
+                        event.preventDefault();
                         handleAddToCart(product);
                       }}
                       className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition flex items-center justify-center gap-2"
@@ -249,6 +308,3 @@ const SearchResults = () => {
 };
 
 export default SearchResults;
-
-
-

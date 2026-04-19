@@ -60,18 +60,17 @@ import SellerProfile from './pages/seller/SellerProfile.jsx';
 import SellerActivity from './pages/admin/SellerActivity';
 import SellerOTPVerification from './pages/seller/SellerOTPVerification';
 import { logout } from './store/slices/authSlice';
-
-const API_BASE_URL = 'http://localhost:3000';
+import { buildApiUrl } from './utils/api';
 
 const getValidationRequest = (role) => {
   switch (role) {
     case 'admin':
-      return { url: `${API_BASE_URL}/api/admin/statistics` };
+      return { url: buildApiUrl('/api/admin/statistics') };
     case 'supervisor':
-      return { url: `${API_BASE_URL}/api/supervisor/profile` };
+      return { url: buildApiUrl('/api/supervisor/profile') };
     case 'customer':
     default:
-      return { url: `${API_BASE_URL}/api/user/profile` };
+      return { url: buildApiUrl('/api/user/profile') };
   }
 };
 
@@ -186,7 +185,7 @@ const SellerProtectedRoute = ({ children }) => {
       }
 
       try {
-        const response = await fetch(`${API_BASE_URL}/api/seller/dashboard`, {
+        const response = await fetch(buildApiUrl('/api/seller/dashboard'), {
           method: 'GET',
           credentials: 'include',
         });

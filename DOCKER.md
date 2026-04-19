@@ -6,7 +6,6 @@
 
 - `mongo`
 - `redis`
-- `solr`
 - `api`
 - `client`
 
@@ -18,11 +17,11 @@ docker compose up --build
 
 ## Search bootstrap
 
-If `SEARCH_ENGINE=solr`, populate the Solr core after the stack is up:
+If `SEARCH_ENGINE=meilisearch`, populate the hosted Meilisearch index after the stack is up:
 
 ```bash
 cd api
-npm run search:solr:sync
+npm run search:meili:sync
 ```
 
 ## URLs
@@ -31,15 +30,15 @@ npm run search:solr:sync
 - Backend: `http://localhost:3000`
 - Swagger: `http://localhost:3000/api-docs`
 - Health: `http://localhost:3000/api/health`
-- Solr admin: `http://localhost:8983/solr`
+- Meilisearch host: from `MEILI_HOST`
 
 ## Notes
 
 - Backend hot reload uses `nodemon`.
 - Frontend hot reload uses Vite.
 - Redis is included so cache behavior can be demonstrated locally.
-- Solr is included so external search can be demonstrated locally.
-- MongoDB, Redis, and Solr all have healthchecks before the API starts.
+- Hosted Meilisearch is used directly through `MEILI_HOST`.
+- MongoDB and Redis have healthchecks before the API starts.
 
 ## Stop
 

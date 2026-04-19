@@ -1,6 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-
-const API_BASE_URL = 'http://localhost:3000';
+import { buildApiUrl } from '../../utils/api';
 
 
 export const loginUser = createAsyncThunk(
@@ -10,14 +9,14 @@ export const loginUser = createAsyncThunk(
       let endpoint, body;
 
       if (userType === 'supervisor') {
-        endpoint = `${API_BASE_URL}/api/supervisor-auth/signin`;
+        endpoint = buildApiUrl('/api/supervisor-auth/signin');
         body = { username, password };
       } else if (userType === 'admin') {
-        endpoint = `${API_BASE_URL}/api/admin-auth/admin-signin`;
+        endpoint = buildApiUrl('/api/admin-auth/admin-signin');
         body = { username, password, securityToken };
       } else {
       
-        endpoint = `${API_BASE_URL}/api/auth/signin`;
+        endpoint = buildApiUrl('/api/auth/signin');
         body = { username, password };
       }
 
@@ -32,7 +31,7 @@ export const loginUser = createAsyncThunk(
 
       
       if ((!response.ok || data.success === false) && userType === 'customer') {
-        response = await fetch(`${API_BASE_URL}/api/supervisor-auth/signin`, {
+        response = await fetch(buildApiUrl('/api/supervisor-auth/signin'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
@@ -81,7 +80,7 @@ export const checkSupervisorExists = createAsyncThunk(
   'auth/checkSupervisorExists',
   async (username) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/supervisor-auth/check?username=${encodeURIComponent(username)}`, {
+      const response = await fetch(buildApiUrl(`/api/supervisor-auth/check?username=${encodeURIComponent(username)}`), {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include'
@@ -123,7 +122,7 @@ const authSlice = createSlice({
       localStorage.removeItem('token');
       
       ['/api/auth/signout', '/api/supervisor-auth/signout', '/api/admin-auth/signout'].forEach(endpoint => {
-        fetch(`${API_BASE_URL}${endpoint}`, { 
+        fetch(buildApiUrl(endpoint), { 
           method: 'POST',
           credentials: 'include'
         }).catch(console.error);
