@@ -41,8 +41,6 @@ services:
     environment:
       PORT: 3000
       REDIS_URL: redis://redis:6379
-      SEARCH_ENGINE: ${SEARCH_ENGINE:-meilisearch}
-      MEILI_INDEX: ${MEILI_INDEX:-products}
       CLIENT_ORIGIN: http://localhost:5173
       SWAGGER_SERVER_URL: http://localhost:3000
     volumes:

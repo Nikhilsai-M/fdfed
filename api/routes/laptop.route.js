@@ -1,7 +1,9 @@
 import express from 'express';
 import { getAllLaptops, getLaptopById, getLatestLaptops } from '../crud/laptops.js';
+import { cacheResponse } from "../middleware/cache.middleware.js";
 
 const router = express.Router();
+const inventoryCacheTtl = parseInt(process.env.INVENTORY_CACHE_TTL_SECONDS || "120", 10);
 
 /**
  * @swagger
@@ -20,7 +22,13 @@ const router = express.Router();
  *       200:
  *         description: Latest laptops fetched successfully
  */
-router.get('/latest-laptops', async (req, res) => {
+router.get(
+  '/latest-laptops',
+  cacheResponse({
+    keyBuilder: () => "inventory:laptops:latest",
+    ttlSeconds: inventoryCacheTtl,
+  }),
+  async (req, res) => {
   try {
     const laptops = await getLatestLaptops(5);
     res.json(laptops);
@@ -48,7 +56,13 @@ router.get('/latest-laptops', async (req, res) => {
  *       404:
  *         description: Laptop not found
  */
-router.get('/:id', async (req, res) => {
+router.get(
+  '/:id',
+  cacheResponse({
+    keyBuilder: (req) => `inventory:laptop:${req.params.id}`,
+    ttlSeconds: inventoryCacheTtl,
+  }),
+  async (req, res) => {
   try {
     const laptop = await getLaptopById(req.params.id);
     if (!laptop) {
@@ -71,7 +85,13 @@ router.get('/:id', async (req, res) => {
  *       200:
  *         description: List of laptops
  */
-router.get('/', async (req, res) => {
+router.get(
+  '/',
+  cacheResponse({
+    keyBuilder: () => "inventory:laptops:all",
+    ttlSeconds: inventoryCacheTtl,
+  }),
+  async (req, res) => {
   try {
     const laptops = await getAllLaptops();
     res.json(laptops);
