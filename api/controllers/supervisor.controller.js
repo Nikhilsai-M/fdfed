@@ -230,7 +230,7 @@ export const updateApplicationStatus = async (req, res, next) => {
     });
 
     await invalidateCatalogCaches();
-      queueMeiliSync();
+    
 
     res.status(200).json({
       success: true,
@@ -343,7 +343,7 @@ export const addToInventory = async (req, res, next) => {
     });
 
     await invalidateCatalogCaches();
-      queueMeiliSync();
+      
 
     res.status(200).json({
       success: true,
