@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, Star, TrendingUp, Shield, Zap } from 'lucide
 import { Link } from 'react-router-dom';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
+import { buildApiUrl, buildAssetUrl } from '../utils/api';
 
 const AccessoriesPage = () => {
   const [accessories, setAccessories] = useState([]);
@@ -11,17 +12,17 @@ const AccessoriesPage = () => {
   const [error, setError] = useState(null);
 
   const carouselImages = [
-    'src/assets/images/carousal/accessories/acc-1.webp',
-    'src/assets/images/carousal/accessories/acc-2.jpeg',
-    'src/assets/images/carousal/accessories/acc-3.jpeg',
-    'src/assets/images/carousal/accessories/acc-4.webp'
+    '/images/carousal/accessories/acc-1.webp',
+    '/images/carousal/accessories/acc-2.jpeg',
+    '/images/carousal/accessories/acc-3.jpeg',
+    '/images/carousal/accessories/acc-4.webp'
   ];
 
   const categories = [
-    { name: 'Chargers', icon: 'src/assets/images/icons/charger.jpg', link: '/accessories/chargers' },
-    { name: 'Earbuds', icon: 'src/assets/images/icons/Ear buds.png', link: '/accessories/earphones' },
-    { name: 'Mouses', icon: 'src/assets/images/icons/mouse.jpg', link: '/accessories/mouses' },
-    { name: 'SmartWatches', icon: 'src/assets/images/icons/Smart watch.jpg', link: '/accessories/smartwatches' }
+    { name: 'Chargers', icon: '/images/icons/charger.jpg', link: '/accessories/chargers' },
+    { name: 'Earbuds', icon: '/images/icons/earbuds.png', link: '/accessories/earphones' },
+    { name: 'Mouses', icon: '/images/icons/mouse.jpg', link: '/accessories/mouses' },
+    { name: 'SmartWatches', icon: '/images/icons/smart-watch.jpg', link: '/accessories/smartwatches' }
   ];
 
   const features = [
@@ -47,7 +48,7 @@ const AccessoriesPage = () => {
   const fetchAccessories = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/latest-accessories');
+      const response = await fetch(buildApiUrl('/api/latest-accessories'));
       if (!response.ok) throw new Error('Failed to fetch accessories');
       const data = await response.json();
       setAccessories(data);
@@ -294,7 +295,7 @@ const AccessoriesPage = () => {
                       <div className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
                         <div className="aspect-[4/3] w-full">
                           <img 
-                            src={accessory.image} 
+                            src={buildAssetUrl(accessory.image)} 
                             alt={`${accessory.brand} ${accessory.title}`}
                             className="w-full h-full object-contain p-4 group-hover:scale-110 transition-transform duration-500 ease-out"
                           />

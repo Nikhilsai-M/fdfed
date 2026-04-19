@@ -4,6 +4,7 @@ import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
 import { Link } from 'react-router-dom';
 import AddToCartButton from '../components/AddToCartButton';
+import { buildAssetUrl } from '../utils/api';
 const EarbudsPage = () => {
   const [earbuds, setEarbuds] = useState([]);
   const [filteredEarbuds, setFilteredEarbuds] = useState([]);
@@ -188,7 +189,7 @@ const EarbudsPage = () => {
                       <Link to={`/earphone/${earbud.id}`} className="block">
                         <div className="relative bg-gray-100 aspect-video">
                           <img
-                            src={earbud.image}
+                            src={buildAssetUrl(earbud.image)}
                             alt={earbud.title}
                             className="w-full h-full object-contain group-hover:scale-105 transition"
                           />

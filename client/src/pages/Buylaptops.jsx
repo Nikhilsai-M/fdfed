@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Sparkles, TrendingUp, Award, Zap, Shield, Clock, Laptop } from 'lucide-react';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
-import { buildApiUrl } from '../utils/api';
+import { buildApiUrl, buildAssetUrl } from '../utils/api';
 
 const BuyLaptops = () => {
   const [latestProducts, setLatestProducts] = useState([]);
@@ -14,19 +14,19 @@ const BuyLaptops = () => {
   const navigate = useNavigate();
 
   const carouselImages = [
-    'src/assets/images/buy_laptop/buy-laptop-page-curosal.webp',
-    'src/assets/images/carousal/home/pic-1.jpeg'
+    '/images/buy_laptop/buy-laptop-page-curosal.webp',
+    '/images/carousal/home/pic-1.jpeg'
   ];
 
   const topBrands = [
-    { name: 'Dell', image: 'src/assets/images/buy_laptop/topbrands1.webp', color: 'from-blue-600 to-blue-800' },
-    { name: 'HP', image: 'src/assets/images/buy_laptop/topbrands2.webp', color: 'from-cyan-600 to-cyan-800' },
-    { name: 'Lenovo', image: 'src/assets/images/buy_laptop/topbrands3.webp', color: 'from-red-600 to-red-800' },
-    { name: 'Apple', image: 'src/assets/images/buy_laptop/topbrands4.webp', color: 'from-gray-700 to-gray-900' },
-    { name: 'Asus', image: 'src/assets/images/buy_laptop/topbrands5.webp', color: 'from-orange-600 to-orange-800' },
-    { name: 'Acer', image: 'src/assets/images/buy_laptop/topbrands6.webp', color: 'from-green-600 to-green-800' },
-    { name: 'MSI', image: 'src/assets/images/buy_laptop/topbrands7.webp', color: 'from-red-500 to-red-700' },
-    { name: 'Microsoft', image: 'src/assets/images/buy_laptop/topbrands8.webp', color: 'from-blue-500 to-blue-700' }
+    { name: 'Dell', image: '/images/buy_laptop/topbrands1.webp', color: 'from-blue-600 to-blue-800' },
+    { name: 'HP', image: '/images/buy_laptop/topbrands2.webp', color: 'from-cyan-600 to-cyan-800' },
+    { name: 'Lenovo', image: '/images/buy_laptop/topbrands3.webp', color: 'from-red-600 to-red-800' },
+    { name: 'Apple', image: '/images/buy_laptop/topbrands4.webp', color: 'from-gray-700 to-gray-900' },
+    { name: 'Asus', image: '/images/buy_laptop/topbrands5.webp', color: 'from-orange-600 to-orange-800' },
+    { name: 'Acer', image: '/images/buy_laptop/topbrands6.webp', color: 'from-green-600 to-green-800' },
+    { name: 'MSI', image: '/images/buy_laptop/topbrands7.webp', color: 'from-red-500 to-red-700' },
+    { name: 'Microsoft', image: '/images/buy_laptop/topbrands8.webp', color: 'from-blue-500 to-blue-700' }
   ];
 
   const priceCategories = [
@@ -203,7 +203,7 @@ const BuyLaptops = () => {
       {/* Banner Image */}
       <div className="mx-4 mb-12 animate-fade-in-up relative group">
         <img
-          src="src/assets/images/buy_laptop/buy-laptop-page.webp"
+          src="/images/buy_laptop/buy-laptop-page.webp"
           alt="Banner"
           className="w-full rounded-3xl shadow-2xl transform group-hover:scale-[1.02] transition-transform duration-500"
         />
@@ -258,7 +258,7 @@ const BuyLaptops = () => {
                     <Link to={`/laptop/${product.id}`} className="block text-black no-underline">
                       <div className="relative overflow-hidden rounded-xl mb-4 bg-gradient-to-br from-gray-50 to-gray-100 p-4">
                         <img
-                          src={product.image}
+                          src={buildAssetUrl(product.image)}
                           alt={`${product.brand} ${product.series}`}
                           className="w-full h-52 object-contain mx-auto image-hover"
                         />

@@ -4,6 +4,7 @@ import ChargerFilter from '../components/filters/ChargerFilter';
 import { Link, useNavigate } from 'react-router-dom';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
+import { buildAssetUrl } from '../utils/api';
 
 // ⭐ NEW REUSABLE CART BUTTON
 import AddToCartButton from '../components/AddToCartButton';
@@ -212,7 +213,7 @@ const ChargersPage = () => {
                       <Link to={`/charger/${charger.id}`} className="block">
                         <div className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 aspect-video">
                           <img
-                            src={charger.image}
+                            src={buildAssetUrl(charger.image)}
                             alt={charger.title}
                             className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
                           />

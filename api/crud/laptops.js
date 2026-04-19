@@ -20,7 +20,7 @@ export async function initLaptops() {
           weight: 1.2,
           condition: 'Good',
           os: 'Windows 11',
-          image: '../../client/src/assets/images/laptops/dell_xps13.webp',
+          image: '/images/laptops/dell_xps13.webp',
         },
         {
           id: 4,
@@ -37,7 +37,7 @@ export async function initLaptops() {
           weight: 1.29,
           condition: 'Very Good',
           os: 'macOS',
-          image: '../../client/src/assets/images/laptops/macbook_air.webp',
+          image: '/images/laptops/macbook_air.webp',
         }
       ]);
       console.log('✅ Test laptops added to database');

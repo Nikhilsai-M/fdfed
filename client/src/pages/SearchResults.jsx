@@ -4,7 +4,7 @@ import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
 import { ShoppingCart } from 'lucide-react';
 import { useCart } from '../context/CartContent';
-import { buildApiUrl } from '../utils/api';
+import { buildApiUrl, buildAssetUrl } from '../utils/api';
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -242,7 +242,7 @@ const SearchResults = () => {
                   <Link to={getProductLink(product)} className="block">
                     <div className="aspect-w-16 aspect-h-16 bg-gray-100 p-4">
                       <img
-                        src={product.image}
+                        src={buildAssetUrl(product.image)}
                         alt={product.title}
                         className="w-full h-48 object-contain"
                         onError={(event) => {

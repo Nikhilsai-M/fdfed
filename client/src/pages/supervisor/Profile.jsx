@@ -182,7 +182,7 @@ const Profile = () => {
             <div className="flex items-center space-x-8">
               <Link to="/supervisor-dashboard" className="flex items-center group">
                 <img 
-                  src="/src/assets/images/icons/logo1.png" 
+                  src="/images/icons/logo1.png" 
                   alt="Logo" 
                   className="h-9 w-auto transition-transform duration-200 group-hover:scale-105"
                 />

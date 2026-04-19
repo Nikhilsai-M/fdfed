@@ -1,6 +1,7 @@
 import axios from "axios";
 
 const LEGACY_API_ORIGIN_PATTERN = /^https?:\/\/(?:localhost|127\.0\.0\.1|api):3000(?=\/|$)/i;
+const LEGACY_ASSET_PATH_PATTERN = /(?:^|\/)(?:client\/)?src\/assets\/images\/(.+)$/i;
 
 function trimTrailingSlash(value) {
   return String(value || "").replace(/\/+$/, "");
@@ -96,7 +97,28 @@ export function buildApiUrl(path = "") {
 }
 
 export function buildAssetUrl(path = "") {
-  return buildApiUrl(path);
+  const normalizedPath = String(path || "").trim();
+
+  if (!normalizedPath) {
+    return normalizedPath;
+  }
+
+  const slashNormalizedPath = normalizedPath.replace(/\\/g, "/");
+
+  if (slashNormalizedPath.startsWith("/images/")) {
+    return slashNormalizedPath;
+  }
+
+  if (slashNormalizedPath.startsWith("images/")) {
+    return `/${slashNormalizedPath}`;
+  }
+
+  const legacyAssetMatch = slashNormalizedPath.match(LEGACY_ASSET_PATH_PATTERN);
+  if (legacyAssetMatch?.[1]) {
+    return `/images/${legacyAssetMatch[1]}`.replace(/\/+/g, "/");
+  }
+
+  return buildApiUrl(normalizedPath);
 }
 
 function patchWindowFetch() {

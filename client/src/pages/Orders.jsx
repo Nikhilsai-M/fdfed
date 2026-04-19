@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { redirectIfUnauthorizedResponse } from '../utils/sessionRedirect';
 import { motion } from "framer-motion";
 import { Download, ArrowLeft } from "lucide-react";
-import { API_BASE_URL } from "../utils/api";
+import { API_BASE_URL, buildAssetUrl } from "../utils/api";
 
 const Orders = () => {
   const { orderId } = useParams();
@@ -147,7 +147,7 @@ const Orders = () => {
                   <div className="flex items-center gap-3">
                     {item.accessory?.image && (
                       <img
-                        src={item.accessory.image}
+                        src={buildAssetUrl(item.accessory.image)}
                         className="w-12 h-12 rounded border"
                         alt=""
                       />

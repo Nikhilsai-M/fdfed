@@ -4,6 +4,7 @@ import Header from "../components/common/Header";
 import Footer from "../components/common/Footer";
 import { useCart } from "../context/CartContent";
 import { getCart, removeCartItem, updateCartItem } from "../services/cartApi";
+import { buildAssetUrl } from "../utils/api";
 
 const Cart = () => {
   const [cartItems, setCartItems] = useState([]);
@@ -100,7 +101,7 @@ const Cart = () => {
                   <div key={item.itemId} className="flex justify-between py-4 border-b">
                     <div className="flex space-x-4">
                       <img
-                        src={item.image}
+                        src={buildAssetUrl(item.image)}
                         alt={item.title}
                         className="w-16 h-16 object-contain rounded-lg"
                       />
