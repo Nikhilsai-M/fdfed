@@ -1,14 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
-  buildSolrDocument,
-  getSolrJsonDocsUpdateUrl,
-  buildSolrQuery,
+  buildMeiliDocument,
+  buildMeiliSearchParams,
   buildTextQuery,
   buildTextSort,
-  escapeSolrTerm,
   getSearchCacheKey,
   isCategoryQuery,
 } from "../services/search.service.js";
+import { getMeiliHost } from "../config/meilisearch.js";
 
 describe("search.service helpers", () => {
   it("normalizes cache keys for repeated searches", () => {
@@ -29,15 +28,24 @@ describe("search.service helpers", () => {
     });
   });
 
-  it("builds safe Solr queries", () => {
-    expect(buildSolrQuery("phones")).toBe("type:phone");
-    expect(escapeSolrTerm("iphone+case")).toBe("iphone\\+case");
-    expect(buildSolrQuery("iphone+case")).toContain("iphone\\+case");
-    expect(getSolrJsonDocsUpdateUrl()).toContain("/update/json/docs");
+  it("builds Meilisearch params for category and text searches", () => {
+    expect(buildMeiliSearchParams("phones")).toEqual({
+      query: "",
+      options: {
+        filter: ['type = "phone"'],
+        sort: ["created_at:desc"],
+        limit: 120,
+      },
+    });
+
+    const params = buildMeiliSearchParams("iphone case");
+    expect(params.query).toBe("iphone case");
+    expect(params.options.sort).toEqual(["created_at:desc"]);
+    expect(getMeiliHost()).toContain("meilisearch-production-cb5d.up.railway.app");
   });
 
-  it("builds Solr documents for phones and accessories", () => {
-    const phoneDoc = buildSolrDocument("phone", {
+  it("builds Meilisearch documents for phones and accessories", () => {
+    const phoneDoc = buildMeiliDocument("phone", {
       id: 101,
       brand: "Apple",
       model: "iPhone 15",
@@ -46,7 +54,7 @@ describe("search.service helpers", () => {
       created_at: "2026-04-10T10:00:00.000Z",
     });
 
-    const chargerDoc = buildSolrDocument("charger", {
+    const chargerDoc = buildMeiliDocument("charger", {
       id: "c1",
       title: "GaN Charger",
       brand: "Anker",
@@ -57,9 +65,13 @@ describe("search.service helpers", () => {
       outputCurrent: "3A",
     });
 
-    expect(phoneDoc.id).toBe("phone:101");
+    expect(phoneDoc.uid).toBe("phone:101");
+    expect(phoneDoc.id).toBe("101");
+    expect(phoneDoc.name).toBe("Apple iPhone 15");
+    expect(phoneDoc.category).toBe("phone");
     expect(phoneDoc.finalPrice).toBe(45000);
-    expect(chargerDoc.id).toBe("charger:c1");
+    expect(chargerDoc.uid).toBe("charger:c1");
+    expect(chargerDoc.name).toBe("GaN Charger");
     expect(chargerDoc.text).toContain("65W");
   });
 });

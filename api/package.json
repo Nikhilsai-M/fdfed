@@ -12,13 +12,12 @@
     "benchmark:db": "node scripts/db-query-plan-report.js",
     "benchmark:cache": "node scripts/cache-benchmark.js",
     "benchmark:db:compare": "node scripts/db-search-benchmark.js",
-    "search:solr:sync": "node scripts/solr-sync.js"
+    "search:meili:sync": "node scripts/meili-sync.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "axios": "^1.13.2",
     "bcryptjs": "^3.0.2",
     "cloudinary": "^2.8.0",
     "cookie": "^1.0.2",
@@ -32,6 +31,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.19.2",
     "morgan": "^1.10.1",
+    "meilisearch": "^0.53.0",
     "multer": "^2.0.2",
     "nodemailer": "^8.0.5",
     "parser": "^0.1.4",

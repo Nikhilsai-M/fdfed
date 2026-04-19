@@ -1,14 +1,17 @@
-import axios from "axios";
 import Phone from "../models/phone.model.js";
 import Laptop from "../models/laptop.model.js";
 import Earphone from "../models/earphone.model.js";
 import Charger from "../models/charger.model.js";
 import Mouse from "../models/mouse.model.js";
 import Smartwatch from "../models/smartwatch.model.js";
+import {
+  getMeiliClient,
+  getMeiliHost,
+  getMeiliIndexName,
+  getProductsIndex,
+} from "../config/meilisearch.js";
 
 const COLLECTION_LIMIT = 20;
-const DEFAULT_SOLR_CORE = "smart_exchange";
-const DEFAULT_SOLR_URL = "http://127.0.0.1:8983/solr";
 
 export const CATEGORY_TERMS = {
   phone: ["phone", "phones", "mobile", "mobiles"],
@@ -20,8 +23,6 @@ export const CATEGORY_TERMS = {
 };
 
 const PRODUCT_COLLECTIONS = ["phone", "laptop", "earphone", "charger", "mouse", "smartwatch"];
-const SOLR_RETRY_ATTEMPTS = Math.max(1, Number.parseInt(process.env.SOLR_RETRY_ATTEMPTS || "8", 10));
-const SOLR_RETRY_DELAY_MS = Math.max(250, Number.parseInt(process.env.SOLR_RETRY_DELAY_MS || "1500", 10));
 
 export const buildTextQuery = (term) => ({ $text: { $search: term } });
 export const buildTextProjection = () => ({ score: { $meta: "textScore" } });
@@ -31,58 +32,11 @@ export function getSearchCacheKey(term) { return `search:${String(term || "").tr
 export function normalizeSearchTerm(term) { return String(term || "").trim(); }
 
 export function getSearchEngine() {
-  return process.env.SEARCH_ENGINE === "solr" ? "solr" : "mongo";
+  return process.env.SEARCH_ENGINE === "mongo" ? "mongo" : "meilisearch";
 }
 
-export function isSolrEnabled() {
-  return getSearchEngine() === "solr";
-}
-
-export function getSolrBaseUrl() {
-  return (process.env.SOLR_URL || DEFAULT_SOLR_URL).replace(/\/$/, "");
-}
-
-export function getSolrCore() {
-  return process.env.SOLR_CORE || DEFAULT_SOLR_CORE;
-}
-
-export function getSolrSelectUrl() {
-  return `${getSolrBaseUrl()}/${getSolrCore()}/select`;
-}
-
-export function getSolrUpdateUrl() {
-  return `${getSolrBaseUrl()}/${getSolrCore()}/update`;
-}
-
-export function getSolrJsonDocsUpdateUrl() {
-  return `${getSolrUpdateUrl()}/json/docs`;
-}
-
-export function getSolrHealthUrl() {
-  return `${getSolrBaseUrl()}/admin/cores`;
-}
-
-export function getSolrSchemaUrl() {
-  return `${getSolrBaseUrl()}/${getSolrCore()}/schema`;
-}
-
-const SOLR_SCHEMA_FIELDS = [
-  { name: "id", type: "string", indexed: true, stored: true, multiValued: false, required: true },
-  { name: "productId", type: "string", indexed: true, stored: true, multiValued: false },
-  { name: "type", type: "string", indexed: true, stored: true, multiValued: false },
-  { name: "brand", type: "text_general", indexed: true, stored: true, multiValued: false },
-  { name: "title", type: "text_general", indexed: true, stored: true, multiValued: false },
-  { name: "image", type: "string", indexed: false, stored: true, multiValued: false },
-  { name: "price", type: "pdouble", indexed: true, stored: true, multiValued: false },
-  { name: "discount", type: "pdouble", indexed: true, stored: true, multiValued: false },
-  { name: "finalPrice", type: "pdouble", indexed: true, stored: true, multiValued: false },
-  { name: "condition", type: "text_general", indexed: true, stored: true, multiValued: false },
-  { name: "created_at", type: "pdate", indexed: true, stored: true, multiValued: false },
-  { name: "text", type: "text_general", indexed: true, stored: true, multiValued: false },
-];
-
-export function escapeSolrTerm(term) {
-  return String(term || "").replace(/([+\-!(){}\[\]^"~*?:\\/]|&&|\|\|)/g, "\\$1");
+export function isMeiliEnabled() {
+  return getSearchEngine() === "meilisearch";
 }
 
 function roundMoney(value) {
@@ -96,112 +50,6 @@ function computeDiscountedPrice(price, discount) {
 function joinSearchTerms(values = []) {
   return values.filter(Boolean).join(" ");
 }
-
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function isRetryableSolrError(error) {
-  const status = error?.response?.status;
-  const message = String(error?.response?.data?.error?.msg || error?.message || "");
-
-  return (
-    error?.code === "ECONNREFUSED" ||
-    error?.code === "ECONNRESET" ||
-    error?.code === "ETIMEDOUT" ||
-    status === 404 ||
-    status === 503 ||
-    message.toLowerCase().includes("core") ||
-    message.toLowerCase().includes("unavailable") ||
-    message.toLowerCase().includes("not found")
-  );
-}
-
-async function solrRequestWithRetry(requestFactory, options = {}) {
-  const attempts = options.attempts || SOLR_RETRY_ATTEMPTS;
-  const delayMs = options.delayMs || SOLR_RETRY_DELAY_MS;
-  let lastError;
-
-  for (let attempt = 1; attempt <= attempts; attempt += 1) {
-    try {
-      return await requestFactory();
-    } catch (error) {
-      lastError = error;
-
-      if (attempt === attempts || !isRetryableSolrError(error)) {
-        throw error;
-      }
-
-      await sleep(delayMs);
-    }
-  }
-
-  throw lastError;
-}
-
-function normalizeSchemaField(field = {}) {
-  return {
-    name: field.name,
-    type: field.type,
-    indexed: field.indexed !== false,
-    stored: field.stored !== false,
-    multiValued: field.multiValued === true,
-    required: field.required === true,
-  };
-}
-
-function shouldReplaceSolrField(existingField, expectedField) {
-  const current = normalizeSchemaField(existingField);
-  const expected = normalizeSchemaField(expectedField);
-
-  return (
-    current.type !== expected.type ||
-    current.indexed !== expected.indexed ||
-    current.stored !== expected.stored ||
-    current.multiValued !== expected.multiValued ||
-    current.required !== expected.required
-  );
-}
-
-async function mutateSolrSchema(operation, field) {
-  await solrRequestWithRetry(() =>
-    axios.post(
-      getSolrSchemaUrl(),
-      { [operation]: field },
-      {
-        headers: { "Content-Type": "application/json" },
-        timeout: Number(process.env.SOLR_TIMEOUT_MS || 8000),
-      }
-    )
-  );
-}
-
-export async function ensureSolrSchema() {
-  const response = await solrRequestWithRetry(() =>
-    axios.get(`${getSolrSchemaUrl()}/fields`, {
-      params: { wt: "json" },
-      timeout: Number(process.env.SOLR_TIMEOUT_MS || 4000),
-    })
-  );
-
-  const existingFields = new Map(
-    (response.data?.fields || []).map((field) => [field.name, field])
-  );
-
-  for (const field of SOLR_SCHEMA_FIELDS) {
-    const existing = existingFields.get(field.name);
-
-    if (!existing) {
-      await mutateSolrSchema("add-field", field);
-      continue;
-    }
-
-    if (shouldReplaceSolrField(existing, field)) {
-      await mutateSolrSchema("replace-field", field);
-    }
-  }
-}
-
 function mapPhone(phone) {
   return {
     id: String(phone.id),
@@ -286,23 +134,39 @@ export async function searchProductsWithMongo(searchTerm) {
   };
 }
 
-export function buildSolrQuery(searchTerm) {
+export function buildMeiliSearchParams(searchTerm) {
   const lowerTerm = searchTerm.toLowerCase();
+
   for (const productType of PRODUCT_COLLECTIONS) {
     if (isCategoryQuery(lowerTerm, CATEGORY_TERMS[productType])) {
-      return `type:${productType}`;
+      return {
+        query: "",
+        options: {
+          filter: [`type = "${productType}"`],
+          sort: ["created_at:desc"],
+          limit: COLLECTION_LIMIT * PRODUCT_COLLECTIONS.length,
+        },
+      };
     }
   }
 
-  const escaped = escapeSolrTerm(searchTerm);
-  return `text:${escaped}~2 OR title:${escaped}~2 OR brand:${escaped}~2`;
+  return {
+    query: searchTerm,
+    options: {
+      sort: ["created_at:desc"],
+      showRankingScore: true,
+      limit: COLLECTION_LIMIT * PRODUCT_COLLECTIONS.length,
+    },
+  };
 }
 
-export function buildSolrDocument(type, product) {
+export function buildMeiliDocument(type, product) {
   const base = {
-    id: `${type}:${product.id}`,
+    uid: `${type}:${product.id}`,
     productId: String(product.id),
+    id: String(product.id),
     type,
+    category: type,
     brand: product.brand || "",
     image: product.image || "",
     created_at: new Date(product.created_at || Date.now()).toISOString(),
@@ -311,6 +175,7 @@ export function buildSolrDocument(type, product) {
   if (type === "phone") {
     return {
       ...base,
+      name: `${product.brand} ${product.model}`.trim(),
       title: `${product.brand} ${product.model}`.trim(),
       condition: product.condition || "",
       price: Number(product.base_price || 0),
@@ -323,6 +188,7 @@ export function buildSolrDocument(type, product) {
   if (type === "laptop") {
     return {
       ...base,
+      name: `${product.brand} ${product.series}`.trim(),
       title: `${product.brand} ${product.series}`.trim(),
       condition: product.condition || "",
       price: Number(product.base_price || 0),
@@ -335,6 +201,7 @@ export function buildSolrDocument(type, product) {
   if (type === "earphone") {
     return {
       ...base,
+      name: product.title || "",
       title: product.title || "",
       condition: "",
       price: Number(product.originalPrice || 0),
@@ -352,6 +219,7 @@ export function buildSolrDocument(type, product) {
   if (type === "charger") {
     return {
       ...base,
+      name: product.title || "",
       title: product.title || "",
       condition: "",
       price: Number(product.originalPrice || 0),
@@ -370,6 +238,7 @@ export function buildSolrDocument(type, product) {
   if (type === "mouse") {
     return {
       ...base,
+      name: product.title || "",
       title: product.title || "",
       condition: "",
       price: Number(product.originalPrice || 0),
@@ -388,6 +257,7 @@ export function buildSolrDocument(type, product) {
   if (type === "smartwatch") {
     return {
       ...base,
+      name: product.title || "",
       title: product.title || "",
       condition: "",
       price: Number(product.originalPrice || 0),
@@ -405,6 +275,7 @@ export function buildSolrDocument(type, product) {
 
   return {
     ...base,
+    name: product.title || "",
     title: product.title || "",
     condition: "",
     price: Number(product.originalPrice || 0),
@@ -414,39 +285,28 @@ export function buildSolrDocument(type, product) {
   };
 }
 
-function mapSolrDoc(doc) {
+function mapMeiliHit(hit) {
   return {
-    id: doc.productId,
-    type: doc.type,
-    title: doc.title,
-    brand: doc.brand,
-    image: doc.image,
-    price: Number(doc.price || 0),
-    discount: Number(doc.discount || 0),
-    condition: doc.condition || undefined,
-    finalPrice: Number(doc.finalPrice || 0),
-    score: Number(doc.score || 0),
+    id: hit.productId || hit.id,
+    type: hit.type || hit.category,
+    title: hit.title || hit.name,
+    brand: hit.brand,
+    image: hit.image,
+    price: Number(hit.price || 0),
+    discount: Number(hit.discount || 0),
+    condition: hit.condition || undefined,
+    finalPrice: Number(hit.finalPrice || 0),
+    score: Number(hit._rankingScore ?? hit._matchesPosition ?? 0),
   };
 }
 
-export async function searchProductsWithSolr(searchTerm) {
-  const response = await axios.get(getSolrSelectUrl(), {
-    params: {
-      q: buildSolrQuery(searchTerm),
-      defType: "edismax",
-      qf: "text^4 title^5 brand^3 type^2",
-      rows: COLLECTION_LIMIT * PRODUCT_COLLECTIONS.length,
-      fl: "productId,type,title,brand,image,price,discount,finalPrice,condition,score",
-      sort: "score desc, created_at desc",
-      wt: "json",
-    },
-    timeout: Number(process.env.SOLR_TIMEOUT_MS || 4000),
-  });
+export async function searchProductsWithMeili(searchTerm) {
+  const { query, options } = buildMeiliSearchParams(searchTerm);
+  const result = await getProductsIndex().search(query, options);
 
-  const docs = response.data?.response?.docs || [];
   return {
-    engine: "solr",
-    results: docs.map(mapSolrDoc),
+    engine: "meilisearch",
+    results: (result.hits || []).map(mapMeiliHit),
   };
 }
 
@@ -461,80 +321,118 @@ async function loadAllSearchableProducts() {
   ]);
 
   return [
-    ...phones.map((item) => buildSolrDocument("phone", item)),
-    ...laptops.map((item) => buildSolrDocument("laptop", item)),
-    ...earphones.map((item) => buildSolrDocument("earphone", item)),
-    ...chargers.map((item) => buildSolrDocument("charger", item)),
-    ...mouses.map((item) => buildSolrDocument("mouse", item)),
-    ...smartwatches.map((item) => buildSolrDocument("smartwatch", item)),
+    ...phones.map((item) => buildMeiliDocument("phone", item)),
+    ...laptops.map((item) => buildMeiliDocument("laptop", item)),
+    ...earphones.map((item) => buildMeiliDocument("earphone", item)),
+    ...chargers.map((item) => buildMeiliDocument("charger", item)),
+    ...mouses.map((item) => buildMeiliDocument("mouse", item)),
+    ...smartwatches.map((item) => buildMeiliDocument("smartwatch", item)),
   ];
 }
 
-export async function syncMongoProductsToSolr(options = {}) {
-  const { force = false } = options;
+async function waitForTask(task) {
+  return getMeiliClient().tasks.waitForTask(task.taskUid ?? task.uid, {
+    timeOutMs: Number(process.env.MEILI_TIMEOUT_MS || 10000),
+    intervalMs: 200,
+  });
+}
 
-  if (!force && !isSolrEnabled()) {
-    return { synced: false, reason: "solr-disabled", count: 0 };
+function isMissingMeiliIndexError(error) {
+  const code = error?.code || error?.errorCode || error?.cause?.code || error?.cause?.errorCode;
+  const status = error?.status || error?.response?.status || error?.cause?.status || error?.cause?.response?.status;
+  const message = String(error?.message || error?.cause?.message || "").toLowerCase();
+
+  return (
+    code === "index_not_found" ||
+    status === 404 ||
+    message.includes("index `products` not found") ||
+    message.includes("index not found")
+  );
+}
+
+export async function ensureMeiliIndex() {
+  const client = getMeiliClient();
+
+  try {
+    await client.getIndex(getMeiliIndexName());
+  } catch (error) {
+    if (!isMissingMeiliIndexError(error)) {
+      throw error;
+    }
+
+    const task = await client.createIndex(getMeiliIndexName(), { primaryKey: "uid" });
+    await waitForTask(task);
   }
 
-  await ensureSolrSchema();
-  const docs = await loadAllSearchableProducts();
-  await axios.post(`${getSolrJsonDocsUpdateUrl()}?commit=true`, docs, {
-    headers: { "Content-Type": "application/json" },
-    timeout: Number(process.env.SOLR_TIMEOUT_MS || 8000),
+  const index = client.index(getMeiliIndexName());
+  const settingsTask = await index.updateSettings({
+    searchableAttributes: ["name", "title", "brand", "text", "type", "category"],
+    filterableAttributes: ["type", "category"],
+    sortableAttributes: ["created_at", "price", "finalPrice"],
+    displayedAttributes: ["uid", "productId", "id", "type", "category", "name", "title", "brand", "image", "price", "discount", "finalPrice", "condition", "created_at"],
+    rankingRules: ["words", "typo", "proximity", "attribute", "sort", "exactness"],
   });
 
-  return { synced: true, count: docs.length };
+  await waitForTask(settingsTask);
+}
+
+export async function syncMongoProductsToMeili(options = {}) {
+  const { force = false } = options;
+
+  if (!force && !isMeiliEnabled()) {
+    return { synced: false, reason: "meilisearch-disabled", count: 0 };
+  }
+
+  await ensureMeiliIndex();
+  const docs = await loadAllSearchableProducts();
+  const task = await getProductsIndex().addDocuments(docs, { primaryKey: "uid" });
+  await waitForTask(task);
+
+  return { synced: true, count: docs.length, index: getMeiliIndexName() };
 }
 
 export async function getSearchHealth() {
-  const enabled = isSolrEnabled();
-  const configured = Boolean(process.env.SOLR_URL || process.env.SOLR_CORE);
+  const enabled = isMeiliEnabled();
+  const configured = Boolean(process.env.MEILI_HOST);
 
   if (!configured) {
     return {
       engine: getSearchEngine(),
-      solr: {
+      meilisearch: {
         configured: false,
         enabled,
         ready: false,
-        core: getSolrCore(),
-        baseUrl: getSolrBaseUrl(),
+        host: getMeiliHost(),
+        index: getMeiliIndexName(),
       },
     };
   }
 
   try {
-    const response = await axios.get(getSolrHealthUrl(), {
-      params: {
-        action: "STATUS",
-        core: getSolrCore(),
-        wt: "json",
-      },
-      timeout: Number(process.env.SOLR_TIMEOUT_MS || 4000),
-    });
-
-    const coreStatus = response.data?.status?.[getSolrCore()];
+    const client = getMeiliClient();
+    await client.health();
+    const stats = await client.index(getMeiliIndexName()).getStats().catch(() => null);
 
     return {
       engine: getSearchEngine(),
-      solr: {
+      meilisearch: {
         configured: true,
         enabled,
-        ready: Boolean(coreStatus),
-        core: getSolrCore(),
-        baseUrl: getSolrBaseUrl(),
+        ready: true,
+        host: getMeiliHost(),
+        index: getMeiliIndexName(),
+        documents: stats?.numberOfDocuments,
       },
     };
   } catch (error) {
     return {
       engine: getSearchEngine(),
-      solr: {
+      meilisearch: {
         configured: true,
         enabled,
         ready: false,
-        core: getSolrCore(),
-        baseUrl: getSolrBaseUrl(),
+        host: getMeiliHost(),
+        index: getMeiliIndexName(),
         error: error.message,
       },
     };
@@ -542,8 +440,8 @@ export async function getSearchHealth() {
 }
 
 let queuedSync = null;
-export function queueSolrSync() {
-  if (!isSolrEnabled()) {
+export function queueMeiliSync() {
+  if (!isMeiliEnabled()) {
     return null;
   }
 
@@ -554,29 +452,29 @@ export function queueSolrSync() {
   queuedSync = new Promise((resolve) => {
     setTimeout(async () => {
       try {
-        const result = await syncMongoProductsToSolr();
+        const result = await syncMongoProductsToMeili();
         resolve(result);
       } catch (error) {
-        console.warn("SOLR_SYNC_ERROR", error.message);
+        console.warn("MEILI_SYNC_ERROR", error.message);
         resolve({ synced: false, reason: error.message, count: 0 });
       } finally {
         queuedSync = null;
       }
-    }, Number(process.env.SOLR_SYNC_DEBOUNCE_MS || 1500));
+    }, Number(process.env.MEILI_SYNC_DEBOUNCE_MS || 1500));
   });
 
   return queuedSync;
 }
 
 export async function searchCatalog(searchTerm) {
-  if (!isSolrEnabled()) {
+  if (!isMeiliEnabled()) {
     return searchProductsWithMongo(searchTerm);
   }
 
   try {
-    return await searchProductsWithSolr(searchTerm);
+    return await searchProductsWithMeili(searchTerm);
   } catch (error) {
-    console.warn("SOLR_SEARCH_FALLBACK", error.message);
+    console.warn("MEILI_SEARCH_FALLBACK", error.message);
     const fallback = await searchProductsWithMongo(searchTerm);
     return {
       ...fallback,

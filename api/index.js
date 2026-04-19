@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import app from "./app.js";
 import { connectRedis } from "./config/redis.js";
-import { queueSolrSync } from "./services/search.service.js";
+import { queueMeiliSync } from "./services/search.service.js";
 import { initChargers } from "./crud/chargers.js";
 import { initEarphones } from "./crud/earphones.js";
 import { initMouses } from "./crud/mouses.js";
@@ -34,7 +34,7 @@ async function startServer() {
   try {
     await bootstrapDatabase();
     await connectRedis();
-    queueSolrSync();
+    queueMeiliSync();
 
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {

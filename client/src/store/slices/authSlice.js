@@ -126,15 +126,16 @@ const authSlice = createSlice({
       localStorage.removeItem('supervisorToken');
       localStorage.removeItem('adminToken');
       
-      fetch(buildApiUrl('/api/auth/signout'), {
-        method: 'POST',
-        credentials: 'include'
-      }).catch(console.error);
-
-      fetch(buildApiUrl('/api/supervisor/logout'), {
-        method: 'GET',
-        credentials: 'include'
-      }).catch(console.error);
+      [
+        { endpoint: '/api/auth/signout', method: 'POST' },
+        { endpoint: '/api/admin-auth/admin-signout', method: 'POST' },
+        { endpoint: '/api/supervisor/logout', method: 'GET' },
+      ].forEach(({ endpoint, method }) => {
+        fetch(buildApiUrl(endpoint), {
+          method,
+          credentials: 'include'
+        }).catch(console.error);
+      });
     },
     initializeAuth: (state) => {
       const savedUser = localStorage.getItem('user');
