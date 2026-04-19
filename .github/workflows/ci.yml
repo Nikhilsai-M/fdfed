@@ -35,6 +35,13 @@ jobs:
           SEARCH_ENGINE: mongo
         run: npm test
 
+      - name: Upload API coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-coverage-report
+          path: api/coverage
+          if-no-files-found: error
+
       - name: Install client dependencies
         working-directory: client
         run: npm ci

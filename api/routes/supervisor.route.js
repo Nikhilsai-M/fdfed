@@ -112,6 +112,25 @@ router.get("/application/:type/:id", verifySupervisor, getApplicationDetails);
  *         required: true
  *         schema:
  *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - status
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [pending, approved, rejected, added_to_inventory]
+ *               rejectionReason:
+ *                 type: string
+ *               price:
+ *                 type: number
+ *             example:
+ *               status: approved
+ *               price: 28500
  *     responses:
  *       200:
  *         description: Application status updated successfully
@@ -141,6 +160,20 @@ router.put("/application/:type/:id/status", verifySupervisor, updateApplicationS
  *         required: true
  *         schema:
  *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               discount:
+ *                 type: number
+ *               condition:
+ *                 type: string
+ *             example:
+ *               discount: 10
+ *               condition: Excellent
  *     responses:
  *       200:
  *         description: Application added to inventory successfully

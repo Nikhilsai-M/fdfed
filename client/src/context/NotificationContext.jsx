@@ -44,9 +44,12 @@ const clearCache = (userId) => {
 
 export const NotificationProvider = ({ children }) => {
   const { user } = useAppSelector((state) => state.auth);
+  const isCustomer = user?.role === 'customer';
 
   // ✅ Initialise from cache immediately — badge shows with correct count on first render, no API wait
-  const [notifications, setNotifications] = useState(() => loadFromCache(user?.user_id));
+  const [notifications, setNotifications] = useState(() =>
+    user?.role === 'customer' ? loadFromCache(user?.user_id) : []
+  );
   const [loading, setLoading] = useState(false);
 
   // ✅ Derived — always in sync with notifications array, no separate state to manage
@@ -54,22 +57,27 @@ export const NotificationProvider = ({ children }) => {
 
   // ✅ Whenever notifications change, persist to cache
   useEffect(() => {
-    if (user?.user_id) {
+    if (isCustomer && user?.user_id) {
       saveToCache(user.user_id, notifications);
     }
-  }, [notifications, user?.user_id]);
+  }, [isCustomer, notifications, user?.user_id]);
 
   // ✅ When user changes (login / logout), load their cache immediately
   useEffect(() => {
-    setNotifications(loadFromCache(user?.user_id));
-  }, [user?.user_id]);
+    if (isCustomer) {
+      setNotifications(loadFromCache(user?.user_id));
+      return;
+    }
+
+    setNotifications([]);
+  }, [isCustomer, user?.user_id]);
 
   // Fetch fresh data from API
   const fetchNotifications = useCallback(async (silent = false) => {
-    if (!user?.user_id) {
-  setNotifications([]);
-  return;
-}
+    if (!user?.user_id || !isCustomer) {
+      setNotifications([]);
+      return;
+    }
 
     try {
       if (!silent) setLoading(true);
@@ -88,15 +96,15 @@ export const NotificationProvider = ({ children }) => {
   setNotifications(normalized);
 }
     }catch (error) {
-  if (handleAxiosUnauthorized(error)) {
-    return;
-  }
+      if (handleAxiosUnauthorized(error)) {
+        return;
+      }
 
-  console.error('? Error fetching notifications:', error);
-}finally {
+      console.error('? Error fetching notifications:', error);
+    } finally {
       if (!silent) setLoading(false);
     }
-  }, [user]);
+  }, [isCustomer, user]);
 
   // Mark single notification as read
   const markAsRead = useCallback(async (id) => {
@@ -153,7 +161,7 @@ export const NotificationProvider = ({ children }) => {
   const clearAllNotifications = useCallback(async () => {
     // ✅ Optimistic update
     setNotifications([]);
-    if (user?.user_id) clearCache(user.user_id);
+    if (isCustomer && user?.user_id) clearCache(user.user_id);
 
     try {
       await axios.delete('/api/customer/notifications/clear-all', {
@@ -163,7 +171,7 @@ export const NotificationProvider = ({ children }) => {
       console.error('❌ Error clearing notifications:', error);
       throw error;
     }
-  }, [user?.user_id]);
+  }, [isCustomer, user?.user_id]);
 
   // Fetch on user login
   useEffect(() => {
@@ -171,14 +179,14 @@ export const NotificationProvider = ({ children }) => {
   }, [fetchNotifications]);
 
   useEffect(() => {
-  if (!user?.user_id) return;
+  if (!user?.user_id || !isCustomer) return;
 
-  const interval = setInterval(() => {
-    fetchNotifications(true);
-  }, 30000);
+    const interval = setInterval(() => {
+      fetchNotifications(true);
+    }, 30000);
 
-  return () => clearInterval(interval);
-}, [user?.user_id, fetchNotifications]);
+    return () => clearInterval(interval);
+  }, [isCustomer, user?.user_id, fetchNotifications]);
 
   const value = {
     notifications,
