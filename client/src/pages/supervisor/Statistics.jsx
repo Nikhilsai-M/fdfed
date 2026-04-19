@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import SupervisorLayout from "../../components/supervisor/SupervisorLayout";
+import { buildApiUrl } from "../../utils/api";
 
 export default function Statistics() {
     const [statistics, setStatistics] = useState({
@@ -18,7 +19,7 @@ export default function Statistics() {
 
     const fetchStatistics = async () => {
         try {
-            const res = await fetch('http://localhost:3000/api/supervisor/statistics', {
+            const res = await fetch(buildApiUrl('/api/supervisor/statistics'), {
                 credentials: 'include',
                 headers: {
                     'Accept': 'application/json'

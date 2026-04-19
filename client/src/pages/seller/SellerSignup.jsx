@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { buildApiUrl } from "../../utils/api";
 
 export default function SellerSignup() {
   const navigate = useNavigate();
@@ -27,7 +28,7 @@ const handleSubmit = async (e) => {
 
     try {
       // 1. Call the new INITIATE endpoint
-      await axios.post("http://localhost:3000/api/seller/signup/initiate", form);
+      await axios.post(buildApiUrl("/api/seller/signup/initiate"), form);
       
       // 2. Redirect the user to the OTP verification page
       navigate("/seller/verify-otp", { 

@@ -15,9 +15,8 @@ export const loginUser = createAsyncThunk(
         endpoint = buildApiUrl('/api/admin-auth/admin-signin');
         body = { username, password, securityToken };
       } else {
-      
-        endpoint = buildApiUrl('/api/auth/signin');
         body = { username, password };
+        endpoint = buildApiUrl('/api/auth/signin');
       }
 
       let response = await fetch(endpoint, {
@@ -97,7 +96,11 @@ const authSlice = createSlice({
   name: 'auth',
   initialState: {
     user: JSON.parse(localStorage.getItem('user')) || null,
-    token: localStorage.getItem('token') || null,
+    token:
+      localStorage.getItem('token') ||
+      localStorage.getItem('supervisorToken') ||
+      localStorage.getItem('adminToken') ||
+      null,
     userType: 'customer', 
     loading: false,
     error: null,
@@ -120,17 +123,26 @@ const authSlice = createSlice({
       state.error = null;
       localStorage.removeItem('user');
       localStorage.removeItem('token');
+      localStorage.removeItem('supervisorToken');
+      localStorage.removeItem('adminToken');
       
-      ['/api/auth/signout', '/api/supervisor-auth/signout', '/api/admin-auth/signout'].forEach(endpoint => {
-        fetch(buildApiUrl(endpoint), { 
-          method: 'POST',
+      [
+        { endpoint: '/api/auth/signout', method: 'POST' },
+        { endpoint: '/api/admin-auth/admin-signout', method: 'POST' },
+        { endpoint: '/api/supervisor/logout', method: 'GET' },
+      ].forEach(({ endpoint, method }) => {
+        fetch(buildApiUrl(endpoint), {
+          method,
           credentials: 'include'
         }).catch(console.error);
       });
     },
     initializeAuth: (state) => {
       const savedUser = localStorage.getItem('user');
-      const savedToken = localStorage.getItem('token');
+      const savedToken =
+        localStorage.getItem('token') ||
+        localStorage.getItem('supervisorToken') ||
+        localStorage.getItem('adminToken');
       if (savedUser && savedToken) {
         state.user = JSON.parse(savedUser);
         state.token = savedToken;
@@ -153,7 +165,17 @@ const authSlice = createSlice({
         
         // Save to localStorage
         localStorage.setItem('user', JSON.stringify(state.user));
-        localStorage.setItem('token', state.token);
+        localStorage.removeItem('token');
+        localStorage.removeItem('supervisorToken');
+        localStorage.removeItem('adminToken');
+
+        if (action.payload.role === 'supervisor') {
+          localStorage.setItem('supervisorToken', state.token || '');
+        } else if (action.payload.role === 'admin') {
+          localStorage.setItem('adminToken', state.token || '');
+        } else {
+          localStorage.setItem('token', state.token || '');
+        }
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;

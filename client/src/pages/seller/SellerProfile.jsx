@@ -5,6 +5,7 @@ import {
   BarChart, Bar, XAxis, YAxis,
   Tooltip, ResponsiveContainer
 } from "recharts";
+import { buildApiUrl } from "../../utils/api";
 
 const COLORS = ["#6366f1", "#10b981", "#0ea5e9", "#f59e0b", "#ef4444"];
 
@@ -131,7 +132,7 @@ export default function SellerProfile() {
 
   const fetchData = async () => {
     const res = await axios.get(
-      "http://localhost:3000/api/seller/profile-analytics",
+      buildApiUrl("/api/seller/profile-analytics"),
       { headers: { Authorization: `Bearer ${token}` } }
     );
     setData(res.data.data);

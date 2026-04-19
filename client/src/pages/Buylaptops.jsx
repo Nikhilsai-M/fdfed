@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Sparkles, TrendingUp, Award, Zap, Shield, Clock, Laptop } from 'lucide-react';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
+import { buildApiUrl } from '../utils/api';
 
 const BuyLaptops = () => {
   const [latestProducts, setLatestProducts] = useState([]);
@@ -68,7 +69,7 @@ const BuyLaptops = () => {
   const fetchLatestProducts = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:3000/api/laptops/latest-laptops', {
+      const response = await fetch(buildApiUrl('/api/laptops/latest-laptops'), {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });

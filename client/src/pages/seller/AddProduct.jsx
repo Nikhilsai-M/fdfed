@@ -1,5 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
+import { buildApiUrl } from "../../utils/api";
 import { handleAxiosUnauthorized } from "../../utils/sessionRedirect";
 
 const globalStyles = `
@@ -202,7 +203,7 @@ export default function AddProduct() {
         data.append("image", imageFile);
       }
 
-      const res = await axios.post("http://localhost:3000/api/seller/products", data, {
+      const res = await axios.post(buildApiUrl("/api/seller/products"), data, {
         withCredentials: true,
         headers: { "Content-Type": "multipart/form-data" },
       });

@@ -44,8 +44,14 @@ import adminSellerActivityRoutes from "./routes/adminSellerActivity.route.js";
 import paymentRouter from "./routes/payment.route.js";
 import cartRouter from "./routes/cart.route.js";
 import healthRouter from "./routes/health.route.js";
+import {
+  getAllowedOrigins,
+  getSessionCookieOptions,
+  isAllowedOrigin,
+} from "./utils/http.js";
 
 const app = express();
+app.set("trust proxy", 1);
 
 app.use(helmet());
 app.use(
@@ -93,17 +99,19 @@ app.use(
     secret: process.env.SESSION_SECRET || "your-secret-key-change-this-in-production",
     resave: false,
     saveUninitialized: false,
-    cookie: {
-      secure: false,
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000,
-    },
+    cookie: getSessionCookieOptions(),
   })
 );
 
 app.use(
   cors({
-    origin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
+    origin(origin, callback) {
+      if (isAllowedOrigin(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`Origin ${origin} is not allowed by CORS`));
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],

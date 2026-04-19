@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Sparkles, TrendingUp, Award, Zap, Shield, Clock } from 'lucide-react';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
+import { buildApiUrl } from '../utils/api';
 
 const BuyPhones = () => {
   const [latestProducts, setLatestProducts] = useState([]);
@@ -74,7 +75,7 @@ const fetchLatestProducts = async () => {
   try {
     setLoading(true);
     // Use the correct endpoint
-    const response = await fetch('http://localhost:3000/api/phones/latest-phones');
+    const response = await fetch(buildApiUrl('/api/phones/latest-phones'));
     if (!response.ok) throw new Error('Failed to fetch latest phones');
     const products = await response.json();
     setLatestProducts(products);

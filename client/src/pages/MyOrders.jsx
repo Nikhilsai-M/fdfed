@@ -4,8 +4,7 @@ import { redirectIfUnauthorizedResponse } from '../utils/sessionRedirect';
 import { motion } from 'framer-motion';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+import { API_BASE_URL } from '../utils/api';
 
 const MyOrders = () => {
   const [orders, setOrders] = useState([]);

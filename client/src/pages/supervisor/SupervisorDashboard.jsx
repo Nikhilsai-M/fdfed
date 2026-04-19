@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import SupervisorLayout from "../../components/supervisor/SupervisorLayout";
+import { buildApiUrl } from "../../utils/api";
 
 export default function SupervisorDashboard() {
     const [dashboardData, setDashboardData] = useState({
@@ -17,7 +18,7 @@ export default function SupervisorDashboard() {
 
     const fetchDashboardData = async () => {
         try {
-            const res = await fetch('http://localhost:3000/api/supervisor/dashboard', {
+            const res = await fetch(buildApiUrl('/api/supervisor/dashboard'), {
                 credentials: 'include'
             });
             const data = await res.json();

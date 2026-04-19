@@ -2,8 +2,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
-const API_BASE_URL = "http://localhost:3000";
+import { buildApiUrl } from "../utils/api";
 
 export default function ForgotPassword() {
   const [step, setStep] = useState("request");
@@ -50,7 +49,7 @@ export default function ForgotPassword() {
       setMessage("");
       
       const res = await axios.post(
-        `${API_BASE_URL}/api/auth/forgot-password`, 
+        buildApiUrl("/api/auth/forgot-password"), 
         { usernameOrEmail: usernameOrEmail.trim() }
       );
       
@@ -78,7 +77,7 @@ export default function ForgotPassword() {
       setMessage("");
       
       const res = await axios.post(
-        `${API_BASE_URL}/api/auth/verify-otp`, 
+        buildApiUrl("/api/auth/verify-otp"), 
         { email: userEmail, otp }
       );
       
@@ -102,7 +101,7 @@ export default function ForgotPassword() {
       setMessage("");
       
       const res = await axios.post(
-        `${API_BASE_URL}/api/auth/resend-forgot-password-otp`, 
+        buildApiUrl("/api/auth/resend-forgot-password-otp"), 
         { email: userEmail }
       );
       
@@ -140,7 +139,7 @@ export default function ForgotPassword() {
       setMessage("");
       
       const res = await axios.post(
-        `${API_BASE_URL}/api/auth/reset-password`,
+        buildApiUrl("/api/auth/reset-password"),
         {
           email: userEmail,
           newPassword,

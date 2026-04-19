@@ -3,8 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { redirectIfUnauthorizedResponse } from '../utils/sessionRedirect';
 import { motion } from "framer-motion";
 import { Download, ArrowLeft } from "lucide-react";
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+import { API_BASE_URL } from "../utils/api";
 
 const Orders = () => {
   const { orderId } = useParams();

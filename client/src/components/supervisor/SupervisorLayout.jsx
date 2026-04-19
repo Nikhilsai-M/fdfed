@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { buildApiUrl } from "../../utils/api";
 
 export default function SupervisorLayout({ children }) {
     const [supervisor, setSupervisor] = useState(null);
@@ -18,7 +19,7 @@ export default function SupervisorLayout({ children }) {
 }, [navigate]);
     const handleLogout = async () => {
         try {
-            const res = await fetch('http://localhost:3000/api/supervisor/logout', {
+            const res = await fetch(buildApiUrl('/api/supervisor/logout'), {
                 method: 'GET',
                 credentials: 'include'
             });
