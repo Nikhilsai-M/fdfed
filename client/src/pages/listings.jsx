@@ -3,9 +3,10 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Header from "../components/common/Header"; // Adjust path as needed
 import Footer from "../components/common/Footer"; // Adjust path as needed
+import { API_BASE_URL, buildAssetUrl } from "../utils/api";
 
 // Configure axios defaults
-axios.defaults.baseURL = 'http://localhost:3000';
+axios.defaults.baseURL = API_BASE_URL;
 axios.defaults.withCredentials = true;
 
 const Listings = () => {
@@ -191,7 +192,7 @@ const Listings = () => {
 
         {listing.image_path && (
           <img
-            src={`http://localhost:3000/${listing.image_path.replace(/\\/g, '/')}`}
+            src={buildAssetUrl(`/${listing.image_path.replace(/\\/g, '/')}`)}
             alt="Device"
             className="mt-4 w-full max-h-80 object-contain rounded-lg border"
             onError={(e) => {

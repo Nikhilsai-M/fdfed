@@ -1,6 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
-import { handleAxiosUnauthorized } from '../../utils/sessionRedirect';
+import { handleAxiosUnauthorized } from "../../utils/sessionRedirect";
 
 const globalStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap');
@@ -11,13 +11,15 @@ const globalStyles = `
     from { opacity: 0; transform: translateY(16px); }
     to   { opacity: 1; transform: translateY(0); }
   }
+
   @keyframes fadeIn {
     from { opacity: 0; }
     to   { opacity: 1; }
   }
+
   @keyframes float {
     0%, 100% { transform: translateY(0px); }
-    50%       { transform: translateY(-6px); }
+    50% { transform: translateY(-6px); }
   }
 
   .add-input {
@@ -33,41 +35,19 @@ const globalStyles = `
     transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
     outline: none;
   }
+
   .add-input:focus {
     border-color: #6366f1;
     box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
     background: #fff;
   }
-  .add-input::placeholder { color: #94a3b8; }
 
-  .add-select {
-    padding: 12px 14px;
-    border-radius: 10px;
-    border: 1.5px solid #e2e8f0;
-    font-size: 14px;
-    font-family: 'DM Sans', sans-serif;
-    color: #1e293b;
-    background: #f8fafc;
-    width: 100%;
-    outline: none;
-    cursor: pointer;
-    transition: border-color 0.18s, box-shadow 0.18s;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394a3b8' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 14px center;
-    padding-right: 36px;
-  }
-  .add-select:focus {
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
-    background-color: #fff;
-  }
+  .add-input::placeholder { color: #94a3b8; }
 
   .cat-chip {
     display: flex;
     align-items: center;
-    gap: 7px;
+    gap: 8px;
     padding: 9px 18px;
     border-radius: 30px;
     border: 1.5px solid #e2e8f0;
@@ -79,7 +59,13 @@ const globalStyles = `
     cursor: pointer;
     transition: all 0.18s ease;
   }
-  .cat-chip:hover { border-color: #a5b4fc; color: #6366f1; background: #eef2ff; }
+
+  .cat-chip:hover {
+    border-color: #a5b4fc;
+    color: #6366f1;
+    background: #eef2ff;
+  }
+
   .cat-chip.active {
     background: linear-gradient(135deg, #6366f1, #818cf8);
     color: #fff;
@@ -97,7 +83,11 @@ const globalStyles = `
     background: #f8f9ff;
     margin-bottom: 24px;
   }
-  .upload-box:hover { border-color: #6366f1; background: #eef2ff; }
+
+  .upload-box:hover {
+    border-color: #6366f1;
+    background: #eef2ff;
+  }
 
   .submit-btn {
     width: 100%;
@@ -114,7 +104,13 @@ const globalStyles = `
     transition: opacity 0.18s, transform 0.16s, box-shadow 0.18s;
     box-shadow: 0 6px 20px rgba(99,102,241,0.35);
   }
-  .submit-btn:hover { opacity: 0.92; transform: translateY(-2px); box-shadow: 0 10px 28px rgba(99,102,241,0.4); }
+
+  .submit-btn:hover {
+    opacity: 0.92;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(99,102,241,0.4);
+  }
+
   .submit-btn:active { transform: translateY(0); }
 
   .section-card {
@@ -130,58 +126,96 @@ const globalStyles = `
   .spec-fields { animation: fadeIn 0.3s ease both; }
 
   .back-btn {
-    background: none; border: none; cursor: pointer;
-    font-family: 'DM Sans', sans-serif; font-size: 14px;
-    color: #818cf8; font-weight: 500;
-    display: flex; align-items: center; gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: #818cf8;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 5px;
     transition: opacity 0.16s;
   }
+
   .back-btn:hover { opacity: 0.7; }
 `;
 
 const categoryMeta = {
-  charger: { icon: "⚡", label: "Charger" },
-  mouse:   { icon: "🖱️", label: "Mouse" },
-  earphone:{ icon: "🎧", label: "Earphone" },
-  smartwatch: { icon: "⌚", label: "Smartwatch" },
+  charger: { badge: "CH", label: "Charger", idPrefix: "ch" },
+  mouse: { badge: "MO", label: "Mouse", idPrefix: "mo" },
+  earphone: { badge: "EA", label: "Earphone", idPrefix: "ea" },
+  smartwatch: { badge: "SM", label: "Smartwatch", idPrefix: "sm" },
+};
+
+const initialFormData = {
+  title: "",
+  brand: "",
+  originalPrice: "",
+  discount: "",
+  stock: "",
+  wattage: "",
+  type: "",
+  outputCurrent: "",
+  connectivity: "",
+  resolution: "",
+  design: "",
+  batteryLife: "",
+  displaySize: "",
+  displayType: "",
+  batteryRuntime: "",
 };
 
 export default function AddProduct() {
-  const token = localStorage.getItem("sellerToken");
-
   const [category, setCategory] = useState("charger");
   const [imageFile, setImageFile] = useState(null);
-
-  const [formData, setFormData] = useState({
-    id: "", title: "", brand: "", originalPrice: "", discount: "", stock: "",
-    wattage: "", type: "", outputCurrent: "", connectivity: "", resolution: "",
-    design: "", batteryLife: "", displaySize: "", displayType: "", batteryRuntime: ""
-  });
+  const [formData, setFormData] = useState(initialFormData);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleCategoryChange = (nextCategory) => {
+    setCategory(nextCategory);
+    setFormData((prev) => ({ ...initialFormData, title: prev.title, brand: prev.brand, originalPrice: prev.originalPrice, discount: prev.discount, stock: prev.stock }));
   };
 
   const handleFileChange = (e) => {
-    setImageFile(e.target.files[0]);
+    setImageFile(e.target.files?.[0] || null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
       const data = new FormData();
       data.append("category", category);
-      Object.keys(formData).forEach((key) => {
-        if (formData[key]) data.append(key, formData[key]);
+
+      Object.entries(formData).forEach(([key, value]) => {
+        if (value !== "") {
+          data.append(key, value);
+        }
       });
-      if (imageFile) data.append("image", imageFile);
-      await axios.post("http://localhost:3000/api/seller/products", data, {
+
+      if (imageFile) {
+        data.append("image", imageFile);
+      }
+
+      const res = await axios.post("http://localhost:3000/api/seller/products", data, {
         withCredentials: true,
-        headers: { "Content-Type": "multipart/form-data" }
+        headers: { "Content-Type": "multipart/form-data" },
       });
-      alert("Product Added Successfully!");
+
+      const generatedId = res.data?.product?.id;
+      alert(
+        generatedId
+          ? `Product added successfully. Product ID: ${generatedId}`
+          : "Product added successfully."
+      );
       window.location.href = "/seller/dashboard";
     } catch (err) {
+      if (handleAxiosUnauthorized(err, "seller")) return;
       console.error(err);
       alert("Error adding product");
     }
@@ -189,178 +223,222 @@ export default function AddProduct() {
 
   const renderCategoryFields = () => {
     switch (category) {
-      case "charger": return (
-        <div className="spec-fields" style={{ display: "flex", flexDirection: "column" }}>
-          <Input name="wattage" placeholder="Wattage (e.g. 20W)" onChange={handleChange} />
-          <Input name="type" placeholder="Type (USB C / Lightning)" onChange={handleChange} />
-          <Input name="outputCurrent" placeholder="Output Current (e.g. 3A)" onChange={handleChange} />
-        </div>
-      );
-      case "mouse": return (
-        <div className="spec-fields" style={{ display: "flex", flexDirection: "column" }}>
-          <Input name="type" placeholder="Mouse Type (Gaming / Office)" onChange={handleChange} />
-          <Input name="connectivity" placeholder="Connectivity (Wired / Wireless)" onChange={handleChange} />
-          <Input name="resolution" placeholder="Resolution (e.g. 1600 DPI)" onChange={handleChange} />
-        </div>
-      );
-      case "earphone": return (
-        <div className="spec-fields" style={{ display: "flex", flexDirection: "column" }}>
-          <Input name="design" placeholder="Design (In-ear / Over-ear)" onChange={handleChange} />
-          <Input name="batteryLife" placeholder="Battery Life (e.g. 20 hrs)" onChange={handleChange} />
-        </div>
-      );
-      case "smartwatch": return (
-        <div className="spec-fields" style={{ display: "flex", flexDirection: "column" }}>
-          <Input name="displaySize" placeholder="Display Size (e.g. 1.5 inch)" onChange={handleChange} />
-          <Input name="displayType" placeholder="Display Type (AMOLED / LCD)" onChange={handleChange} />
-          <Input name="batteryRuntime" placeholder="Battery Runtime (e.g. 5 days)" onChange={handleChange} />
-        </div>
-      );
-      default: return null;
+      case "charger":
+        return (
+          <div className="spec-fields" style={{ display: "flex", flexDirection: "column" }}>
+            <Input name="wattage" placeholder="Wattage (e.g. 20W)" onChange={handleChange} value={formData.wattage} />
+            <Input name="type" placeholder="Type (USB C / Lightning)" onChange={handleChange} value={formData.type} />
+            <Input name="outputCurrent" placeholder="Output Current (e.g. 3A)" onChange={handleChange} value={formData.outputCurrent} />
+          </div>
+        );
+      case "mouse":
+        return (
+          <div className="spec-fields" style={{ display: "flex", flexDirection: "column" }}>
+            <Input name="type" placeholder="Mouse Type (Gaming / Office)" onChange={handleChange} value={formData.type} />
+            <Input name="connectivity" placeholder="Connectivity (Wired / Wireless)" onChange={handleChange} value={formData.connectivity} />
+            <Input name="resolution" placeholder="Resolution (e.g. 1600 DPI)" onChange={handleChange} value={formData.resolution} />
+          </div>
+        );
+      case "earphone":
+        return (
+          <div className="spec-fields" style={{ display: "flex", flexDirection: "column" }}>
+            <Input name="design" placeholder="Design (In-ear / Over-ear)" onChange={handleChange} value={formData.design} />
+            <Input name="batteryLife" placeholder="Battery Life (e.g. 20 hrs)" onChange={handleChange} value={formData.batteryLife} />
+          </div>
+        );
+      case "smartwatch":
+        return (
+          <div className="spec-fields" style={{ display: "flex", flexDirection: "column" }}>
+            <Input name="displaySize" placeholder="Display Size (e.g. 1.5 inch)" onChange={handleChange} value={formData.displaySize} />
+            <Input name="displayType" placeholder="Display Type (AMOLED / LCD)" onChange={handleChange} value={formData.displayType} />
+            <Input name="batteryRuntime" placeholder="Battery Runtime (e.g. 5 days)" onChange={handleChange} value={formData.batteryRuntime} />
+          </div>
+        );
+      default:
+        return null;
     }
   };
 
   return (
     <>
       <style>{globalStyles}</style>
-      <div style={{
-        minHeight: "100vh",
-        background: "linear-gradient(145deg, #0f172a 0%, #1e1b4b 40%, #0f172a 100%)",
-        fontFamily: "'DM Sans', sans-serif",
-        position: "relative",
-        overflow: "hidden",
-      }}>
+      <div
+        style={{
+          minHeight: "100vh",
+          background: "linear-gradient(145deg, #0f172a 0%, #1e1b4b 40%, #0f172a 100%)",
+          fontFamily: "'DM Sans', sans-serif",
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            position: "absolute",
+            top: -120,
+            right: -120,
+            width: 400,
+            height: 400,
+            borderRadius: "50%",
+            background: "radial-gradient(circle, rgba(99,102,241,0.18) 0%, transparent 70%)",
+            pointerEvents: "none",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            bottom: -80,
+            left: -80,
+            width: 300,
+            height: 300,
+            borderRadius: "50%",
+            background: "radial-gradient(circle, rgba(129,140,248,0.12) 0%, transparent 70%)",
+            pointerEvents: "none",
+          }}
+        />
 
-        {/* Background decoration */}
-        <div style={{
-          position: "absolute", top: -120, right: -120,
-          width: 400, height: 400, borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(99,102,241,0.18) 0%, transparent 70%)",
-          pointerEvents: "none",
-        }} />
-        <div style={{
-          position: "absolute", bottom: -80, left: -80,
-          width: 300, height: 300, borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(129,140,248,0.12) 0%, transparent 70%)",
-          pointerEvents: "none",
-        }} />
-
-        {/* Top bar */}
-        <div style={{
-          padding: "0 44px", height: 62,
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          borderBottom: "1px solid rgba(255,255,255,0.06)",
-          position: "relative", zIndex: 2,
-        }}>
+        <div
+          style={{
+            padding: "0 44px",
+            height: 62,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            borderBottom: "1px solid rgba(255,255,255,0.06)",
+            position: "relative",
+            zIndex: 2,
+          }}
+        >
           <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-            <button className="back-btn" onClick={() => window.location.href = "/seller/dashboard"}>
-              ← Dashboard
+            <button className="back-btn" onClick={() => { window.location.href = "/seller/dashboard"; }}>
+              {"<-"} Dashboard
             </button>
             <div style={{ width: 1, height: 18, background: "rgba(255,255,255,0.12)" }} />
-            <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 17, color: "#fff", letterSpacing: "-0.01em" }}>
+            <span
+              style={{
+                fontFamily: "'Syne', sans-serif",
+                fontWeight: 800,
+                fontSize: 17,
+                color: "#fff",
+                letterSpacing: "-0.01em",
+              }}
+            >
               Add New Product
             </span>
           </div>
-          <span style={{ fontSize: 12, color: "#475569", letterSpacing: "0.05em" }}>
-            {categoryMeta[category].icon} {categoryMeta[category].label} Selected
+          <span style={{ fontSize: 12, color: "#cbd5e1", letterSpacing: "0.05em" }}>
+            {categoryMeta[category].badge} {categoryMeta[category].label} Selected
           </span>
         </div>
 
-        {/* Form area */}
-        <div style={{
-          display: "flex", justifyContent: "center",
-          padding: "40px 24px 60px",
-          position: "relative", zIndex: 2,
-        }}>
-          <div style={{
-            width: "100%", maxWidth: 660,
-            animation: "fadeUp 0.45s ease both",
-          }}>
-
-            {/* Card header */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            padding: "40px 24px 60px",
+            position: "relative",
+            zIndex: 2,
+          }}
+        >
+          <div style={{ width: "100%", maxWidth: 660, animation: "fadeUp 0.45s ease both" }}>
             <div style={{ textAlign: "center", marginBottom: 32 }}>
-              <div style={{
-                width: 60, height: 60, borderRadius: 18,
-                background: "linear-gradient(135deg, #6366f1, #818cf8)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 26, margin: "0 auto 16px",
-                boxShadow: "0 8px 24px rgba(99,102,241,0.45)",
-                animation: "float 3s ease-in-out infinite",
-              }}>
-                {categoryMeta[category].icon}
+              <div
+                style={{
+                  width: 60,
+                  height: 60,
+                  borderRadius: 18,
+                  background: "linear-gradient(135deg, #6366f1, #818cf8)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 20,
+                  fontWeight: 800,
+                  margin: "0 auto 16px",
+                  color: "#fff",
+                  boxShadow: "0 8px 24px rgba(99,102,241,0.45)",
+                  animation: "float 3s ease-in-out infinite",
+                }}
+              >
+                {categoryMeta[category].badge}
               </div>
-              <h2 style={{
-                fontFamily: "'Syne', sans-serif", fontWeight: 800,
-                fontSize: 26, color: "#fff", letterSpacing: "-0.03em",
-              }}>Add New Product</h2>
-              <p style={{ color: "#64748b", fontSize: 13, marginTop: 6 }}>
-                Fill in the details to list your product on the store
+              <h2
+                style={{
+                  fontFamily: "'Syne', sans-serif",
+                  fontWeight: 800,
+                  fontSize: 26,
+                  color: "#fff",
+                  letterSpacing: "-0.03em",
+                }}
+              >
+                Add New Product
+              </h2>
+              <p style={{ color: "#94a3b8", fontSize: 13, marginTop: 6 }}>
+                Add accessories like chargers, smartwatches, earphones, and mouse products.
               </p>
             </div>
 
             <form onSubmit={handleSubmit}>
-
-              {/* Category Chips */}
               <div className="section-card">
-                <SectionLabel icon="🏷️" text="Product Category" />
+                <SectionLabel icon="CAT" text="Product Category" />
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 12 }}>
-                  {Object.entries(categoryMeta).map(([val, meta]) => (
+                  {Object.entries(categoryMeta).map(([value, meta]) => (
                     <button
-                      key={val}
+                      key={value}
                       type="button"
-                      className={`cat-chip ${category === val ? "active" : ""}`}
-                      onClick={() => setCategory(val)}
+                      className={`cat-chip ${category === value ? "active" : ""}`}
+                      onClick={() => handleCategoryChange(value)}
                     >
-                      {meta.icon} {meta.label}
+                      <span>{meta.badge}</span>
+                      <span>{meta.label}</span>
                     </button>
                   ))}
                 </div>
-
-                {/* Hidden select for form compatibility */}
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  style={{ display: "none" }}
-                >
-                  <option value="charger">Charger</option>
-                  <option value="mouse">Mouse</option>
-                  <option value="earphone">Earphone</option>
-                  <option value="smartwatch">Smartwatch</option>
-                </select>
               </div>
 
-              {/* Basic Details */}
               <div className="section-card" style={{ animationDelay: "0.07s" }}>
-                <SectionLabel icon="📋" text="Basic Details" />
+                <SectionLabel icon="ID" text="Basic Details" />
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 14px" }}>
                   <div style={{ gridColumn: "1 / -1" }}>
-                    <Input name="id" placeholder="Product ID" onChange={handleChange} />
+                    <div
+                      style={{
+                        border: "1.5px dashed #c7d2fe",
+                        borderRadius: 10,
+                        background: "#f8f9ff",
+                        padding: "12px 14px",
+                        marginBottom: 12,
+                      }}
+                    >
+                      <div style={{ fontSize: 12, color: "#6366f1", fontWeight: 700, marginBottom: 4 }}>
+                        Product ID
+                      </div>
+                      <div style={{ fontSize: 14, color: "#1e293b", fontWeight: 600 }}>
+                        Auto-generated when you save
+                      </div>
+                      <div style={{ fontSize: 12, color: "#64748b", marginTop: 4 }}>
+                        Format: {categoryMeta[category].idPrefix}_001, {categoryMeta[category].idPrefix}_002...
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ gridColumn: "1 / -1" }}>
+                    <Input name="title" placeholder="Product Title" onChange={handleChange} value={formData.title} />
                   </div>
                   <div style={{ gridColumn: "1 / -1" }}>
-                    <Input name="title" placeholder="Product Title" onChange={handleChange} />
+                    <Input name="brand" placeholder="Brand Name" onChange={handleChange} value={formData.brand} />
                   </div>
+                  <Input type="number" name="originalPrice" placeholder="Original Price (Rs)" onChange={handleChange} value={formData.originalPrice} />
+                  <Input type="number" name="discount" placeholder="Discount (%)" onChange={handleChange} value={formData.discount} />
                   <div style={{ gridColumn: "1 / -1" }}>
-                    <Input name="brand" placeholder="Brand Name" onChange={handleChange} />
-                  </div>
-                  <Input type="number" name="originalPrice" placeholder="Original Price (₹)" onChange={handleChange} />
-                  <Input type="number" name="discount" placeholder="Discount (%)" onChange={handleChange} />
-                  <div style={{ gridColumn: "1 / -1" }}>
-                    <Input type="number" name="stock" placeholder="Stock Quantity" onChange={handleChange} />
+                    <Input type="number" name="stock" placeholder="Stock Quantity" onChange={handleChange} value={formData.stock} />
                   </div>
                 </div>
               </div>
 
-              {/* Specifications */}
               <div className="section-card" style={{ animationDelay: "0.14s" }}>
-                <SectionLabel icon="⚙️" text={`${categoryMeta[category].label} Specifications`} />
+                <SectionLabel icon="SPEC" text={`${categoryMeta[category].label} Specifications`} />
                 {renderCategoryFields()}
               </div>
 
-              {/* Image Upload */}
-              <div
-                className="upload-box"
-                onClick={() => document.getElementById("fileInput").click()}
-              >
+              <div className="upload-box" onClick={() => document.getElementById("fileInput")?.click()}>
                 <input
                   id="fileInput"
                   type="file"
@@ -371,8 +449,18 @@ export default function AddProduct() {
                 />
                 {!imageFile ? (
                   <>
-                    <div style={{ fontSize: 36, marginBottom: 12, animation: "float 3s ease-in-out infinite" }}>📤</div>
-                    <p style={{ fontWeight: 600, fontSize: 14, color: "#6366f1", marginBottom: 6, fontFamily: "'Syne', sans-serif" }}>
+                    <div style={{ fontSize: 32, marginBottom: 12, animation: "float 3s ease-in-out infinite" }}>
+                      IMG
+                    </div>
+                    <p
+                      style={{
+                        fontWeight: 600,
+                        fontSize: 14,
+                        color: "#6366f1",
+                        marginBottom: 6,
+                        fontFamily: "'Syne', sans-serif",
+                      }}
+                    >
                       Click to Upload Product Image
                     </p>
                     <span style={{ fontSize: 12, color: "#94a3b8" }}>PNG, JPG up to 5MB</span>
@@ -383,21 +471,25 @@ export default function AddProduct() {
                       src={URL.createObjectURL(imageFile)}
                       alt="Preview"
                       style={{
-                        width: "100%", borderRadius: 12, marginBottom: 12,
-                        maxHeight: 220, objectFit: "cover",
+                        width: "100%",
+                        borderRadius: 12,
+                        marginBottom: 12,
+                        maxHeight: 220,
+                        objectFit: "cover",
                         boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
                       }}
                     />
-                    <p style={{ fontSize: 13, color: "#6366f1", fontWeight: 600, marginBottom: 4 }}>{imageFile.name}</p>
+                    <p style={{ fontSize: 13, color: "#6366f1", fontWeight: 600, marginBottom: 4 }}>
+                      {imageFile.name}
+                    </p>
                     <span style={{ fontSize: 12, color: "#94a3b8" }}>Click to change image</span>
                   </>
                 )}
               </div>
 
               <button type="submit" className="submit-btn">
-                ✦ Add Product to Store
+                Add Product to Store
               </button>
-
             </form>
           </div>
         </div>
@@ -406,90 +498,41 @@ export default function AddProduct() {
   );
 }
 
-/* Section label helper */
-const SectionLabel = ({ icon, text }) => (
-  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-    <span style={{
-      width: 28, height: 28, borderRadius: 8,
-      background: "linear-gradient(135deg, #eef2ff, #e0e7ff)",
-      display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13,
-    }}>{icon}</span>
-    <span style={{
-      fontFamily: "'Syne', sans-serif", fontWeight: 700,
-      fontSize: 13, color: "#1e293b", letterSpacing: "0.01em",
-    }}>{text}</span>
-  </div>
-);
+function SectionLabel({ icon, text }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+      <span
+        style={{
+          minWidth: 36,
+          height: 28,
+          borderRadius: 8,
+          background: "linear-gradient(135deg, #eef2ff, #e0e7ff)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: 11,
+          fontWeight: 700,
+          color: "#4f46e5",
+          padding: "0 8px",
+        }}
+      >
+        {icon}
+      </span>
+      <span
+        style={{
+          fontFamily: "'Syne', sans-serif",
+          fontWeight: 700,
+          fontSize: 13,
+          color: "#1e293b",
+          letterSpacing: "0.01em",
+        }}
+      >
+        {text}
+      </span>
+    </div>
+  );
+}
 
-/* Reusable Input */
-const Input = ({ type = "text", ...props }) => (
-  <input type={type} {...props} required className="add-input" />
-);
-
-const styles = {
-  container: {
-    minHeight: "100vh",
-    background: "linear-gradient(135deg,#eef2ff,#f8fafc)",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: "40px",
-    fontFamily: "Inter, sans-serif"
-  },
-  card: {
-    width: "650px",
-    background: "white",
-    padding: "40px",
-    borderRadius: "16px",
-    boxShadow: "0 15px 40px rgba(0,0,0,0.08)"
-  },
-  title: {
-    textAlign: "center",
-    marginBottom: "30px",
-    fontSize: "24px",
-    fontWeight: "600"
-  },
-  section: {
-    marginBottom: "25px",
-    display: "flex",
-    flexDirection: "column"
-  },
-  label: {
-    marginBottom: "10px",
-    fontWeight: "600",
-    fontSize: "14px",
-    color: "#475569"
-  },
-  input: {
-    padding: "12px",
-    marginBottom: "12px",
-    borderRadius: "8px",
-    border: "1px solid #e2e8f0",
-    fontSize: "14px",
-    transition: "all 0.2s"
-  },
-  select: {
-    padding: "12px",
-    borderRadius: "8px",
-    border: "1px solid #e2e8f0"
-  },
-  fileInput: {
-    marginBottom: "15px"
-  },
-  preview: {
-    width: "100%",
-    borderRadius: "12px",
-    marginTop: "10px"
-  },
-  button: {
-    width: "100%",
-    padding: "14px",
-    background: "linear-gradient(135deg,#2563eb,#1e3a8a)",
-    color: "white",
-    border: "none",
-    borderRadius: "10px",
-    fontWeight: "600",
-    cursor: "pointer",
-    marginTop: "10px"
-  }
-};
+function Input({ type = "text", ...props }) {
+  return <input type={type} {...props} required className="add-input" />;
+}

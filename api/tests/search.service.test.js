@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildSolrDocument,
+  getSolrJsonDocsUpdateUrl,
   buildSolrQuery,
   buildTextQuery,
   buildTextSort,
@@ -32,6 +33,7 @@ describe("search.service helpers", () => {
     expect(buildSolrQuery("phones")).toBe("type:phone");
     expect(escapeSolrTerm("iphone+case")).toBe("iphone\\+case");
     expect(buildSolrQuery("iphone+case")).toContain("iphone\\+case");
+    expect(getSolrJsonDocsUpdateUrl()).toContain("/update/json/docs");
   });
 
   it("builds Solr documents for phones and accessories", () => {

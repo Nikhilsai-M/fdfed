@@ -23,18 +23,26 @@ import {
 } from "../utils/cloudinary.js";
 import { invalidateCatalogCaches } from "../config/redis.js";
 import { queueSolrSync } from "../services/search.service.js";
+import { generateAccessoryProductId } from "../services/productId.service.js";
 
 /* ===============================
    ADD PRODUCT
 =============================== */
 export const addProduct = async (req, res, next) => {
+  let uploadedPublicId;
+
   try {
 
     const sellerId = req.user.id;
-    const { category, ...data } = req.body;
+    const { category, id: _ignoredId, ...data } = req.body;
+    const normalizedCategory = String(category || "").trim().toLowerCase();
 
-    if (!category) {
+    if (!normalizedCategory) {
       return res.status(400).json({ message: "Category is required" });
+    }
+
+    if (!["earphone", "charger", "mouse", "smartwatch"].includes(normalizedCategory)) {
+      return res.status(400).json({ message: "Invalid category" });
     }
 
     // Upload image if provided
@@ -46,27 +54,40 @@ export const addProduct = async (req, res, next) => {
 
       data.image = uploaded.secure_url;
       data.public_id = uploaded.public_id;
+      uploadedPublicId = uploaded.public_id;
     }
 
     let result;
+    const generatedId = await generateAccessoryProductId(normalizedCategory);
 
-    if (category === "earphone") {
-      result = await addEarphone({ ...data, sellerId });
+    if (normalizedCategory === "earphone") {
+      result = await addEarphone({ ...data, id: generatedId, sellerId });
     }
 
-    if (category === "charger") {
-      result = await addCharger({ ...data, sellerId });
+    if (normalizedCategory === "charger") {
+      result = await addCharger({ ...data, id: generatedId, sellerId });
     }
 
-    if (category === "mouse") {
-      result = await addMouse({ ...data, sellerId });
+    if (normalizedCategory === "mouse") {
+      result = await addMouse({ ...data, id: generatedId, sellerId });
     }
 
-    if (category === "smartwatch") {
-      result = await addSmartwatch({ ...data, sellerId });
+    if (normalizedCategory === "smartwatch") {
+      result = await addSmartwatch({ ...data, id: generatedId, sellerId });
     }
+
+    if (!result?.success) {
+      if (uploadedPublicId) {
+        await deleteFromCloudinary(uploadedPublicId);
+      }
+      return res.status(400).json({
+        success: false,
+        message: result?.message || "Unable to add product"
+      });
+    }
+
     if (result?.success) {
-      await matchRequests(category, {
+      await matchRequests(normalizedCategory, {
         id: result.id,
         brand: data.brand,
         model: data.model || data.title || "",
@@ -77,6 +98,9 @@ export const addProduct = async (req, res, next) => {
     res.json({ success: true, product: result });
 
   } catch (err) {
+    if (uploadedPublicId) {
+      await deleteFromCloudinary(uploadedPublicId);
+    }
     next(err);
   }
 };
