@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
 import axios from 'axios'; // ADD THIS IMPORT
+import { buildApiUrl } from '../utils/api';
 
 const FormRow = ({ children }) => (
   <div className="flex flex-col gap-4 md:flex-row mb-2">{children}</div>
@@ -90,7 +91,7 @@ const SellPhoneForm = () => {
     }
 
     try {
-      const response = await axios.post('http://localhost:3000/api/phone-applications/submit', formPayload, {
+      const response = await axios.post(buildApiUrl('/api/phone-applications/submit'), formPayload, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 

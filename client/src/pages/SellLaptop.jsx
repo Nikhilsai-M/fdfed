@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
 import axios from 'axios';
+import { buildApiUrl } from '../utils/api';
 
 const FormRow = ({ children }) => (
     <div className="flex flex-col gap-4 md:flex-row mb-2">
@@ -91,7 +92,7 @@ const SellLaptopForm = () => {
 
         try {
             const response = await axios.post(
-                'http://localhost:3000/api/laptop-applications/submit',
+                buildApiUrl('/api/laptop-applications/submit'),
                 formPayload,
                 {
                     headers: {

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import SupervisorLayout from "../../components/supervisor/SupervisorLayout";
+import { buildApiUrl } from "../../utils/api";
 
 export default function Profile() {
     const [supervisor, setSupervisor] = useState(null);
@@ -27,7 +28,7 @@ export default function Profile() {
 
     const fetchProfile = async () => {
         try {
-            const res = await fetch('http://localhost:3000/api/supervisor/profile', {
+            const res = await fetch(buildApiUrl('/api/supervisor/profile'), {
                 credentials: 'include'
             });
             const data = await res.json();
@@ -138,7 +139,7 @@ export default function Profile() {
         }
 
         try {
-            const res = await fetch('http://localhost:3000/api/supervisor/profile', {
+            const res = await fetch(buildApiUrl('/api/supervisor/profile'), {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -180,7 +181,7 @@ export default function Profile() {
         }
 
         try {
-            const res = await fetch('http://localhost:3000/api/supervisor/password', {
+            const res = await fetch(buildApiUrl('/api/supervisor/password'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

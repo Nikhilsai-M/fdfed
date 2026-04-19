@@ -41,7 +41,9 @@
 
   export const verifySupervisor = (req, res, next) => {
     try {
-      const token = req.cookies.supervisor_access_token;
+      const token =
+        req.cookies.supervisor_access_token ||
+        req.headers.authorization?.split(' ')[1];
 
       if (!token) {
         console.log('❌ No supervisor token found');

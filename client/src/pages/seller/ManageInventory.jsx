@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { handleAxiosUnauthorized } from '../../utils/sessionRedirect';
+import { buildApiUrl } from "../../utils/api";
 
 const globalStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap');
@@ -88,16 +89,45 @@ const StatusBadge = ({ isActive }) => (
 export default function ManageInventorySeller() {
   const [products, setProducts] = useState([]);
   const [saving, setSaving] = useState(null);
+  const [seller, setSeller] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("seller")) || null;
+    } catch {
+      return null;
+    }
+  });
   const token = localStorage.getItem("sellerToken");
 
-  useEffect(() => { fetchProducts(); }, []);
+  useEffect(() => {
+    fetchProducts();
+    fetchSellerProfile();
+  }, []);
 
   const fetchProducts = async () => {
     try {
-      const res = await axios.get("http://localhost:3000/api/seller/products", {
+      const res = await axios.get(buildApiUrl("/api/seller/products"), {
         withCredentials: true,
       });
       setProducts(res.data.products);
+    } catch (error) {
+      if (handleAxiosUnauthorized(error, 'seller')) return;
+      console.error(error);
+    }
+  };
+
+  const fetchSellerProfile = async () => {
+    try {
+      const res = await axios.get(buildApiUrl("/api/seller/profile-analytics"), {
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
+      });
+
+      const nextSeller = res.data?.data?.seller || null;
+      setSeller(nextSeller);
+
+      if (nextSeller) {
+        localStorage.setItem("seller", JSON.stringify(nextSeller));
+      }
     } catch (error) {
       if (handleAxiosUnauthorized(error, 'seller')) return;
       console.error(error);
@@ -108,7 +138,7 @@ export default function ManageInventorySeller() {
     setSaving(id + "_stock");
     try {
       await axios.put(
-        `http://localhost:3000/api/seller/products/${id}`,
+        buildApiUrl(`/api/seller/products/${id}`),
         { stock, category },
         { withCredentials: true }
       );
@@ -125,7 +155,7 @@ export default function ManageInventorySeller() {
     setSaving(id + "_toggle");
     try {
       await axios.put(
-        `http://localhost:3000/api/seller/products/${id}`,
+        buildApiUrl(`/api/seller/products/${id}`),
         { isActive: !isActive, category },
         { withCredentials: true }
       );
@@ -171,6 +201,42 @@ export default function ManageInventorySeller() {
         </div>
 
         <div style={{ padding: "36px 44px" }}>
+
+          {seller && (
+            <div
+              style={{
+                marginBottom: 24,
+                background: "linear-gradient(135deg, #ffffff 0%, #eef2ff 100%)",
+                border: "1px solid #e2e8f0",
+                borderRadius: 16,
+                padding: "20px 24px",
+                boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
+                animation: "fadeUp 0.4s ease both",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+                <div>
+                  <p style={{ fontSize: 12, color: "#6366f1", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>
+                    Seller Inventory
+                  </p>
+                  <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: 21, color: "#0f172a", margin: 0 }}>
+                    {seller.storeName || "Seller Store"}
+                  </h2>
+                  <p style={{ color: "#475569", fontSize: 14, marginTop: 6 }}>
+                    {seller.name || "Seller"} · {seller.email || "No email"}
+                  </p>
+                </div>
+                <div style={{ minWidth: 220 }}>
+                  <p style={{ margin: 0, color: "#64748b", fontSize: 13 }}>
+                    <strong style={{ color: "#0f172a" }}>Phone:</strong> {seller.phoneNumber || "N/A"}
+                  </p>
+                  <p style={{ margin: "6px 0 0", color: "#64748b", fontSize: 13 }}>
+                    <strong style={{ color: "#0f172a" }}>Address:</strong> {seller.businessAddress || "N/A"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Summary Pills */}
           <div style={{ display: "flex", gap: 14, marginBottom: 32, animation: "fadeUp 0.4s ease both" }}>
