@@ -7,7 +7,7 @@ import {
   getAllSmartwatches, addSmartwatch, updateSmartwatch, deleteSmartwatch
 } from '../crud/inventory.js';
 import { invalidateCatalogCaches } from "../config/redis.js";
-import { queueMeiliSync } from "../services/search.service.js";
+
 
 // Get all inventory items
 export const getAllInventory = async (req, res, next) => {
@@ -134,7 +134,7 @@ export const addInventoryItem = async (req, res, next) => {
 
     if (result.success) {
       await invalidateCatalogCaches();
-      queueMeiliSync();
+
       res.json({ success: true, id: result.id });
     } else {
       res.status(400).json({ success: false, message: result.message });
@@ -238,7 +238,6 @@ export const updateInventoryItem = async (req, res, next) => {
 
     if (result.success) {
       await invalidateCatalogCaches();
-      queueMeiliSync();
       res.json({ success: true });
     } else {
       res.status(400).json({ success: false, message: result.message });
@@ -274,7 +273,6 @@ export const deleteInventoryItem = async (req, res, next) => {
 
     if (result.success) {
       await invalidateCatalogCaches();
-      queueMeiliSync();
       res.json({ success: true });
     } else {
       res.status(404).json({ success: false, message: result.message || 'Item not found' });

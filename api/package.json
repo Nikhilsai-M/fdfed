@@ -11,8 +11,7 @@
     "test:watch": "vitest",
     "benchmark:db": "node scripts/db-query-plan-report.js",
     "benchmark:cache": "node scripts/cache-benchmark.js",
-    "benchmark:db:compare": "node scripts/db-search-benchmark.js",
-    "search:meili:sync": "node scripts/meili-sync.js"
+    "benchmark:db:compare": "node scripts/db-search-benchmark.js"
   },
   "keywords": [],
   "author": "",
@@ -31,7 +30,6 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.19.2",
     "morgan": "^1.10.1",
-    "meilisearch": "^0.53.0",
     "multer": "^2.0.2",
     "nodemailer": "^8.0.5",
     "parser": "^0.1.4",
