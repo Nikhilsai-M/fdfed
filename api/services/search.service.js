@@ -10,8 +10,10 @@ import {
   getMeiliIndexName,
   getProductsIndex,
 } from "../config/meilisearch.js";
+import { invalidateCatalogCaches } from "../config/redis.js";
 
 const COLLECTION_LIMIT = 20;
+const MEILI_INDEX_CHECK_INTERVAL_MS = Number(process.env.MEILI_INDEX_CHECK_INTERVAL_MS || 60_000);
 
 export const CATEGORY_TERMS = {
   phone: ["phone", "phones", "mobile", "mobiles"],
@@ -23,6 +25,7 @@ export const CATEGORY_TERMS = {
 };
 
 const PRODUCT_COLLECTIONS = ["phone", "laptop", "earphone", "charger", "mouse", "smartwatch"];
+const SEARCH_RESULT_LIMIT = COLLECTION_LIMIT * PRODUCT_COLLECTIONS.length;
 
 export const buildTextQuery = (term) => ({ $text: { $search: term } });
 export const buildTextProjection = () => ({ score: { $meta: "textScore" } });
@@ -30,6 +33,7 @@ export const buildTextSort = () => ({ score: { $meta: "textScore" }, created_at:
 export const isCategoryQuery = (term, values) => values.includes(String(term || "").toLowerCase());
 export function getSearchCacheKey(term) { return `search:${String(term || "").trim().toLowerCase()}`; }
 export function normalizeSearchTerm(term) { return String(term || "").trim(); }
+export function getSearchResultLimit() { return SEARCH_RESULT_LIMIT; }
 
 export function getSearchEngine() {
   return process.env.SEARCH_ENGINE === "mongo" ? "mongo" : "meilisearch";
@@ -37,6 +41,18 @@ export function getSearchEngine() {
 
 export function isMeiliEnabled() {
   return getSearchEngine() === "meilisearch";
+}
+
+export function getMeiliDocumentCount(stats) {
+  return Number(stats?.numberOfDocuments ?? stats?.totalNumberOfDocuments ?? 0);
+}
+
+export function shouldSyncMeiliCatalog({ meiliDocuments = 0, mongoDocuments = 0, force = false } = {}) {
+  if (force) {
+    return true;
+  }
+
+  return Number(meiliDocuments) === 0 || Number(meiliDocuments) !== Number(mongoDocuments);
 }
 
 function roundMoney(value) {
@@ -144,7 +160,7 @@ export function buildMeiliSearchParams(searchTerm) {
         options: {
           filter: [`type = "${productType}"`],
           sort: ["created_at:desc"],
-          limit: COLLECTION_LIMIT * PRODUCT_COLLECTIONS.length,
+          limit: SEARCH_RESULT_LIMIT,
         },
       };
     }
@@ -155,7 +171,7 @@ export function buildMeiliSearchParams(searchTerm) {
     options: {
       sort: ["created_at:desc"],
       showRankingScore: true,
-      limit: COLLECTION_LIMIT * PRODUCT_COLLECTIONS.length,
+      limit: SEARCH_RESULT_LIMIT,
     },
   };
 }
@@ -350,6 +366,19 @@ function isMissingMeiliIndexError(error) {
   );
 }
 
+async function getMongoSearchableDocumentCount() {
+  const [phones, laptops, earphones, chargers, mouses, smartwatches] = await Promise.all([
+    Phone.countDocuments(),
+    Laptop.countDocuments(),
+    Earphone.countDocuments({ isActive: true }),
+    Charger.countDocuments({ isActive: true }),
+    Mouse.countDocuments({ isActive: true }),
+    Smartwatch.countDocuments({ isActive: true }),
+  ]);
+
+  return phones + laptops + earphones + chargers + mouses + smartwatches;
+}
+
 export async function ensureMeiliIndex() {
   const client = getMeiliClient();
 
@@ -376,6 +405,75 @@ export async function ensureMeiliIndex() {
   await waitForTask(settingsTask);
 }
 
+let ensuredMeiliCatalogPromise = null;
+let lastSuccessfulMeiliSyncAt = 0;
+let lastMeiliIndexCheckAt = 0;
+let lastKnownMeiliDocumentCount = 0;
+
+async function ensureMeiliCatalogReady(options = {}) {
+  const { forceSync = false } = options;
+
+  if (!isMeiliEnabled()) {
+    return {
+      ready: false,
+      synced: false,
+      documents: 0,
+      mongoDocuments: 0,
+    };
+  }
+
+  if (ensuredMeiliCatalogPromise && !forceSync) {
+    return ensuredMeiliCatalogPromise;
+  }
+
+  ensuredMeiliCatalogPromise = (async () => {
+    await ensureMeiliIndex();
+
+    const stats = await getProductsIndex().getStats().catch((error) => {
+      if (isMissingMeiliIndexError(error)) {
+        return null;
+      }
+
+      throw error;
+    });
+
+    const meiliDocuments = getMeiliDocumentCount(stats);
+    const shouldVerifyAgainstMongo =
+      forceSync ||
+      meiliDocuments === 0 ||
+      Date.now() - lastMeiliIndexCheckAt >= MEILI_INDEX_CHECK_INTERVAL_MS;
+
+    let mongoDocuments = meiliDocuments;
+
+    if (shouldVerifyAgainstMongo) {
+      mongoDocuments = await getMongoSearchableDocumentCount();
+      lastMeiliIndexCheckAt = Date.now();
+    }
+
+    if (shouldSyncMeiliCatalog({ meiliDocuments, mongoDocuments, force: forceSync })) {
+      const syncResult = await syncMongoProductsToMeili({ force: true });
+      return {
+        ready: true,
+        synced: true,
+        documents: syncResult.count,
+        mongoDocuments,
+      };
+    }
+
+    lastKnownMeiliDocumentCount = meiliDocuments;
+    return {
+      ready: true,
+      synced: false,
+      documents: meiliDocuments,
+      mongoDocuments,
+    };
+  })().finally(() => {
+    ensuredMeiliCatalogPromise = null;
+  });
+
+  return ensuredMeiliCatalogPromise;
+}
+
 export async function syncMongoProductsToMeili(options = {}) {
   const { force = false } = options;
 
@@ -387,6 +485,10 @@ export async function syncMongoProductsToMeili(options = {}) {
   const docs = await loadAllSearchableProducts();
   const task = await getProductsIndex().addDocuments(docs, { primaryKey: "uid" });
   await waitForTask(task);
+  lastSuccessfulMeiliSyncAt = Date.now();
+  lastMeiliIndexCheckAt = Date.now();
+  lastKnownMeiliDocumentCount = docs.length;
+  await invalidateCatalogCaches();
 
   return { synced: true, count: docs.length, index: getMeiliIndexName() };
 }
@@ -404,6 +506,8 @@ export async function getSearchHealth() {
         ready: false,
         host: getMeiliHost(),
         index: getMeiliIndexName(),
+        documents: lastKnownMeiliDocumentCount,
+        lastSyncAt: lastSuccessfulMeiliSyncAt ? new Date(lastSuccessfulMeiliSyncAt).toISOString() : null,
       },
     };
   }
@@ -421,7 +525,8 @@ export async function getSearchHealth() {
         ready: true,
         host: getMeiliHost(),
         index: getMeiliIndexName(),
-        documents: stats?.numberOfDocuments,
+        documents: getMeiliDocumentCount(stats),
+        lastSyncAt: lastSuccessfulMeiliSyncAt ? new Date(lastSuccessfulMeiliSyncAt).toISOString() : null,
       },
     };
   } catch (error) {
@@ -433,6 +538,8 @@ export async function getSearchHealth() {
         ready: false,
         host: getMeiliHost(),
         index: getMeiliIndexName(),
+        documents: lastKnownMeiliDocumentCount,
+        lastSyncAt: lastSuccessfulMeiliSyncAt ? new Date(lastSuccessfulMeiliSyncAt).toISOString() : null,
         error: error.message,
       },
     };
@@ -440,7 +547,9 @@ export async function getSearchHealth() {
 }
 
 let queuedSync = null;
-export function queueMeiliSync() {
+export function queueMeiliSync(options = {}) {
+  const { delayMs = Number(process.env.MEILI_SYNC_DEBOUNCE_MS || 1500) } = options;
+
   if (!isMeiliEnabled()) {
     return null;
   }
@@ -452,7 +561,7 @@ export function queueMeiliSync() {
   queuedSync = new Promise((resolve) => {
     setTimeout(async () => {
       try {
-        const result = await syncMongoProductsToMeili();
+        const result = await syncMongoProductsToMeili({ force: true });
         resolve(result);
       } catch (error) {
         console.warn("MEILI_SYNC_ERROR", error.message);
@@ -460,7 +569,7 @@ export function queueMeiliSync() {
       } finally {
         queuedSync = null;
       }
-    }, Number(process.env.MEILI_SYNC_DEBOUNCE_MS || 1500));
+    }, delayMs);
   });
 
   return queuedSync;
@@ -472,10 +581,27 @@ export async function searchCatalog(searchTerm) {
   }
 
   try {
-    return await searchProductsWithMeili(searchTerm);
+    await ensureMeiliCatalogReady();
+    const meiliResults = await searchProductsWithMeili(searchTerm);
+
+    if (meiliResults.results.length > 0) {
+      return meiliResults;
+    }
+
+    const fallback = await searchProductsWithMongo(searchTerm);
+    if (fallback.results.length > 0) {
+      queueMeiliSync({ force: true, delayMs: 0 });
+      return {
+        ...fallback,
+        engine: `${fallback.engine}:meili-reindexing`,
+      };
+    }
+
+    return meiliResults;
   } catch (error) {
     console.warn("MEILI_SEARCH_FALLBACK", error.message);
     const fallback = await searchProductsWithMongo(searchTerm);
+    queueMeiliSync({ force: true, delayMs: 0 });
     return {
       ...fallback,
       engine: `${fallback.engine}:fallback`,

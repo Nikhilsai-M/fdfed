@@ -31,6 +31,7 @@ isActive: {
 });
 
 earphoneSchema.index({ sellerId: 1, isActive: 1, created_at: -1 });
+earphoneSchema.index({ isActive: 1, created_at: -1 });
 
 earphoneSchema.index({ title: "text", brand: "text", design: "text" });
 
