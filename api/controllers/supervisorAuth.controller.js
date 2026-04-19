@@ -68,6 +68,7 @@ export const supervisorSignin = async (req, res, next) => {
         success: true,
         supervisor: supervisorData,
         role: "supervisor",
+        token,
       });
   } catch (error) {
     console.error("Supervisor signin error:", error);

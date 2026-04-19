@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { buildApiUrl } from "../../utils/api";
 
 export default function SellerLogin() {
   const navigate = useNavigate();
@@ -22,10 +23,13 @@ export default function SellerLogin() {
 
     try {
       const res = await axios.post(
-        "http://localhost:3000/api/seller/login",
+        buildApiUrl("/api/seller/login"),
         form
       );
       localStorage.setItem("sellerToken", res.data.token);
+      if (res.data.seller) {
+        localStorage.setItem("seller", JSON.stringify(res.data.seller));
+      }
       alert("Login successful");
       navigate("/seller/dashboard"); 
     } catch (err) {

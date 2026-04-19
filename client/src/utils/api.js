@@ -1,14 +1,67 @@
 import axios from "axios";
 
-const LOCAL_API_ORIGIN_PATTERN = /^https?:\/\/(?:localhost|127\.0\.0\.1):3000(?=\/|$)/i;
+const LEGACY_API_ORIGIN_PATTERN = /^https?:\/\/(?:localhost|127\.0\.0\.1|api):3000(?=\/|$)/i;
 const DEFAULT_API_BASE_URL = "http://localhost:3000";
 
 function trimTrailingSlash(value) {
   return String(value || "").replace(/\/+$/, "");
 }
 
+function getStoredAuthToken(targetUrl = "") {
+  if (typeof window === "undefined") {
+    return "";
+  }
+
+  const normalizedTarget = String(targetUrl || "");
+  const isSellerRequest =
+    normalizedTarget.includes("/api/seller/") ||
+    normalizedTarget.endsWith("/api/seller");
+  const isSupervisorRequest =
+    normalizedTarget.includes("/api/supervisor/") ||
+    normalizedTarget.includes("/api/supervisor-auth/");
+  const isAdminRequest =
+    normalizedTarget.includes("/api/admin/") ||
+    normalizedTarget.includes("/api/admin-auth/");
+  const isAuthRoute =
+    normalizedTarget.includes("/api/auth/") ||
+    normalizedTarget.includes("/api/supervisor-auth/") ||
+    normalizedTarget.includes("/api/admin-auth/") ||
+    normalizedTarget.includes("/api/seller/login") ||
+    normalizedTarget.includes("/api/seller/signup");
+
+  if (isAuthRoute) {
+    return "";
+  }
+
+  if (isSellerRequest) {
+    return window.localStorage.getItem("sellerToken") || "";
+  }
+
+  if (isSupervisorRequest) {
+    return window.localStorage.getItem("supervisorToken") || "";
+  }
+
+  if (isAdminRequest) {
+    return window.localStorage.getItem("adminToken") || "";
+  }
+
+  return window.localStorage.getItem("token") || "";
+}
+
+function withAuthorizationHeader(targetUrl, headers = new Headers()) {
+  const nextHeaders = new Headers(headers);
+  const token = getStoredAuthToken(targetUrl);
+
+  if (token && !nextHeaders.has("Authorization")) {
+    nextHeaders.set("Authorization", `Bearer ${token}`);
+  }
+
+  return nextHeaders;
+}
+
 export const API_BASE_URL = trimTrailingSlash(
-  import.meta.env.VITE_API_BASE_URL ||
+  import.meta.env.VITE_API_URL ||
+    import.meta.env.VITE_API_BASE_URL ||
     import.meta.env.VITE_API_PROXY_TARGET ||
     DEFAULT_API_BASE_URL
 );
@@ -18,7 +71,7 @@ export function normalizeApiUrl(url) {
     return url;
   }
 
-  return url.replace(LOCAL_API_ORIGIN_PATTERN, API_BASE_URL);
+  return url.replace(LEGACY_API_ORIGIN_PATTERN, API_BASE_URL);
 }
 
 export function buildApiUrl(path = "") {
@@ -48,18 +101,38 @@ function patchWindowFetch() {
 
   window.fetch = (input, init) => {
     if (typeof input === "string") {
-      return originalFetch(normalizeApiUrl(input), init);
+      const normalizedUrl = normalizeApiUrl(input);
+      return originalFetch(normalizedUrl, {
+        ...init,
+        headers: withAuthorizationHeader(normalizedUrl, init?.headers),
+      });
     }
 
     if (input instanceof URL) {
-      return originalFetch(new URL(normalizeApiUrl(input.toString())), init);
+      const normalizedUrl = normalizeApiUrl(input.toString());
+      return originalFetch(new URL(normalizedUrl), {
+        ...init,
+        headers: withAuthorizationHeader(normalizedUrl, init?.headers),
+      });
     }
 
     if (input instanceof Request) {
-      return originalFetch(new Request(normalizeApiUrl(input.url), input), init);
+      const normalizedUrl = normalizeApiUrl(input.url);
+      const request = new Request(normalizedUrl, {
+        ...input,
+        headers: withAuthorizationHeader(normalizedUrl, input.headers),
+      });
+
+      return originalFetch(request, {
+        ...init,
+        headers: withAuthorizationHeader(normalizedUrl, init?.headers || request.headers),
+      });
     }
 
-    return originalFetch(input, init);
+    return originalFetch(input, {
+      ...init,
+      headers: withAuthorizationHeader("", init?.headers),
+    });
   };
 
   window.__SMART_EXCHANGE_FETCH_PATCHED__ = true;
@@ -77,6 +150,15 @@ function patchAxios() {
 
     if (config.url) {
       config.url = normalizeApiUrl(config.url);
+    }
+
+    const requestUrl = `${config.baseURL || ""}${config.url || ""}`;
+    const token = getStoredAuthToken(requestUrl);
+    if (token && !config.headers?.Authorization) {
+      config.headers = {
+        ...config.headers,
+        Authorization: `Bearer ${token}`,
+      };
     }
 
     return config;

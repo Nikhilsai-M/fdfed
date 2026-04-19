@@ -1,9 +1,9 @@
 // src/context/CartContext.js
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { getCart } from "../services/cartApi";
+import { API_BASE_URL } from "../utils/api";
 
 const CartContext = createContext();
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 
 const getAuthHeaders = (includeJson = false) => {
   const headers = {};
@@ -23,12 +23,20 @@ const getAuthHeaders = (includeJson = false) => {
 export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
   const [cartCount, setCartCount] = useState(0);
+  const customerToken = typeof window !== "undefined" ? localStorage.getItem("token") : "";
+  const currentUser = typeof window !== "undefined" ? localStorage.getItem("user") : "";
+  const isCustomerSession = Boolean(customerToken) && String(currentUser || "").includes('"role":"customer"');
 
   const syncCartCount = useCallback((cart) => {
     setCartCount(cart?.cartCount || 0);
   }, []);
 
   const fetchCartCount = useCallback(async () => {
+    if (!isCustomerSession) {
+      setCartCount(0);
+      return null;
+    }
+
     try {
       const cart = await getCart();
       syncCartCount(cart);
@@ -42,7 +50,7 @@ export const CartProvider = ({ children }) => {
       console.error("Failed to fetch cart count:", error);
       return null;
     }
-  }, [syncCartCount]);
+  }, [isCustomerSession, syncCartCount]);
 
   useEffect(() => {
     fetchCartCount();

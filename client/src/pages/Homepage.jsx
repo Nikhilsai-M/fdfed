@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
+import { buildApiUrl } from '../utils/api';
 
 const HomePage = () => {
   const [products, setProducts] = useState([]);
@@ -12,7 +13,7 @@ const HomePage = () => {
   useEffect(() => {
     const fetchLatestProducts = async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/latest-products', {
+        const response = await fetch(buildApiUrl('/api/latest-products'), {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
         });

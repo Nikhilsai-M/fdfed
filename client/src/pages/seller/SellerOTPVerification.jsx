@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { buildApiUrl } from "../../utils/api";
 
 export default function SellerOTPVerification() {
   const [otp, setOtp] = useState("");
@@ -28,7 +29,7 @@ export default function SellerOTPVerification() {
     setLoading(true);
 
     try {
-      await axios.post("http://localhost:3000/api/seller/signup/verify", { email, otp });
+      await axios.post(buildApiUrl("/api/seller/signup/verify"), { email, otp });
       alert("Verification successful! You can now log in.");
       navigate("/seller/login");
     } catch (err) {
@@ -42,7 +43,7 @@ export default function SellerOTPVerification() {
     setError("");
     setMessage("");
     try {
-      const res = await axios.post("http://localhost:3000/api/seller/signup/resend-otp", { email });
+      const res = await axios.post(buildApiUrl("/api/seller/signup/resend-otp"), { email });
       setMessage(res.data.message || "A new OTP has been sent to your email.");
     } catch (err) {
       setError(err.response?.data?.message || "Failed to resend OTP.");

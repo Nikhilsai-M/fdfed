@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { handleAxiosUnauthorized } from '../../utils/sessionRedirect';
+import { buildApiUrl } from "../../utils/api";
 
 const globalStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap');
@@ -83,17 +84,25 @@ const Icon = ({ name }) => {
 export default function SellerDashboard() {
   const [products, setProducts] = useState([]);
   const [stats, setStats] = useState({ totalProducts: 0, totalOrders: 0, revenue: 0 });
+  const [seller, setSeller] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("seller")) || null;
+    } catch {
+      return null;
+    }
+  });
 
   const token = localStorage.getItem("sellerToken");
 
   useEffect(() => {
     fetchProducts();
     fetchStats();
+    fetchSellerProfile();
   }, []);
 
   const fetchProducts = async () => {
     try {
-      const res = await axios.get("http://localhost:3000/api/seller/products", {
+      const res = await axios.get(buildApiUrl("/api/seller/products"), {
         withCredentials: true,
       });
       setProducts(res.data.products);
@@ -102,16 +111,35 @@ export default function SellerDashboard() {
 
   const fetchStats = async () => {
     try {
-      const res = await axios.get("http://localhost:3000/api/seller/dashboard", {
+      const res = await axios.get(buildApiUrl("/api/seller/dashboard"), {
         withCredentials: true,
       });
       setStats(res.data.stats);
     } catch (err) { if (handleAxiosUnauthorized(err, 'seller')) return; console.error(err); }
   };
 
+  const fetchSellerProfile = async () => {
+    try {
+      const res = await axios.get(buildApiUrl("/api/seller/profile-analytics"), {
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
+      });
+
+      const nextSeller = res.data?.data?.seller || null;
+      setSeller(nextSeller);
+
+      if (nextSeller) {
+        localStorage.setItem("seller", JSON.stringify(nextSeller));
+      }
+    } catch (err) {
+      if (handleAxiosUnauthorized(err, 'seller')) return;
+      console.error(err);
+    }
+  };
+
   const deleteProduct = async (id, category) => {
     try {
-      await axios.delete(`http://localhost:3000/api/seller/products/${id}`, {
+      await axios.delete(buildApiUrl(`/api/seller/products/${id}`), {
         data: { category },
         withCredentials: true,
       });
@@ -121,9 +149,10 @@ export default function SellerDashboard() {
 
   const logout = async () => {
     try {
-      await axios.post("http://localhost:3000/api/seller/logout", {}, { withCredentials: true });
+      await axios.post(buildApiUrl("/api/seller/logout"), {}, { withCredentials: true });
     } catch (err) { console.error(err); }
     localStorage.removeItem("sellerToken");
+    localStorage.removeItem("seller");
     window.location.href = "/seller/login";
   };
 
@@ -204,6 +233,42 @@ export default function SellerDashboard() {
             </h1>
             <p style={{ color: "#64748b", marginTop: 4, fontSize: 14 }}>Welcome back — here's what's happening today.</p>
           </div>
+
+          {seller && (
+            <div
+              style={{
+                marginBottom: 24,
+                background: "linear-gradient(135deg, #ffffff 0%, #eef2ff 100%)",
+                border: "1px solid #e2e8f0",
+                borderRadius: 16,
+                padding: "20px 24px",
+                boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
+                animation: "fadeUp 0.45s ease both",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+                <div>
+                  <p style={{ fontSize: 12, color: "#6366f1", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>
+                    Logged In Seller
+                  </p>
+                  <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: 22, color: "#0f172a", margin: 0 }}>
+                    {seller.storeName || "Seller Store"}
+                  </h2>
+                  <p style={{ color: "#475569", fontSize: 14, marginTop: 6 }}>
+                    {seller.name || "Seller"} · {seller.email || "No email"}
+                  </p>
+                </div>
+                <div style={{ minWidth: 220 }}>
+                  <p style={{ margin: 0, color: "#64748b", fontSize: 13 }}>
+                    <strong style={{ color: "#0f172a" }}>Phone:</strong> {seller.phoneNumber || "N/A"}
+                  </p>
+                  <p style={{ margin: "6px 0 0", color: "#64748b", fontSize: 13 }}>
+                    <strong style={{ color: "#0f172a" }}>Address:</strong> {seller.businessAddress || "N/A"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Stat Cards */}
           <div style={{ display: "flex", gap: 20, marginBottom: 44 }}>

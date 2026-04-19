@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import SupervisorLayout from "../../components/supervisor/SupervisorLayout";
+import { buildApiUrl } from "../../utils/api";
 
 export default function VerifyListings() {
     const [applications, setApplications] = useState([]);
@@ -24,7 +25,7 @@ export default function VerifyListings() {
 
     const fetchApplications = async () => {
         try {
-            const res = await fetch('http://localhost:3000/api/supervisor/verify-applications', {
+            const res = await fetch(buildApiUrl('/api/supervisor/verify-applications'), {
                 credentials: 'include'
             });
             const data = await res.json();
@@ -61,7 +62,7 @@ export default function VerifyListings() {
 
     const showApplicationDetails = async (app) => {
         try {
-            const res = await fetch(`http://localhost:3000/api/supervisor/application/${app.type}/${app.id}`, {
+            const res = await fetch(buildApiUrl(`/api/supervisor/application/${app.type}/${app.id}`), {
                 credentials: 'include'
             });
             const data = await res.json();
@@ -97,7 +98,7 @@ export default function VerifyListings() {
             }
 
             const res = await fetch(
-                `http://localhost:3000/api/supervisor/application/${selectedApplication.type}/${selectedApplication.id}/status`,
+                buildApiUrl(`/api/supervisor/application/${selectedApplication.type}/${selectedApplication.id}/status`),
                 {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
@@ -130,7 +131,7 @@ export default function VerifyListings() {
 
         try {
             const res = await fetch(
-                `http://localhost:3000/api/supervisor/add-to-inventory/${selectedApplication.type}/${selectedApplication.id}`,
+                buildApiUrl(`/api/supervisor/add-to-inventory/${selectedApplication.type}/${selectedApplication.id}`),
                 {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },

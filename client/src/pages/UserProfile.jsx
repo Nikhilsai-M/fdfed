@@ -5,8 +5,7 @@ import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
 import { useAppDispatch } from '../hooks/redux';
 import { logout } from '../store/slices/authSlice';
-
-const API_BASE_URL = 'http://localhost:3000';
+import { buildApiUrl } from '../utils/api';
 
 export default function UserProfile() {
   const navigate = useNavigate();
@@ -65,7 +64,7 @@ export default function UserProfile() {
         return;
       }
 
-      const res = await fetch(`${API_BASE_URL}/api/customer/profile`, {
+      const res = await fetch(buildApiUrl('/api/customer/profile'), {
         credentials: 'include',
       });
 
@@ -82,7 +81,7 @@ export default function UserProfile() {
 
       const baseUser = data.user;
 
-      const listingsRes = await fetch(`${API_BASE_URL}/api/customer/listings`, {
+      const listingsRes = await fetch(buildApiUrl('/api/customer/listings'), {
         credentials: 'include',
       });
 
@@ -284,7 +283,7 @@ export default function UserProfile() {
 
     setSaving(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/customer/profile`, {
+      const res = await fetch(buildApiUrl('/api/customer/profile'), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -340,7 +339,7 @@ export default function UserProfile() {
 
     setSaving(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/customer/password`, {
+      const res = await fetch(buildApiUrl('/api/customer/password'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

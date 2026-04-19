@@ -5,8 +5,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAppSelector } from "../hooks/redux";
 import { clearCart as clearBackendCart, getCart as getBackendCart } from "../services/cartApi";
 import { redirectIfUnauthorizedResponse } from "../utils/sessionRedirect";
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+import { API_BASE_URL } from "../utils/api";
 const RAZORPAY_SCRIPT = "https://checkout.razorpay.com/v1/checkout.js";
 
 const loadRazorpayScript = () =>

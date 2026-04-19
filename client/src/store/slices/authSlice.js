@@ -1,6 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-
-const API_BASE_URL = 'http://localhost:3000';
+import { buildApiUrl } from '../../utils/api';
 
 
 export const loginUser = createAsyncThunk(
@@ -10,15 +9,14 @@ export const loginUser = createAsyncThunk(
       let endpoint, body;
 
       if (userType === 'supervisor') {
-        endpoint = `${API_BASE_URL}/api/supervisor-auth/signin`;
+        endpoint = buildApiUrl('/api/supervisor-auth/signin');
         body = { username, password };
       } else if (userType === 'admin') {
-        endpoint = `${API_BASE_URL}/api/admin-auth/admin-signin`;
+        endpoint = buildApiUrl('/api/admin-auth/admin-signin');
         body = { username, password, securityToken };
       } else {
-      
-        endpoint = `${API_BASE_URL}/api/auth/signin`;
         body = { username, password };
+        endpoint = buildApiUrl('/api/auth/signin');
       }
 
       let response = await fetch(endpoint, {
@@ -32,7 +30,7 @@ export const loginUser = createAsyncThunk(
 
       
       if ((!response.ok || data.success === false) && userType === 'customer') {
-        response = await fetch(`${API_BASE_URL}/api/supervisor-auth/signin`, {
+        response = await fetch(buildApiUrl('/api/supervisor-auth/signin'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
@@ -81,7 +79,7 @@ export const checkSupervisorExists = createAsyncThunk(
   'auth/checkSupervisorExists',
   async (username) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/supervisor-auth/check?username=${encodeURIComponent(username)}`, {
+      const response = await fetch(buildApiUrl(`/api/supervisor-auth/check?username=${encodeURIComponent(username)}`), {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include'
@@ -98,7 +96,11 @@ const authSlice = createSlice({
   name: 'auth',
   initialState: {
     user: JSON.parse(localStorage.getItem('user')) || null,
-    token: localStorage.getItem('token') || null,
+    token:
+      localStorage.getItem('token') ||
+      localStorage.getItem('supervisorToken') ||
+      localStorage.getItem('adminToken') ||
+      null,
     userType: 'customer', 
     loading: false,
     error: null,
@@ -121,17 +123,25 @@ const authSlice = createSlice({
       state.error = null;
       localStorage.removeItem('user');
       localStorage.removeItem('token');
+      localStorage.removeItem('supervisorToken');
+      localStorage.removeItem('adminToken');
       
-      ['/api/auth/signout', '/api/supervisor-auth/signout', '/api/admin-auth/signout'].forEach(endpoint => {
-        fetch(`${API_BASE_URL}${endpoint}`, { 
-          method: 'POST',
-          credentials: 'include'
-        }).catch(console.error);
-      });
+      fetch(buildApiUrl('/api/auth/signout'), {
+        method: 'POST',
+        credentials: 'include'
+      }).catch(console.error);
+
+      fetch(buildApiUrl('/api/supervisor/logout'), {
+        method: 'GET',
+        credentials: 'include'
+      }).catch(console.error);
     },
     initializeAuth: (state) => {
       const savedUser = localStorage.getItem('user');
-      const savedToken = localStorage.getItem('token');
+      const savedToken =
+        localStorage.getItem('token') ||
+        localStorage.getItem('supervisorToken') ||
+        localStorage.getItem('adminToken');
       if (savedUser && savedToken) {
         state.user = JSON.parse(savedUser);
         state.token = savedToken;
@@ -154,7 +164,17 @@ const authSlice = createSlice({
         
         // Save to localStorage
         localStorage.setItem('user', JSON.stringify(state.user));
-        localStorage.setItem('token', state.token);
+        localStorage.removeItem('token');
+        localStorage.removeItem('supervisorToken');
+        localStorage.removeItem('adminToken');
+
+        if (action.payload.role === 'supervisor') {
+          localStorage.setItem('supervisorToken', state.token || '');
+        } else if (action.payload.role === 'admin') {
+          localStorage.setItem('adminToken', state.token || '');
+        } else {
+          localStorage.setItem('token', state.token || '');
+        }
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
