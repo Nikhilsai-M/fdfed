@@ -6,11 +6,11 @@ Smart Exchange is a full-stack marketplace for buying, selling, and managing pho
 
 - MongoDB indexing and query-plan based DB optimization
 - Redis caching for repeated search, analytics, and dashboard reads
-- Meilisearch-backed search with Mongo text-search fallback
+- MongoDB text-search across phones, laptops, and accessories
 - REST web services with Swagger/OpenAPI documentation
 - External API consumption through Razorpay and Cloudinary
 - Unit/API tests with coverage output in `api/coverage/`
-- Dockerized local stack with MongoDB and Redis, using hosted Meilisearch
+- Dockerized local stack with MongoDB and Redis
 - GitHub Actions CI
 - Deployment-ready frontend and backend configuration
 
@@ -20,7 +20,6 @@ Smart Exchange is a full-stack marketplace for buying, selling, and managing pho
 - Backend local: `http://localhost:3000`
 - Swagger UI: `http://localhost:3000/api-docs`
 - Health endpoint: `http://localhost:3000/api/health`
-- Meilisearch: configured via `MEILI_HOST`
 
 ## Local Setup
 
@@ -45,13 +44,6 @@ This starts:
 - `api`
 - `client`
 
-4. If `SEARCH_ENGINE=meilisearch`, sync MongoDB products into the hosted Meilisearch index after startup:
-
-```bash
-cd api
-npm run search:meili:sync
-```
-
 ## Review Commands
 
 Run these from `api/`:
@@ -60,7 +52,6 @@ Run these from `api/`:
 npm test
 npm run benchmark:db
 npm run benchmark:cache
-npm run search:meili:sync
 ```
 
 What each one gives you:
@@ -68,13 +59,12 @@ What each one gives you:
 - `npm test`: unit/API test report plus coverage files in `api/coverage/`
 - `npm run benchmark:db`: query-plan evidence for indexed search
 - `npm run benchmark:cache`: cold vs warm cache timings and Redis improvement
-- `npm run search:meili:sync`: populates the Meilisearch product index for demos or deploys
 
 ## Search Strategy
 
-- Default external search path: Meilisearch via `SEARCH_ENGINE=meilisearch`
-- Resilient fallback: MongoDB text indexes when Meilisearch is unavailable
-- Search responses include an `engine` field so you can show whether the request was served by `meilisearch`, `mongo-text`, or `mongo-text:fallback`
+- Search runs on MongoDB text indexes
+- Redis caches repeated search responses
+- Search responses include an `engine` field for cached responses
 
 ## API Documentation
 
@@ -85,7 +75,7 @@ What each one gives you:
 
 - Frontend is prepared for Vercel with `vercel.json`.
 - Set `VITE_API_BASE_URL` in Vercel to your deployed backend URL, for example `https://your-api.onrender.com`.
-- Backend should be deployed as a Node service with MongoDB, Redis, and optionally Meilisearch connectivity.
+- Backend should be deployed as a Node service with MongoDB and Redis connectivity.
 - Full deployment notes: `DEPLOYMENT.md`
 
 ## Performance Notes

@@ -1,7 +1,9 @@
 import express from 'express';
 import { getAllPhones, getPhoneById, getLatestPhones } from '../crud/phones.js';
+import { cacheResponse } from "../middleware/cache.middleware.js";
 
 const router = express.Router();
+const inventoryCacheTtl = parseInt(process.env.INVENTORY_CACHE_TTL_SECONDS || "120", 10);
 
 /**
  * @swagger
@@ -20,7 +22,13 @@ const router = express.Router();
  *       200:
  *         description: Latest phones fetched successfully
  */
-router.get('/latest-phones', async (req, res) => {
+router.get(
+  '/latest-phones',
+  cacheResponse({
+    keyBuilder: () => "inventory:phones:latest",
+    ttlSeconds: inventoryCacheTtl,
+  }),
+  async (req, res) => {
   try {
     const phones = await getLatestPhones();
     res.json(phones);
@@ -48,7 +56,13 @@ router.get('/latest-phones', async (req, res) => {
  *       404:
  *         description: Phone not found
  */
-router.get('/:id', async (req, res) => {
+router.get(
+  '/:id',
+  cacheResponse({
+    keyBuilder: (req) => `inventory:phone:${req.params.id}`,
+    ttlSeconds: inventoryCacheTtl,
+  }),
+  async (req, res) => {
   try {
     const phone = await getPhoneById(req.params.id);
     if (!phone) {
@@ -71,7 +85,13 @@ router.get('/:id', async (req, res) => {
  *       200:
  *         description: List of phones
  */
-router.get('/', async (req, res) => {
+router.get(
+  '/',
+  cacheResponse({
+    keyBuilder: () => "inventory:phones:all",
+    ttlSeconds: inventoryCacheTtl,
+  }),
+  async (req, res) => {
   try {
     const phones = await getAllPhones();
     res.json(phones);
