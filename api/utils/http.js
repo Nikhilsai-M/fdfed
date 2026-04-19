@@ -41,8 +41,21 @@ export function getAllowedOrigins() {
 
   return rawOrigins
     .split(",")
-    .map((origin) => origin.trim())
+    .map((origin) => origin.trim().replace(/\/$/, ""))
     .filter(Boolean);
+}
+
+function escapeRegex(value) {
+  return value.replace(/[|\\{}()[\]^$+?.]/g, "\\$&");
+}
+
+function matchesOriginPattern(origin, pattern) {
+  if (!pattern.includes("*")) {
+    return origin === pattern;
+  }
+
+  const regex = new RegExp(`^${pattern.split("*").map(escapeRegex).join(".*")}$`);
+  return regex.test(origin);
 }
 
 export function isAllowedOrigin(origin) {
@@ -50,6 +63,8 @@ export function isAllowedOrigin(origin) {
     return true;
   }
 
-  return getAllowedOrigins().includes(origin);
+  const normalizedOrigin = origin.replace(/\/$/, "");
+  return getAllowedOrigins().some((allowedOrigin) =>
+    matchesOriginPattern(normalizedOrigin, allowedOrigin)
+  );
 }
-
