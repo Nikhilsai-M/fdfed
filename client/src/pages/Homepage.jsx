@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
-import { buildApiUrl } from '../utils/api';
+import { buildApiUrl, buildAssetUrl } from '../utils/api';
 
 const HomePage = () => {
   const [products, setProducts] = useState([]);
@@ -73,10 +73,10 @@ const HomePage = () => {
   };
 
   const slides = [
-    'src/assets/images/carousal/home/pic-1.jpeg',
-    'src/assets/images/carousal/home/pic-2.jpeg',
-    'src/assets/images/carousal/home/pic-3.jpeg',
-    'src/assets/images/carousal/home/pic-4.jpeg',
+    '/images/carousal/home/pic-1.jpeg',
+    '/images/carousal/home/pic-2.jpeg',
+    '/images/carousal/home/pic-3.jpeg',
+    '/images/carousal/home/pic-4.jpeg',
   ];
   const slideLinks = ['', '', '/Accessories', '/buy-phone'];
 
@@ -342,7 +342,7 @@ const HomePage = () => {
 
                       <div className="relative overflow-hidden rounded-xl mb-4 bg-gray-50 p-4">
                         <img
-                          src={product.image}
+                          src={buildAssetUrl(product.image)}
                           alt={`${product.brand} ${product.model}`}
                           className="w-full h-52 object-contain mx-auto image-hover"
                         />
@@ -387,14 +387,14 @@ const HomePage = () => {
         <div className="bg-gradient-to-br from-white to-blue-50 p-10 rounded-2xl mx-4 shadow-xl">
           <div className="flex flex-wrap justify-center gap-6">
             {[
-              { brand: 'Apple', img: 'src/assets/images/topbrands/iphone.webp' },
-              { brand: 'Samsung', img: 'src/assets/images/topbrands/samsung.webp' },
-              { brand: 'Xiaomi', img: 'src/assets/images/topbrands/xiaomi.webp' },
-              { brand: 'OnePlus', img: 'src/assets/images/topbrands/oneplus.webp' },
-              { brand: 'Realme', img: '/src/assets/images/topbrands/realme.webp' },
-              { brand: 'Motorola', img: 'src/assets/images/topbrands/motorola.webp' },
-              { brand: 'Google', img: '/src/assets/images/topbrands/google pixel.webp' },
-              { brand: 'Vivo', img: '/src/assets/images/topbrands/vivo.png' },
+              { brand: 'Apple', img: '/images/topbrands/iphone.webp' },
+              { brand: 'Samsung', img: '/images/topbrands/samsung.webp' },
+              { brand: 'Xiaomi', img: '/images/topbrands/xiaomi.webp' },
+              { brand: 'OnePlus', img: '/images/topbrands/oneplus.webp' },
+              { brand: 'Realme', img: '/images/topbrands/realme.webp' },
+              { brand: 'Motorola', img: '/images/topbrands/motorola.webp' },
+              { brand: 'Google', img: '/images/topbrands/google-pixel.webp' },
+              { brand: 'Vivo', img: '/images/topbrands/vivo.png' },
             ].map(({ brand, img }, index) => (
               <div
                 key={brand}

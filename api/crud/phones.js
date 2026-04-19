@@ -1,7 +1,4 @@
 import Phone from '../models/phone.model.js';
-// import iphone12 from '../../client/src/assets/images/phones/iphone12.webp';
-
-const prefix = '/images/earphones/'; 
 export async function initPhones() {
   try {
     const phoneCount = await Phone.countDocuments();
@@ -12,7 +9,7 @@ export async function initPhones() {
           brand: 'APPLE',
           model: 'iphone 12',
           color: 'Black',
-          image: '../../client/src/assets/images/phones/iphone12.webp',
+          image: '/images/phones/iphone12.webp',
           processor: 'a 20 bionic',
           display: '4.9',
           battery: 1000,
@@ -31,7 +28,7 @@ export async function initPhones() {
           brand: 'SAMSUNG',
           model: 'Galax S10 lite',
           color: 'Black',
-          image: '../../client/src/assets/images/phones/samsung_s10.webp',
+          image: '/images/phones/samsung_s10.webp',
           processor: 'snapdragon 6gen',
           display: '5.9',
           battery: 2000,

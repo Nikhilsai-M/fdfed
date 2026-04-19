@@ -4,6 +4,7 @@ import Header from "../components/common/Header";
 import Footer from "../components/common/Footer";
 import { Link } from "react-router-dom";
 import AddToCartButton from "../components/AddToCartButton";
+import { buildAssetUrl } from "../utils/api";
 
 const MousePage = () => {
   const [mouses, setMouses] = useState([]);
@@ -193,7 +194,7 @@ const MousePage = () => {
                       <Link to={`/mouse/${mouse.id}`} className="block">
                         <div className="relative bg-gradient-to-br from-gray-50 to-gray-100 aspect-video">
                           <img
-                            src={mouse.image}
+                            src={buildAssetUrl(mouse.image)}
                             alt={mouse.title}
                             className="w-full h-full object-contain group-hover:scale-105 transition"
                           />

@@ -6,6 +6,7 @@ import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
 import { Check, X, ShoppingCart, Zap } from 'lucide-react';
 import { addCartItem } from '../services/cartApi';
+import { buildAssetUrl } from '../utils/api';
 
 // PhoneFilter Component (now integrated)
 const PhoneFilter = ({ filters, onFilterChange, onClearFilters }) => {
@@ -271,7 +272,7 @@ const ProductCard = ({ product, onAddToCart, onBuyNow }) => {
     <div className="phone-product" onClick={handleCardClick} style={{ cursor: 'pointer' }}>
       <div className="phone-product-container">
         <div className="phone-product-image">
-          <img src={product.image} alt={`${product.brand} ${product.model}`} />
+          <img src={buildAssetUrl(product.image)} alt={`${product.brand} ${product.model}`} />
           <div className="phone-discount-badge">{product.pricing.discount}% OFF</div>
           <div className="phone-condition-badge">{product.condition}</div>
         </div>

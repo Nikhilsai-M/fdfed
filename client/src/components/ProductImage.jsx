@@ -1,13 +1,14 @@
 // src/components/ProductImage.jsx
 import React from 'react';
 import PropTypes from 'prop-types';
+import { buildAssetUrl } from '../utils/api';
 
 const ProductImage = ({ image, alt, condition }) => {
   return (
     <div className="product-image relative">
       <div className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 aspect-[4/3] rounded-xl shadow-xl">
         <img
-          src={image}
+          src={buildAssetUrl(image)}
           alt={alt}
           className="w-full h-full object-contain hover:scale-105 transition-transform duration-300 ease-in-out"
         />

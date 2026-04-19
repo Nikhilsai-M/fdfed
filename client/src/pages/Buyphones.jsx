@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Sparkles, TrendingUp, Award, Zap, Shield, Clock } from 'lucide-react';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
-import { buildApiUrl } from '../utils/api';
+import { buildApiUrl, buildAssetUrl } from '../utils/api';
 
 const BuyPhones = () => {
   const [latestProducts, setLatestProducts] = useState([]);
@@ -16,27 +16,27 @@ const BuyPhones = () => {
   const navigate = useNavigate();
 
   const carouselImages = [
-    'src/assets/images/buy_phone/img1.jpeg',
-    'src/assets/images/buy_phone/img2.jpeg',
-    'src/assets/images/carousal/home/pic-2.jpeg'
+    '/images/buy_phone/img1.jpeg',
+    '/images/buy_phone/img2.jpeg',
+    '/images/carousal/home/pic-2.jpeg'
   ];
 
   const topBrands = [
-    { name: 'Apple', image: 'src/assets/images/topbrands/iphone.webp', color: 'from-gray-700 to-gray-900' },
-    { name: 'Samsung', image: 'src/assets/images/topbrands/samsung.webp', color: 'from-blue-600 to-blue-800' },
-    { name: 'Xiaomi', image: 'src/assets/images/topbrands/xiaomi.webp', color: 'from-orange-500 to-orange-700' },
-    { name: 'OnePlus', image: 'src/assets/images/topbrands/oneplus.webp', color: 'from-red-600 to-red-800' },
-    { name: 'Realme', image: 'src/assets/images/topbrands/realme.webp', color: 'from-yellow-500 to-yellow-700' },
-    { name: 'Motorola', image: 'src/assets/images/topbrands/motorola.webp', color: 'from-indigo-600 to-indigo-800' },
-    { name: 'Google', image: 'src/assets/images/topbrands/google pixel.webp', color: 'from-green-600 to-green-800' },
-    { name: 'Vivo', image: 'src/assets/images/topbrands/vivo.png', color: 'from-blue-500 to-blue-700' }
+    { name: 'Apple', image: '/images/topbrands/iphone.webp', color: 'from-gray-700 to-gray-900' },
+    { name: 'Samsung', image: '/images/topbrands/samsung.webp', color: 'from-blue-600 to-blue-800' },
+    { name: 'Xiaomi', image: '/images/topbrands/xiaomi.webp', color: 'from-orange-500 to-orange-700' },
+    { name: 'OnePlus', image: '/images/topbrands/oneplus.webp', color: 'from-red-600 to-red-800' },
+    { name: 'Realme', image: '/images/topbrands/realme.webp', color: 'from-yellow-500 to-yellow-700' },
+    { name: 'Motorola', image: '/images/topbrands/motorola.webp', color: 'from-indigo-600 to-indigo-800' },
+    { name: 'Google', image: '/images/topbrands/google-pixel.webp', color: 'from-green-600 to-green-800' },
+    { name: 'Vivo', image: '/images/topbrands/vivo.png', color: 'from-blue-500 to-blue-700' }
   ];
 
   const priceCategories = [
-    { price: '10,000', value: 10000, bg: 'from-cyan-400 to-cyan-600', image: 'src/assets/images/buy_phone/img4.webp', icon: '💰' },
-    { price: '20,000', value: 20000, bg: 'from-amber-400 to-amber-600', image: 'src/assets/images/buy_phone/img5.webp', icon: '💳' },
-    { price: '30,000', value: 30000, bg: 'from-blue-400 to-blue-600', image: 'src/assets/images/buy_phone/img6.webp', icon: '💎' },
-    { price: '50,000', value: 50000, bg: 'from-green-400 to-green-600', image: 'src/assets/images/buy_phone/img7.webp', icon: '👑' }
+    { price: '10,000', value: 10000, bg: 'from-cyan-400 to-cyan-600', image: '/images/buy_phone/img4.webp', icon: '💰' },
+    { price: '20,000', value: 20000, bg: 'from-amber-400 to-amber-600', image: '/images/buy_phone/img5.webp', icon: '💳' },
+    { price: '30,000', value: 30000, bg: 'from-blue-400 to-blue-600', image: '/images/buy_phone/img6.webp', icon: '💎' },
+    { price: '50,000', value: 50000, bg: 'from-green-400 to-green-600', image: '/images/buy_phone/img7.webp', icon: '👑' }
   ];
 
   
@@ -374,7 +374,7 @@ const fetchLatestProducts = async () => {
       {/* Banner Image with Parallax Effect */}
       <div className="mx-4 mb-12 animate-fade-in-up relative group">
         <img
-          src="src/assets/images/buy_phone/img3.jpeg"
+          src="/images/buy_phone/img3.jpeg"
           alt="Banner"
           className="w-full rounded-3xl shadow-2xl transform group-hover:scale-[1.02] transition-transform duration-500"
         />
@@ -430,7 +430,7 @@ const fetchLatestProducts = async () => {
                     <Link to={`/product/${product.id}`} className="block text-black no-underline">
                       <div className="relative overflow-hidden rounded-xl mb-4 bg-gradient-to-br from-gray-50 to-gray-100 p-4">
                         <img
-                          src={product.image}
+                          src={buildAssetUrl(product.image)}
                           alt={`${product.brand} ${product.model}`}
                           className="w-full h-52 object-contain mx-auto image-hover"
                         />

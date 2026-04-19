@@ -6,6 +6,7 @@ import '../styles/FilterLaptops.css';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
 import { addCartItem } from '../services/cartApi';
+import { buildAssetUrl } from '../utils/api';
 
 // LaptopFilter Component (now integrated)
 const LaptopFilter = ({ filters, onFilterChange, onClearFilters }) => {
@@ -344,7 +345,7 @@ const ProductCard = ({ product, onAddToCart, onBuyNow }) => {
       <div className="laptop-product-container">
         <div className="laptop-product-image">
           <img 
-            src={product.image} 
+            src={buildAssetUrl(product.image)} 
             alt={`${product.brand} ${product.series}`}
             loading="lazy"
           />
