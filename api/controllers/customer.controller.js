@@ -5,8 +5,8 @@ import { errorHandler } from "../utils/error.js";
 import { getPhoneApplicationsByUserId, getLaptopApplicationsByUserId } from "../crud/applications.js";
 import PhoneApplication from "../models/phoneApplication.model.js";
 import LaptopApplication from "../models/laptopApplication.model.js";
-import Notification from "../models/notification.model.js"; // Add this import
-import { v4 as uuidv4 } from 'uuid'; // Add this import
+import Notification from "../models/notification.model.js"; 
+import { v4 as uuidv4 } from 'uuid';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_REGEX = /^[0-9+\-\s()]{10,15}$/;
