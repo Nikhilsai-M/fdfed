@@ -35,9 +35,13 @@ describe("sellerDashboard.controller", () => {
     vi.clearAllMocks();
   });
 
+  // ─── Cache key ────────────────────────────────────────────────────────────
+
   it("builds a stable cache key for seller dashboards", () => {
     expect(getSellerDashboardCacheKey("seller-42")).toBe("seller-dashboard:seller-42");
   });
+
+  // ─── getSellerDashboard ───────────────────────────────────────────────────
 
   it("aggregates seller revenue and unique order count", async () => {
     const res = createResponse();
@@ -47,12 +51,7 @@ describe("sellerDashboard.controller", () => {
       { order_id: "order-2", amount: "100.25" },
     ]);
 
-    await getSellerDashboard(
-      {
-        user: { id: "seller-1" },
-      },
-      res
-    );
+    await getSellerDashboard({ user: { id: "seller-1" } }, res);
 
     expect(orderItemMocks.find).toHaveBeenCalledWith({ seller_id: "seller-1" });
     expect(res.body).toEqual({
@@ -64,16 +63,23 @@ describe("sellerDashboard.controller", () => {
     });
   });
 
+  it("returns zero totals when the seller has no order items", async () => {
+    const res = createResponse();
+    orderItemMocks.find.mockResolvedValue([]);
+
+    await getSellerDashboard({ user: { id: "seller-2" } }, res);
+
+    expect(res.body).toEqual({
+      success: true,
+      stats: { totalOrders: 0, revenue: 0 },
+    });
+  });
+
   it("returns a server error response when aggregation fails", async () => {
     const res = createResponse();
     orderItemMocks.find.mockRejectedValue(new Error("db down"));
 
-    await getSellerDashboard(
-      {
-        user: { id: "seller-1" },
-      },
-      res
-    );
+    await getSellerDashboard({ user: { id: "seller-1" } }, res);
 
     expect(res.statusCode).toBe(500);
     expect(res.body).toEqual({

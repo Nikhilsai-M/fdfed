@@ -6,11 +6,19 @@ import {
 } from "../services/cart.service.js";
 
 describe("cart.service", () => {
+  // ─── isSupportedCartProductType ───────────────────────────────────────────
+
   it("validates supported product types", () => {
     expect(isSupportedCartProductType("phone")).toBe(true);
     expect(isSupportedCartProductType(" smartwatch ")).toBe(true);
     expect(isSupportedCartProductType("tablet")).toBe(false);
   });
+
+  it("rejects empty string as unsupported product type", () => {
+    expect(isSupportedCartProductType("")).toBe(false);
+  });
+
+  // ─── buildCartSnapshot : phone ────────────────────────────────────────────
 
   it("builds a phone snapshot with calculated pricing", () => {
     const snapshot = buildCartSnapshot("phone", {
@@ -42,6 +50,37 @@ describe("cart.service", () => {
     expect(snapshot.available).toBe(true);
   });
 
+  it("returns null for a phone when product is null", () => {
+    const result = buildCartSnapshot("phone", null);
+    expect(result).toBeNull();
+  });
+
+  // ─── buildCartSnapshot : laptop ───────────────────────────────────────────
+
+  it("builds a laptop snapshot with calculated pricing and storage string", () => {
+    const snapshot = buildCartSnapshot("laptop", {
+      brand: "HP",
+      series: "Spectre x360",
+      image: "/laptop.png",
+      pricing: { basePrice: 90000, discount: 5 },
+      processor: { name: "Intel Core i7", generation: "13th Gen" },
+      memory: { ram: "16GB", storage: { type: "SSD", capacity: "512GB" } },
+      displaysize: 13.5,
+      os: "Windows 11",
+      weight: 1.4,
+      condition: "New",
+    });
+
+    expect(snapshot.unitPrice).toBe(85500);
+    expect(snapshot.snapshot.title).toBe("HP Spectre x360");
+    expect(snapshot.snapshot.processor).toBe("Intel Core i7 13th Gen");
+    expect(snapshot.snapshot.storage).toBe("SSD 512GB");
+    expect(snapshot.snapshot.display).toBe('13.5"');
+    expect(snapshot.available).toBe(true);
+  });
+
+  // ─── buildCartSnapshot : accessory ────────────────────────────────────────
+
   it("builds an accessory snapshot with stock awareness", () => {
     const snapshot = buildCartSnapshot("charger", {
       title: "GaN Charger",
@@ -59,6 +98,26 @@ describe("cart.service", () => {
     expect(snapshot.available).toBe(false);
     expect(snapshot.snapshot.connectorType).toBe("USB-C");
   });
+
+  it("builds an earphone snapshot with design and battery life fields", () => {
+    const snapshot = buildCartSnapshot("earphone", {
+      title: "Sony WF-1000XM4",
+      brand: "Sony",
+      image: "/earphone.png",
+      originalPrice: 20000,
+      discount: 15,
+      design: "In-ear",
+      batteryLife: "8 hours",
+      stock: 5,
+    });
+
+    expect(snapshot.unitPrice).toBe(17000);
+    expect(snapshot.available).toBe(true);
+    expect(snapshot.snapshot.design).toBe("In-ear");
+    expect(snapshot.snapshot.batteryLife).toBe("8 hours");
+  });
+
+  // ─── serializeCart ────────────────────────────────────────────────────────
 
   it("serializes cart items and totals", () => {
     const cart = {
@@ -99,5 +158,13 @@ describe("cart.service", () => {
     expect(serialized.subtotal).toBe(2500);
     expect(serialized.items).toHaveLength(2);
     expect(serialized.items[0].itemId).toBe("item-1");
+  });
+
+  it("returns an empty cart when called with null", () => {
+    const serialized = serializeCart(null);
+    expect(serialized.items).toEqual([]);
+    expect(serialized.cartCount).toBe(0);
+    expect(serialized.subtotal).toBe(0);
+    expect(serialized.userId).toBeNull();
   });
 });

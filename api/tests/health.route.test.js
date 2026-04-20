@@ -12,4 +12,9 @@ describe("GET /api/health", () => {
     expect(response.body).toHaveProperty("database.connected");
     expect(response.body).toHaveProperty("redis.ready");
   });
+
+  it("returns JSON content-type", async () => {
+    const response = await request(app).get("/api/health");
+    expect(response.headers["content-type"]).toContain("application/json");
+  });
 });
