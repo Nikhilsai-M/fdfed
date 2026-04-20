@@ -139,7 +139,7 @@ describe("customer.controller profile validation", () => {
           first_name: "Nikhil",
           last_name: "Kumar",
           email: "nikhil@example.com",
-          phone: "+91 987654321055",
+          phone: "+91 9876543210",
           "address.street": "12 Main Road",
           "address.city": "Hyderabad",
           "address.state": "Telangana",

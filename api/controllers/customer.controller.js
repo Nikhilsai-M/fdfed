@@ -9,7 +9,7 @@ import Notification from "../models/notification.model.js"; // Add this import
 import { v4 as uuidv4 } from 'uuid'; // Add this import
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PHONE_REGEX = /^[0-9+\-\s()]{10}$/;
+const PHONE_REGEX = /^[0-9+\-\s()]{10,15}$/;
 
 function isNonEmptyText(value, minLength = 1) {
     return typeof value === "string" && value.trim().length >= minLength;
