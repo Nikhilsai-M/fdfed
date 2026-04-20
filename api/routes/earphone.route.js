@@ -8,7 +8,9 @@ import {
   updateEarphone,
   deleteEarphone,
 } from '../crud/earphones.js';
-
+import { cacheResponse } from "../middleware/cache.middleware.js";
+import { invalidateCatalogCaches } from "../config/redis.js";
+const inventoryCacheTtl ="120";
 const router = express.Router();
 
 /**
@@ -28,15 +30,21 @@ const router = express.Router();
  *       200:
  *         description: List of earphones
  */
-router.get('/', async (req, res) => {
-  try {
-    const earphones = await getAllEarphones();
-    res.json(earphones);
-  } catch {
-    res.status(500).json({ message: 'Server error while fetching earphones' });
+router.get(
+  '/',
+  cacheResponse({
+    keyBuilder: () => "inventory:earphones:all",
+    ttlSeconds: inventoryCacheTtl,
+  }),
+  async (req, res) => {
+    try {
+      const earphones = await getAllEarphones();
+      res.json(earphones);
+    } catch {
+      res.status(500).json({ message: 'Server error while fetching earphones' });
+    }
   }
-});
-
+);
 /**
  * @swagger
  * /api/Accessories/earphones/{id}:
@@ -55,16 +63,23 @@ router.get('/', async (req, res) => {
  *       404:
  *         description: Earphone not found
  */
-router.get('/:id', async (req, res) => {
-  try {
-    const earphone = await getEarphoneById(req.params.id);
-    if (!earphone)
-      return res.status(404).json({ message: 'Earphone not found' });
-    res.json(earphone);
-  } catch {
-    res.status(500).json({ message: 'Server error while fetching earphone' });
+router.get(
+  '/:id',
+  cacheResponse({
+    keyBuilder: (req) => `inventory:earphone:${req.params.id}`,
+    ttlSeconds: inventoryCacheTtl,
+  }),
+  async (req, res) => {
+    try {
+      const earphone = await getEarphoneById(req.params.id);
+      if (!earphone)
+        return res.status(404).json({ message: 'Earphone not found' });
+      res.json(earphone);
+    } catch {
+      res.status(500).json({ message: 'Server error while fetching earphone' });
+    }
   }
-});
+);
 
 /**
  * @swagger
@@ -138,6 +153,7 @@ router.post('/', upload.single('image'), async (req, res) => {
 
     const result = await addEarphone(payload);
     if (result.success) {
+      await invalidateCatalogCaches();
       res.status(201).json({ message: 'Earphone created', id: result.id });
     } else {
       res.status(400).json({ message: result.message });
@@ -196,6 +212,7 @@ router.put('/:id', async (req, res) => {
   try {
     const result = await updateEarphone(req.params.id, req.body);
     if (result.success) {
+      await invalidateCatalogCaches();
       res.json({ message: 'Earphone updated successfully' });
     } else {
       res.status(400).json({ message: result.message });
@@ -227,6 +244,7 @@ router.delete('/:id', async (req, res) => {
   try {
     const result = await deleteEarphone(req.params.id);
     if (result.success) {
+      await invalidateCatalogCaches();
       res.json({ message: 'Earphone deleted successfully' });
     } else {
       res.status(404).json({ message: 'Earphone not found' });

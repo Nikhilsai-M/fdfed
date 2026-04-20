@@ -8,7 +8,9 @@ import {
   updateSmartwatch,
   deleteSmartwatch,
 } from '../crud/smartwatches.js';
-
+import { cacheResponse } from "../middleware/cache.middleware.js";
+import { invalidateCatalogCaches } from "../config/redis.js";
+const inventoryCacheTtl ="120";
 const router = express.Router();
 
 /**
@@ -28,14 +30,21 @@ const router = express.Router();
  *       200:
  *         description: List of smartwatches
  */
-router.get('/', async (req, res) => {
-  try {
-    const smartwatches = await getAllSmartwatches();
-    res.json(smartwatches);
-  } catch {
-    res.status(500).json({ message: 'Server error while fetching smartwatches' });
+router.get(
+  '/',
+  cacheResponse({
+    keyBuilder: () => "inventory:smartwatches:all",
+    ttlSeconds: inventoryCacheTtl,
+  }),
+  async (req, res) => {
+    try {
+      const smartwatches = await getAllSmartwatches();
+      res.json(smartwatches);
+    } catch {
+      res.status(500).json({ message: 'Server error while fetching smartwatches' });
+    }
   }
-});
+);
 
 /**
  * @swagger
@@ -55,16 +64,23 @@ router.get('/', async (req, res) => {
  *       404:
  *         description: Smartwatch not found
  */
-router.get('/:id', async (req, res) => {
-  try {
-    const smartwatch = await getSmartwatchById(req.params.id);
-    if (!smartwatch)
-      return res.status(404).json({ message: 'Smartwatch not found' });
-    res.json(smartwatch);
-  } catch {
-    res.status(500).json({ message: 'Server error while fetching smartwatch' });
+router.get(
+  '/:id',
+  cacheResponse({
+    keyBuilder: (req) => `inventory:smartwatch:${req.params.id}`,
+    ttlSeconds: inventoryCacheTtl,
+  }),
+  async (req, res) => {
+    try {
+      const smartwatch = await getSmartwatchById(req.params.id);
+      if (!smartwatch)
+        return res.status(404).json({ message: 'Smartwatch not found' });
+      res.json(smartwatch);
+    } catch {
+      res.status(500).json({ message: 'Server error while fetching smartwatch' });
+    }
   }
-});
+);
 
 /**
  * @swagger
@@ -142,6 +158,7 @@ router.post('/', upload.single('image'), async (req, res) => {
 
     const result = await addSmartwatch(payload);
     if (result.success) {
+      await invalidateCatalogCaches();
       res.status(201).json({ message: 'Smartwatch created', id: result.id });
     } else {
       res.status(400).json({ message: result.message });
@@ -200,6 +217,7 @@ router.put('/:id', async (req, res) => {
   try {
     const result = await updateSmartwatch(req.params.id, req.body);
     if (result.success) {
+      await invalidateCatalogCaches();
       res.json({ message: 'Smartwatch updated successfully' });
     } else {
       res.status(400).json({ message: result.message });
@@ -231,6 +249,7 @@ router.delete('/:id', async (req, res) => {
   try {
     const result = await deleteSmartwatch(req.params.id);
     if (result.success) {
+      await invalidateCatalogCaches();
       res.json({ message: 'Smartwatch deleted successfully' });
     } else {
       res.status(404).json({ message: 'Smartwatch not found' });
