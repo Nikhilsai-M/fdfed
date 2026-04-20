@@ -53,6 +53,11 @@ const Cart = () => {
       return;
     }
 
+    const item = cartItems.find((cartItem) => cartItem.itemId === itemId);
+    if (item && typeof item.stock === "number" && quantity > item.stock) {
+      return;
+    }
+
     try {
       const cart = await updateCartItem(itemId, quantity);
       const items = cart?.items || [];
