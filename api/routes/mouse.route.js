@@ -8,6 +8,9 @@ import {
   updateMouse,
   deleteMouse,
 } from '../crud/mouses.js';
+import { cacheResponse } from "../middleware/cache.middleware.js";
+import { invalidateCatalogCaches } from "../config/redis.js";
+const inventoryCacheTtl ="120";
 
 const router = express.Router();
 
@@ -28,14 +31,21 @@ const router = express.Router();
  *       200:
  *         description: List of mouses
  */
-router.get('/', async (req, res) => {
-  try {
-    const mouses = await getAllMouses();
-    res.json(mouses);
-  } catch {
-    res.status(500).json({ message: 'Server error while fetching mouses' });
+router.get(
+  '/',
+  cacheResponse({
+    keyBuilder: () => "inventory:mouses:all",
+    ttlSeconds: inventoryCacheTtl,
+  }),
+  async (req, res) => {
+    try {
+      const mouses = await getAllMouses();
+      res.json(mouses);
+    } catch {
+      res.status(500).json({ message: 'Server error while fetching mouses' });
+    }
   }
-});
+);
 
 /**
  * @swagger
@@ -55,15 +65,22 @@ router.get('/', async (req, res) => {
  *       404:
  *         description: Mouse not found
  */
-router.get('/:id', async (req, res) => {
-  try {
-    const mouse = await getMouseById(req.params.id);
-    if (!mouse) return res.status(404).json({ message: 'Mouse not found' });
-    res.json(mouse);
-  } catch {
-    res.status(500).json({ message: 'Server error' });
+router.get(
+  '/:id',
+  cacheResponse({
+    keyBuilder: (req) => `inventory:mouse:${req.params.id}`,
+    ttlSeconds: inventoryCacheTtl,
+  }),
+  async (req, res) => {
+    try {
+      const mouse = await getMouseById(req.params.id);
+      if (!mouse) return res.status(404).json({ message: 'Mouse not found' });
+      res.json(mouse);
+    } catch {
+      res.status(500).json({ message: 'Server error' });
+    }
   }
-});
+);
 
 /**
  * @swagger
@@ -140,6 +157,7 @@ router.post('/', upload.single('image'), async (req, res) => {
 
     const result = await addMouse(payload);
     if (result.success) {
+      await invalidateCatalogCaches();
       res.status(201).json({ message: 'Mouse created', id: result.id });
     } else {
       res.status(400).json({ message: result.message });
@@ -199,7 +217,10 @@ router.post('/', upload.single('image'), async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const result = await updateMouse(req.params.id, req.body);
-    if (result.success) res.json({ message: 'Updated successfully' });
+    if (result.success){ 
+      await invalidateCatalogCaches();
+      res.json({ message: 'Updated successfully' });
+  }
     else res.status(400).json({ message: result.message });
   } catch {
     res.status(500).json({ message: 'Server error' });
@@ -227,7 +248,9 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const result = await deleteMouse(req.params.id);
-    if (result.success) res.json({ message: 'Deleted successfully' });
+    if (result.success) {
+      await invalidateCatalogCaches();
+      res.json({ message: 'Deleted successfully' });}
     else res.status(404).json({ message: 'Mouse not found' });
   } catch {
     res.status(500).json({ message: 'Server error' });

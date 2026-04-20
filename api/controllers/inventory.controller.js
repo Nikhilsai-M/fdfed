@@ -7,11 +7,28 @@ import {
   getAllSmartwatches, addSmartwatch, updateSmartwatch, deleteSmartwatch
 } from '../crud/inventory.js';
 import { invalidateCatalogCaches } from "../config/redis.js";
+import { getCache, setCache, isRedisReady } from "../config/redis.js";
 
-
-// Get all inventory items
 export const getAllInventory = async (req, res, next) => {
+  const cacheKey = "inventory:all";
+
   try {
+    const startTime = Date.now();
+
+    
+    if (isRedisReady()) {
+      const cached = await getCache(cacheKey);
+
+      if (cached) {
+        console.log(" CACHE HIT - Inventory fetched from Redis");
+        console.log(" Time taken:", Date.now() - startTime, "ms");
+
+        return res.json(cached);
+      }
+    }
+
+    console.log(" CACHE MISS - Fetching from DB");
+
     const dbFunctions = {
       phones: getAllPhones,
       laptops: getAllLaptops,
@@ -22,19 +39,29 @@ export const getAllInventory = async (req, res, next) => {
     };
 
     const allItems = [];
-    
+
     for (const [type, fetchFunction] of Object.entries(dbFunctions)) {
       const items = await fetchFunction();
       allItems.push(...items.map(item => ({ ...item, type })));
     }
 
-    res.json({ success: true, items: allItems });
+    const responseData = { success: true, items: allItems };
+
+    //  Store in Redis
+    if (isRedisReady()) {
+      await setCache(cacheKey, responseData, 120); 
+      console.log(" Stored inventory in Redis");
+    }
+
+    console.log(" Time taken:", Date.now() - startTime, "ms");
+
+    res.json(responseData);
+
   } catch (error) {
     console.error('Error fetching inventory:', error);
     next(error);
   }
 };
-
 // Add new inventory item
 export const addInventoryItem = async (req, res, next) => {
   const { type, id, brand, pricing, image, ...specificData } = req.body;

@@ -8,6 +8,9 @@ import {
   updateCharger,
   deleteCharger,
 } from '../crud/chargers.js';
+import { cacheResponse } from "../middleware/cache.middleware.js";
+import { invalidateCatalogCaches } from "../config/redis.js";
+const inventoryCacheTtl ="120";
 
 const router = express.Router();
 
@@ -28,7 +31,11 @@ const router = express.Router();
  *       200:
  *         description: List of chargers
  */
-router.get('/', async (req, res) => {
+router.get('/', 
+  cacheResponse({
+      keyBuilder: () => "inventory:chargers:all",
+      ttlSeconds: inventoryCacheTtl,
+    }),async (req, res) => {
   try {
     const chargers = await getAllChargers();
     res.json(chargers);
@@ -55,7 +62,11 @@ router.get('/', async (req, res) => {
  *       404:
  *         description: Charger not found
  */
-router.get('/:id', async (req, res) => {
+router.get('/:id', 
+   cacheResponse({
+      keyBuilder: (req) => `inventory:charger:${req.params.id}`,
+      ttlSeconds: inventoryCacheTtl,
+    }),async (req, res) => {
   try {
     const charger = await getChargerById(req.params.id);
     if (!charger) return res.status(404).json({ message: 'Charger not found' });
@@ -141,6 +152,7 @@ router.post('/', upload.single('image'), async (req, res) => {
 
     const result = await addCharger(payload);
     if (result.success) {
+      await invalidateCatalogCaches();
       res.status(201).json({ message: 'Charger created', id: result.id });
     } else {
       res.status(400).json({ message: result.message });
@@ -201,6 +213,7 @@ router.put('/:id', async (req, res) => {
   try {
     const result = await updateCharger(req.params.id, req.body);
     if (result.success) {
+      await invalidateCatalogCaches();
       res.json({ message: 'Updated successfully' });
     } else {
       res.status(400).json({ message: result.message });
@@ -232,6 +245,7 @@ router.delete('/:id', async (req, res) => {
   try {
     const result = await deleteCharger(req.params.id);
     if (result.success) {
+      await invalidateCatalogCaches();
       res.json({ message: 'Deleted successfully' });
     } else {
       res.status(404).json({ message: 'Not found' });
