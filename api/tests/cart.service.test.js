@@ -37,9 +37,41 @@ describe("cart.service", () => {
     });
 
     expect(snapshot.unitPrice).toBe(45000);
+    expect(snapshot.stock).toBe(1);
     expect(snapshot.snapshot.title).toBe("Apple iPhone 15");
     expect(snapshot.snapshot.processor).toBe("A17");
     expect(snapshot.available).toBe(true);
+  });
+
+  it("treats laptops as single-stock cart items", () => {
+    const snapshot = buildCartSnapshot("laptop", {
+      brand: "Dell",
+      series: "XPS 13",
+      image: "/laptop.png",
+      pricing: {
+        basePrice: 90000,
+        discount: 5,
+      },
+      processor: {
+        name: "Intel i7",
+        generation: "13th Gen",
+      },
+      memory: {
+        ram: "16GB",
+        storage: {
+          type: "SSD",
+          capacity: "512GB",
+        },
+      },
+      displaysize: 13.4,
+      os: "Windows 11",
+      weight: 1.2,
+      condition: "Excellent",
+    });
+
+    expect(snapshot.stock).toBe(1);
+    expect(snapshot.available).toBe(true);
+    expect(snapshot.snapshot.title).toBe("Dell XPS 13");
   });
 
   it("builds an accessory snapshot with stock awareness", () => {

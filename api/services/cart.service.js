@@ -72,7 +72,7 @@ export function buildCartSnapshot(productType, product) {
       originalPrice,
       discount,
       unitPrice: computeUnitPrice(originalPrice, discount),
-      stock: null,
+      stock: 1,
       available: true,
       snapshot: {
         title: `${product.brand} ${product.model}`.trim(),
@@ -107,7 +107,7 @@ export function buildCartSnapshot(productType, product) {
       originalPrice,
       discount,
       unitPrice: computeUnitPrice(originalPrice, discount),
-      stock: null,
+      stock: 1,
       available: true,
       snapshot: {
         title: `${product.brand} ${product.series}`.trim(),
