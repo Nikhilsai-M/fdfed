@@ -316,7 +316,7 @@ const HomePage = () => {
       <div id="products-section" data-animate className={`mb-16 ${isVisible['products-section'] ? 'scroll-reveal visible' : 'scroll-reveal'}`}>
         <div className="flex items-center justify-between ml-6 mr-6 mb-6">
           <h2 className="text-4xl font-bold text-gradient animate-slide-in-left">
-            Newly Added Products
+            Newly Added Products From SmartExchange
           </h2>
           <div className="h-1 flex-1 mx-6 bg-gradient-to-r from-blue-500 to-transparent rounded animate-slide-in-right"></div>
         </div>
