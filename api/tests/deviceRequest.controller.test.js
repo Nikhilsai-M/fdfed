@@ -51,6 +51,8 @@ describe("deviceRequest.controller", () => {
     vi.clearAllMocks();
   });
 
+  // ─── createDeviceRequest ──────────────────────────────────────────────────
+
   it("rejects requests without device type or brand", async () => {
     const next = vi.fn();
 
@@ -119,6 +121,24 @@ describe("deviceRequest.controller", () => {
     });
     expect(next).not.toHaveBeenCalled();
   });
+
+  it("passes database errors from createDeviceRequest to next middleware", async () => {
+    const next = vi.fn();
+    deviceRequestMocks.create.mockRejectedValue(new Error("DB connection failed"));
+
+    await createDeviceRequest(
+      {
+        body: { device_type: "phone", criteria: { brand: "Apple" } },
+        user: { user_id: "user-2" },
+      },
+      createResponse(),
+      next
+    );
+
+    expect(next).toHaveBeenCalledWith(expect.any(Error));
+  });
+
+  // ─── updateDeviceRequestStatus ────────────────────────────────────────────
 
   it("returns not found when trying to update a missing request", async () => {
     const next = vi.fn();

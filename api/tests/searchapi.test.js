@@ -57,4 +57,10 @@ describe("GET /search", () => {
     expect(res.body).toHaveProperty("count");
     expect(res.body).toHaveProperty("query");
   });
+
+  it("handles uppercase query parameter gracefully", async () => {
+    const res = await request(app).get("/search?q=PHONE");
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+  });
 });

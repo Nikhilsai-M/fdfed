@@ -20,3 +20,8 @@ it("should handle inventory request", async () => {
     expect(res.body).toHaveProperty("items");
   }
 });
+
+it("should not return a 5xx error for inventory request", async () => {
+  const res = await request(app).get("/api/supervisor/inventory");
+  expect(res.statusCode).toBeLessThan(500);
+});

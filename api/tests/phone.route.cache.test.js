@@ -52,6 +52,8 @@ describe("phone.route caching", () => {
     });
   });
 
+  // ─── Cache MISS ───────────────────────────────────────────────────────────
+
   it("caches the full phone catalog on cache miss", async () => {
     phoneCrudMocks.getAllPhones.mockResolvedValue([
       { id: 1, brand: "Apple", model: "iPhone 14" },
@@ -74,6 +76,18 @@ describe("phone.route caching", () => {
       120
     );
   });
+
+  it("sets an X-Cache header on every cache-miss response", async () => {
+    phoneCrudMocks.getAllPhones.mockResolvedValue([{ id: 3, brand: "Xiaomi" }]);
+    redisMocks.getCache.mockResolvedValue(null);
+    redisMocks.setCache.mockResolvedValue(true);
+
+    const response = await request(app).get("/api/phones");
+
+    expect(response.headers).toHaveProperty("x-cache");
+  });
+
+  // ─── Cache HIT ────────────────────────────────────────────────────────────
 
   it("serves the full phone catalog from cache on cache hit", async () => {
     redisMocks.getCache.mockResolvedValue({

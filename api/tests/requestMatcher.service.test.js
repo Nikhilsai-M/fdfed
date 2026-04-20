@@ -31,6 +31,8 @@ describe("requestMatcher.service", () => {
     vi.clearAllMocks();
   });
 
+  // ─── Laptop matching ──────────────────────────────────────────────────────
+
   it("marks laptop requests fulfilled and notifies the customer with the laptop series", async () => {
     const save = vi.fn();
     const matchingRequest = {
@@ -84,5 +86,36 @@ describe("requestMatcher.service", () => {
     });
 
     expect(notificationMocks.create).not.toHaveBeenCalled();
+  });
+
+  it("uses item.model (not item.series) for phone device notifications", async () => {
+    const save = vi.fn();
+    deviceRequestMocks.find.mockResolvedValue([
+      { user_id: "u1", criteria: { brand: "Samsung" }, fulfilled: false, active: true, save },
+    ]);
+
+    await matchRequests("phone", { id: 200, brand: "Samsung", model: "Galaxy S24" });
+
+    expect(notificationMocks.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        application_type: "phone",
+        message: "Samsung Galaxy S24 is now available",
+      })
+    );
+  });
+
+  it("processes multiple matching requests and notifies all users", async () => {
+    const save1 = vi.fn();
+    const save2 = vi.fn();
+    deviceRequestMocks.find.mockResolvedValue([
+      { user_id: "u1", criteria: { brand: "Apple" }, fulfilled: false, active: true, save: save1 },
+      { user_id: "u2", criteria: { brand: "Apple" }, fulfilled: false, active: true, save: save2 },
+    ]);
+
+    await matchRequests("phone", { id: 300, brand: "Apple", model: "iPhone 16" });
+
+    expect(notificationMocks.create).toHaveBeenCalledTimes(2);
+    expect(save1).toHaveBeenCalled();
+    expect(save2).toHaveBeenCalled();
   });
 });
