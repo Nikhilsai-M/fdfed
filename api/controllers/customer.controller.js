@@ -8,6 +8,24 @@ import LaptopApplication from "../models/laptopApplication.model.js";
 import Notification from "../models/notification.model.js"; // Add this import
 import { v4 as uuidv4 } from 'uuid'; // Add this import
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_REGEX = /^[0-9+\-\s()]{10}$/;
+
+function isNonEmptyText(value, minLength = 1) {
+    return typeof value === "string" && value.trim().length >= minLength;
+}
+
+function isCompleteAddress(address) {
+    return Boolean(
+        address &&
+        isNonEmptyText(address.street) &&
+        isNonEmptyText(address.city) &&
+        isNonEmptyText(address.state) &&
+        isNonEmptyText(address.postal_code) &&
+        isNonEmptyText(address.country)
+    );
+}
+
 // Get customer profile
 export const getCustomerProfile = async (req, res, next) => {
     try {
@@ -44,6 +62,26 @@ export const updateCustomerProfile = async (req, res, next) => {
     try {
         const { first_name, last_name, email, phone, address } = req.body;
         const userId = req.user.user_id;
+
+        if (!isNonEmptyText(first_name, 2)) {
+            return next(errorHandler(400, 'First name must be at least 2 characters'));
+        }
+
+        if (!isNonEmptyText(last_name, 2)) {
+            return next(errorHandler(400, 'Last name must be at least 2 characters'));
+        }
+
+        if (!EMAIL_REGEX.test(String(email || "").trim())) {
+            return next(errorHandler(400, 'Please enter a valid email address'));
+        }
+
+        if (!PHONE_REGEX.test(String(phone || "").trim())) {
+            return next(errorHandler(400, 'Please enter a valid phone number'));
+        }
+
+        if (!isCompleteAddress(address)) {
+            return next(errorHandler(400, 'Complete address is required'));
+        }
 
         // Check if email already exists for another user
         const emailCheck = await User.findOne({ email, user_id: { $ne: userId } });
